@@ -2,7 +2,7 @@
 % Please edit documentation in R/transform_shp_country_extent.R
 \name{transform_shp_country_extent}
 \alias{transform_shp_country_extent}
-\title{Create extent from country name or a shp file.}
+\title{Create extent & extent in latitude and longitude from country name, a shp file or extent.}
 \usage{
 transform_shp_country_extent(
   EPSG,
@@ -24,7 +24,7 @@ transform_shp_country_extent(
 character vector. with extent of the area in one character, other are latlon coord of area
 }
 \description{
-Create extent from country name or a shp file.
+Create extent & extent in latitude and longitude from country name, a shp file or extent.
 }
 \details{
 \code{country_name} must be available on \verb{https://www.naturalearthdata.com/} website.

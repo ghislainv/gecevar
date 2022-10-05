@@ -1,5 +1,5 @@
 transform_shp_country_extent <- function(EPSG, country_name = NULL, shapefile_path = NULL, extent_short = NULL){
-  #' Create extent from country name or a shp file.
+  #' Create extent & extent in latitude and longitude from country name, a shp file or extent.
   #'
   #' @param country_name character. English country name. Check `details` for more information, default is NULL.
   #' @param shapefile_path character. Path to a .shp file, default is NULL.
@@ -12,6 +12,7 @@ transform_shp_country_extent <- function(EPSG, country_name = NULL, shapefile_pa
   #' @import rnaturalearth
   #' @import rnaturalearthdata
   #' @import rnaturalearthhires
+  #' @import terra
 
   if ((!is.null(country_name) + !is.null(shapefile_path) + !is.null(extent_short)) != 1){
     print("only one attribute among country_name, shapefile_path and extent_short")
@@ -41,6 +42,10 @@ transform_shp_country_extent <- function(EPSG, country_name = NULL, shapefile_pa
   }
   if (!is.null(extent_short)){
     extent <- round(extent_short)
+    e <- ext(extent[1], extent[3], extent[2], extent[4])
+    e <- as.polygons(e)
+    crs(e) <- paste0("epsg:", EPSG)
+    extent_latlon <- st_bbox(project(e, "epsg:4326"))
   }
   extent <- paste(extent[1], extent[2], extent[3], extent[4], sep = " ")
   return(c(extent, extent_latlon))

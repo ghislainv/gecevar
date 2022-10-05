@@ -31,5 +31,6 @@ Imports:
     stars,
     stats,
     stringr,
+    terra,
     utils,
     wdpar

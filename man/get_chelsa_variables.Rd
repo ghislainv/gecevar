@@ -2,17 +2,26 @@
 % Please edit documentation in R/get_chelsa_variables.R
 \name{get_chelsa_variables}
 \alias{get_chelsa_variables}
-\title{Download and crop tif files from chelsa-climate.org
-Cropping using country name or shapefile or extent.}
+\title{Create multilayer Tiff file with 93 variables from chelsa-climate.org
+Monthly variables are average temperatures, min temperatures, max temperatures, precipitation, potential evapotranspiration,
+and total cloud cover.
+Others variables are climatic water  deficit, number of dry month and 19 bio variables (more information in chelsa documentations).}
 \usage{
-get_chelsa_variables(extent, EPSG)
+get_chelsa_variables(extent, EPSG, destination)
 }
 \arguments{
 \item{extent}{character. output of \code{transform_shp_coutry_extend}}
 
 \item{EPSG}{int. to consider for this country/area.}
+
+\item{destination}{character. absolute path where to download files like \code{here()} output.}
+}
+\value{
+character. absolute path to climate_chelsa.tif.
 }
 \description{
-Download and crop tif files from chelsa-climate.org
-Cropping using country name or shapefile or extent.
+Create multilayer Tiff file with 93 variables from chelsa-climate.org
+Monthly variables are average temperatures, min temperatures, max temperatures, precipitation, potential evapotranspiration,
+and total cloud cover.
+Others variables are climatic water  deficit, number of dry month and 19 bio variables (more information in chelsa documentations).
 }
