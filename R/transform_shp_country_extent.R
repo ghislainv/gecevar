@@ -1,5 +1,9 @@
 transform_shp_country_extent <- function(EPSG, country_name = NULL, shapefile_path = NULL, extent_short = NULL){
-  #' Create extent & extent in latitude and longitude from country name, a shp file or extent.
+  #' Create extent & extent in latitude and longitude
+  #'
+  #' @description
+  #' With a country name, a shapefile or a extent and an EPSG value.
+  #' Succed to give extent in EPSG reproject and extent with default EPSG also knows as latitude and longitude coordinates.
   #'
   #' @param country_name character. English country name. Check `details` for more information, default is NULL.
   #' @param shapefile_path character. Path to a .shp file, default is NULL.

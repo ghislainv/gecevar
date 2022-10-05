@@ -2,7 +2,7 @@
 % Please edit documentation in R/merge_files.R
 \name{merge_files}
 \alias{merge_files}
-\title{Create a mulitlayer Tiff file with environ & climat variables. Project with a specific EPSG.}
+\title{Create a multilayer Tiff file with environ & climat variables.}
 \usage{
 merge_files(environ_path, climat_path, destination)
 }
@@ -17,5 +17,5 @@ merge_files(environ_path, climat_path, destination)
 character. absolute path to gecevar.tif.
 }
 \description{
-Create a mulitlayer Tiff file with environ & climat variables. Project with a specific EPSG.
+Use output of \code{get_env_variables} and \code{get_chelsa_variables} to create an unique file with more than 100 variables.
 }

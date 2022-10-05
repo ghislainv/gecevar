@@ -2,15 +2,12 @@
 % Please edit documentation in R/get_chelsa_variables.R
 \name{get_chelsa_variables}
 \alias{get_chelsa_variables}
-\title{Create multilayer Tiff file with 93 variables from chelsa-climate.org
-Monthly variables are average temperatures, min temperatures, max temperatures, precipitation, potential evapotranspiration,
-and total cloud cover.
-Others variables are climatic water  deficit, number of dry month and 19 bio variables (more information in chelsa documentations).}
+\title{Create multilayer Tiff file with 93 variables from chelsa-climate.org}
 \usage{
 get_chelsa_variables(extent, EPSG, destination)
 }
 \arguments{
-\item{extent}{character. output of \code{transform_shp_coutry_extend}}
+\item{extent}{character. First output of \code{transform_shp_coutry_extend}}
 
 \item{EPSG}{int. to consider for this country/area.}
 
@@ -20,7 +17,7 @@ get_chelsa_variables(extent, EPSG, destination)
 character. absolute path to climate_chelsa.tif.
 }
 \description{
-Create multilayer Tiff file with 93 variables from chelsa-climate.org
+Gives the average values on the data recovered between 1981 and 2010.
 Monthly variables are average temperatures, min temperatures, max temperatures, precipitation, potential evapotranspiration,
 and total cloud cover.
 Others variables are climatic water  deficit, number of dry month and 19 bio variables (more information in chelsa documentations).

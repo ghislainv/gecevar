@@ -1,10 +1,13 @@
 get_chelsa_variables <- function(extent, EPSG, destination){
   #' Create multilayer Tiff file with 93 variables from chelsa-climate.org
+  #'
+  #' @description
+  #' Gives the average values on the data recovered between 1981 and 2010.
   #' Monthly variables are average temperatures, min temperatures, max temperatures, precipitation, potential evapotranspiration,
   #' and total cloud cover.
   #' Others variables are climatic water  deficit, number of dry month and 19 bio variables (more information in chelsa documentations).
   #'
-  #' @param extent character. output of `transform_shp_coutry_extend`
+  #' @param extent character. First output of `transform_shp_coutry_extend`
   #' @param EPSG int. to consider for this country/area.
   #' @param destination character. absolute path where to download files like `here()` output.
   #' @return character. absolute path to climate_chelsa.tif.

@@ -1,5 +1,8 @@
 merge_files <- function(environ_path, climat_path, destination){
-  #' Create a mulitlayer Tiff file with environ & climat variables. Project with a specific EPSG.
+  #' Create a multilayer Tiff file with environ & climat variables.
+  #'
+  #' @description
+  #' Use output of `get_env_variables` and `get_chelsa_variables` to create an unique file with more than 100 variables.
   #'
   #' @param environ_path character. absolute path to environ.tif file, output of `get_env_variables`.
   #' @param climat_path  character. absolute path to current_chelsa.tif.tif file, output of `get_chelsa_variables`

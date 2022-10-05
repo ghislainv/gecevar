@@ -2,9 +2,7 @@
 % Please edit documentation in R/get_env_variables.R
 \name{get_env_variables}
 \alias{get_env_variables}
-\title{Create multilayer Tiff file with 11 variables
-Variables are type of soil, elevation, slope, aspect, roughness, solar radiation, distance to sea,
-protected areas, distance to roads, distance to cities and town, distance to rivers & lake.}
+\title{Create multilayer Tiff file with 11 environmental variables}
 \usage{
 get_env_variables(extent_latlon, extent, EPSG, country_name, destination)
 }
@@ -23,7 +21,6 @@ get_env_variables(extent_latlon, extent, EPSG, country_name, destination)
 character. absolute path to environ.tif file.
 }
 \description{
-Create multilayer Tiff file with 11 variables
 Variables are type of soil, elevation, slope, aspect, roughness, solar radiation, distance to sea,
 protected areas, distance to roads, distance to cities and town, distance to rivers & lake.
 }

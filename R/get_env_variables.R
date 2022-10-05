@@ -1,5 +1,7 @@
 get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destination){
-  #' Create multilayer Tiff file with 11 variables
+  #' Create multilayer Tiff file with 11 environmental variables
+  #'
+  #' @description
   #' Variables are type of soil, elevation, slope, aspect, roughness, solar radiation, distance to sea,
   #' protected areas, distance to roads, distance to cities and town, distance to rivers & lake.
   #'
