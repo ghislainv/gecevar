@@ -28,5 +28,5 @@ With a country name, a shapefile or a extent and an EPSG value.
 Succed to give extent in EPSG reproject and extent with default EPSG also knows as latitude and longitude coordinates.
 }
 \details{
-\code{country_name} must be available on \verb{https://www.naturalearthdata.com/} website.
+\code{country_name} must be available on \verb{https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-details/} website.
 }

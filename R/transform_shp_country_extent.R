@@ -11,16 +11,17 @@ transform_shp_country_extent <- function(EPSG, country_name = NULL, shapefile_pa
   #' @param EPSG int. to consider for this country/area.
   #'
   #' @return character vector. with extent of the area in one character, other are latlon coord of area
-  #' @details `country_name` must be available on `https://www.naturalearthdata.com/` website.
+  #' @details `country_name` must be available on `https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-details/` website.
   #' @import sf
   #' @import rnaturalearth
   #' @import rnaturalearthdata
   #' @import rnaturalearthhires
   #' @import terra
+  #' @export
 
   if ((!is.null(country_name) + !is.null(shapefile_path) + !is.null(extent_short)) != 1){
-    print("only one attribute among country_name, shapefile_path and extent_short")
-    break
+    stop("Only one attribute among country_name, shapefile_path and extent_short")
+
   }
   if (!is.null(country_name)){
     map <- ne_countries(scale = 10, country = country_name, returnclass = "sf")

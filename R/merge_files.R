@@ -12,6 +12,7 @@ merge_files <- function(environ_path, climat_path, destination){
   #' @import glue
   #' @import rgdal
   #' @import stars
+  #' @export
 
   nodat = -9999
   system(glue('gdal_merge.py -ot Int16 -of GTiff -o {paste(destination, "output", "gecevar.tif", sep = "/")} -a_nodata {nodat} -separate \\

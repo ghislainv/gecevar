@@ -1,4 +1,4 @@
-get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destination){
+get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, destination){
   #' Create multilayer Tiff file with 11 environmental variables
   #'
   #' @description
@@ -8,12 +8,11 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   #' @param extent_latlon int vector. in this order c(lon_min, lat_min, lon_max, lat_max).
   #' @param extent character. First output of `transform_shp_country_extent` function.
   #' @param EPSG int. to consider for this country/area.
-  #' @param country_name character. country name (in english) to considers.
+  #' @param country_name (optional) character. country name (in english) which be use to collect protected areas. This country must be available in `https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA`, default is NULL.
   #' @param destination character. absolute path where to download files like `here()` output.
   #' @return character. absolute path to environ.tif file.
   #'
   #' @import glue
-  #' @import here
   #' @import sf
   #' @import stars
   #' @import rgrass7
@@ -24,7 +23,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   #' @import stringr
   #' @import httr
   #' @import retry
-  #'
+  #' @export
 
   dir.create(path = destination, recursive = TRUE, showWarnings = FALSE)
   destination <- paste0(destination, "/")
@@ -171,15 +170,15 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   setwd(paste(destination, "data_raw", sep = "/"))
   Sys.setenv(LD_LIBRARY_PATH = paste("/usr/lib/grass80/lib", Sys.getenv("LD_LIBRARY_PATH"), sep = ":"))
   # use a georeferenced raster
-  elevation <- paste(destination, "data_raw", "srtm_v1_4_90m", "temp", "elevation.tif", sep = "/")
-  system(glue('grass -c {elevation} grassdata/environ'))
+  elevation <- paste(destination, "data_raw/srtm_v1_4_90m/temp/elevation.tif", sep = "/")
+  system(glue('grass -c {elevation} -e grassdata/environ'))
   # connect to grass database
   initGRASS(gisBase = "/usr/lib/grass80",
             gisDbase = "grassdata", home = tempdir(),
             location = "environ", mapset = "PERMANENT",
             override = TRUE)
   ## Import raster in grass
-  system(glue("r.in.gdal -e --o input={elevation} output=elevation"))
+  system(glue("r.in.gdal -e -o input={elevation} output=elevation"))
   slope <- paste(destination, "data_raw", "srtm_v1_4_90m", "temp", "slope.tif", sep = "/")
   system(glue("r.in.gdal -e --o input={slope} output=slope"))
   aspect <- paste(destination, "data_raw", "srtm_v1_4_90m", "temp", "aspect.tif", sep = "/")
@@ -188,9 +187,8 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   system(glue("r.sun --overwrite --verbose elevation=elevation aspect=aspect slope=slope day=79 glob_rad=global_rad"))
 
   # Export
-  system(glue("r.out.gdal -f --verbose --overwrite input=global_rad \\
-  			 output={paste(destination, 'data_raw', 'srtm_v1_4_90m', 'temp', 'srad.tif', sep = "/")} type=Int16  \\
-  			 createopt='COMPRESS=LZW' nodata={nodat}"))
+  system(glue("r.out.gdal -f --verbose --overwrite input=global_rad createopt='COMPRESS=LZW' nodata={nodat} \\
+  			 output={paste(destination, 'data_raw', 'srtm_v1_4_90m', 'temp', 'srad.tif', sep = '/')} type=Int16"))
 
   # Resolution from 90m x 90m to 1000m x 1000m using gdalwarp
   # srad
@@ -228,22 +226,22 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   ## Available at: www.protectedplanet.net
   ##
   ##=========================
-
-  dir.create(paste(destination, "data_raw", "WDPA", sep = "/"), showWarnings = FALSE)
-  dir.create(paste(destination, "data_raw", "WDPA", "temp", sep = "/"), showWarnings = FALSE)
-  POST(url = "https://www.protectedplanet.net/downloads", encode = "json", body = list("domain" = "general", "format" = "gdb", "token" = ISO_country_code))
-  wait_until(url.exists(paste0("https://d1gam3xoknrgr2.cloudfront.net/current/WDPA_WDOECM_", str_remove(str_to_title(format(Sys.Date(), format = "%b%Y")), "\\."), "_Public_", ISO_country_code, ".zip")), timeout = 60)
-  download.file(paste0("https://d1gam3xoknrgr2.cloudfront.net/current/WDPA_WDOECM_", str_remove(str_to_title(format(Sys.Date(), format = "%b%Y")), "\\."), "_Public_", ISO_country_code, ".zip"),
-                destfile = paste(destination, "data_raw", "WDPA","temp", paste0("WDPA_WDOECM_", str_remove(str_to_title(format(Sys.Date(), format = "%b%Y")), "\\."),"_Public_", ISO_country_code, ".zip"), sep = "/"), method = 'auto', mode = "wb")
-  WDPA <- wdpa_read(paste(destination, "data_raw", "WDPA", "temp", paste0("WDPA_WDOECM_", str_remove(str_to_title(format(Sys.Date(), format = "%b%Y")), "\\."), "_Public_", ISO_country_code, ".zip"), sep = "/"))
-  WDPA = st_as_stars(WDPA[3])
-  st_set_crs(WDPA, EPSG)
-  WDPA <- st_transform_proj(WDPA, proj.t)
-  WDPA <- st_combine(WDPA)
-  WDPA <- st_rasterize(st_as_sf(WDPA), dx = 1000, dy = 1000)
-  write_stars(WDPA, options = c("COMPRESS=LZW", "PREDICTOR=2"), NA_value = nodat,
-              dsn = paste(destination, "data_raw", "WDPA", "WDPA_1kmBool.tif", sep = "/"))
-
+  if (!is.null(country_name)){
+    dir.create(paste(destination, "data_raw", "WDPA", sep = "/"), showWarnings = FALSE)
+    dir.create(paste(destination, "data_raw", "WDPA", "temp", sep = "/"), showWarnings = FALSE)
+    POST(url = "https://www.protectedplanet.net/downloads", encode = "json", body = list("domain" = "general", "format" = "gdb", "token" = ISO_country_code))
+    wait_until(url.exists(paste0("https://d1gam3xoknrgr2.cloudfront.net/current/WDPA_WDOECM_", str_remove(str_to_title(format(Sys.Date(), format = "%b%Y")), "\\."), "_Public_", ISO_country_code, ".zip")), timeout = 60)
+    download.file(paste0("https://d1gam3xoknrgr2.cloudfront.net/current/WDPA_WDOECM_", str_remove(str_to_title(format(Sys.Date(), format = "%b%Y")), "\\."), "_Public_", ISO_country_code, ".zip"),
+                  destfile = paste(destination, "data_raw", "WDPA","temp", paste0("WDPA_WDOECM_", str_remove(str_to_title(format(Sys.Date(), format = "%b%Y")), "\\."),"_Public_", ISO_country_code, ".zip"), sep = "/"), method = 'auto', mode = "wb")
+    WDPA <- wdpa_read(paste(destination, "data_raw", "WDPA", "temp", paste0("WDPA_WDOECM_", str_remove(str_to_title(format(Sys.Date(), format = "%b%Y")), "\\."), "_Public_", ISO_country_code, ".zip"), sep = "/"))
+    WDPA = st_as_stars(WDPA[3])
+    st_set_crs(WDPA, EPSG)
+    WDPA <- st_transform_proj(WDPA, proj.t)
+    WDPA <- st_combine(WDPA)
+    WDPA <- st_rasterize(st_as_sf(WDPA), dx = 1000, dy = 1000)
+    write_stars(WDPA, options = c("COMPRESS=LZW", "PREDICTOR=2"), NA_value = nodat,
+                dsn = paste(destination, "data_raw", "WDPA", "WDPA_1kmBool.tif", sep = "/"))
+  }
   ##=========================
   ##
   ## Open Street Map : distance from cities, roads, rivers
@@ -312,6 +310,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   ##
   ##=====================================
 
+  if (!is.null(country_name)){
   system(glue('gdal_merge.py -ot Int16 -of GTiff -o {paste(destination, "data_raw", "environ.tif", sep = "/")} -a_nodata {nodat} -separate \\
             -co "COMPRESS=LZW" -co "PREDICTOR=2" \\
             {paste(destination, "data_raw", "srtm_v1_4_90m", "aspect_1km.tif", sep = "/")} \\
@@ -324,6 +323,19 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   environ <- split(read_stars(paste(destination, "data_raw", "environ.tif", sep = "/")))
   names(environ) <- c( "aspect", "elevation", "roughness", "slope", "srad", "soilgrids",
                        "distanceSea", "distanceRoad", "distancePlace", "distancewater", "WDPA")
+  }else{
+    system(glue('gdal_merge.py -ot Int16 -of GTiff -o {paste(destination, "data_raw", "environ.tif", sep = "/")} -a_nodata {nodat} -separate \\
+            -co "COMPRESS=LZW" -co "PREDICTOR=2" \\
+            {paste(destination, "data_raw", "srtm_v1_4_90m", "aspect_1km.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "srtm_v1_4_90m", "elevation_1km.tif", sep = "/")} {paste(destination, "data_raw", "srtm_v1_4_90m", "roughness_1km.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "srtm_v1_4_90m", "slope_1km.tif", sep = "/")} {paste(destination, "data_raw", "srtm_v1_4_90m", "srad_1km.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "soilgrids250_v2_0", "soilgrids_1km.tif", sep = "/")}  \\
+            {paste(destination, "data_raw", "distSea", "distSea.tif", sep = "/")} {paste(destination, "data_raw", "OSM", "roadsdistance_1km.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "OSM", "placedistance_1km.tif", sep = "/")} {paste(destination, "data_raw", "OSM", "wateringplacedistance_1km.tif", sep = "/")}'))
+    environ <- split(read_stars(paste(destination, "data_raw", "environ.tif", sep = "/")))
+    names(environ) <- c( "aspect", "elevation", "roughness", "slope", "srad", "soilgrids",
+                         "distanceSea", "distanceRoad", "distancePlace", "distancewater")
+  }
   write_stars(merge(environ), dsn = paste(destination, "data_raw", "environ.tif", sep = "/"), options = c("COMPRESS=LZW","PREDICTOR=2"))
 
   return(paste(destination, "data_raw", "environ.tif", sep = "/"))

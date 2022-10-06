@@ -11,15 +11,14 @@ get_chelsa_variables <- function(extent, EPSG, destination){
   #' @param EPSG int. to consider for this country/area.
   #' @param destination character. absolute path where to download files like `here()` output.
   #' @return character. absolute path to climate_chelsa.tif.
-
   #'
-  #' @import here
   #' @import stars
   #' @import stringr
   #' @import utils
   #' @import rgdal
   #' @import glue
   #' @import qpdf
+  #' @export
 
   dir.create(path = destination, recursive = TRUE, showWarnings = FALSE)
   destination <- paste0(destination, "/")

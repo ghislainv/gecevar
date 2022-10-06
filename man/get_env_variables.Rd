@@ -4,7 +4,13 @@
 \alias{get_env_variables}
 \title{Create multilayer Tiff file with 11 environmental variables}
 \usage{
-get_env_variables(extent_latlon, extent, EPSG, country_name, destination)
+get_env_variables(
+  extent_latlon,
+  extent,
+  EPSG,
+  country_name = NULL,
+  destination
+)
 }
 \arguments{
 \item{extent_latlon}{int vector. in this order c(lon_min, lat_min, lon_max, lat_max).}
@@ -13,7 +19,7 @@ get_env_variables(extent_latlon, extent, EPSG, country_name, destination)
 
 \item{EPSG}{int. to consider for this country/area.}
 
-\item{country_name}{character. country name (in english) to considers.}
+\item{country_name}{(optional) character. country name (in english) which be use to collect protected areas. This country must be available in \verb{https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA}, default is NULL.}
 
 \item{destination}{character. absolute path where to download files like \code{here()} output.}
 }
