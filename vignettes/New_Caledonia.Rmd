@@ -1,0 +1,78 @@
+---
+title: "New_Caledonia"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{New_Caledonia}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Installation
+
+Install the development version of **cegevar** from [Github](https://github.com/ghislainv/gecevar) with
+`devtools::install_github("ghislainv/gecevar")`
+
+# Import libraries
+
+First thing to do is import libraries we will need for this package (includes **gecevar** itself).
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  fig.align="center",
+  fig.width=8, fig.height=6,
+  cache=TRUE,
+  collapse=TRUE,
+  comment="#>",
+  highlight=TRUE,
+  eval=FALSE
+)
+```
+
+```{r libraries, warning = FALSE, message = FALSE}
+library(gecevar)
+library(rnaturalearth)
+library(terra)
+library(sf)
+library(terra)
+library(stars)
+library(tictoc)
+```
+
+# Get extent and latitude/longitude coordinates 
+
+In this example, we take New Caledonia as example. It's French island near to New Zeland and Tonga's island.
+we need to begin to find EPSG code for New Caledonia. It's can be found in [epsg.io](https://epsg.io).
+Beware to keep the same EPSG for all function in this package. 
+One small check on [https://www.naturalearthdata.com/](https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-details/) to make sure that New Caledonia is available as ```country_name```.
+
+```{r get_extent}
+name <- "New Caledonia"
+epsg <- 3163
+all_extent <- transform_shp_country_extent(EPSG = epsg,
+                                           country_name = name)
+extent <- all_extent[1]
+extent_latlon <- as.numeric(all_extent[2:5])
+extent
+extent_latlon
+```
+
+We got as output a vector size 5. 
+First output is a character with extent of New Caledonia according to EPSG:3163.
+Four next output are extent in latitude and longitude coordinates, (same extent as with EPSG:4326).
+
+# Download environmental variables in one file
+
+One variable is protected area named WDPA in downloaded file. This variable need an identification by country name. 
+Make sure that our country name is available in [www.protectedplanet.net](https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA).
+Otherwise leave `country_name = NULL`. 
+
+```{r get_env_var, progress_bar = FALSE}
+# start <- Sys.time()
+environ_path <- get_env_variables(extent_latlon = extent_latlon,
+                                  EPSG = epsg, extent = extent,
+                                  country_name = "New Caledonia",
+                                  destination = "/home/pierre/Bureau")
+# end <- Sys.time()
+# print(end - start)
+```
+
