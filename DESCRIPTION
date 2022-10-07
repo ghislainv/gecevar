@@ -3,7 +3,8 @@ Title: GEtting Climatic and Environmental VARiables from open and free online da
 Version: 0.0.0.9000
 Authors@R: c(
     person("Pierre", "Guillaumont", , "pierre.guillaumont@gmail.com", role = c("aut", "cre")),
-    person("Ghislain", "Vieilledent", , "ghislain.vieilledent@cirad.fr", role = "aut")
+    person("Ghislain", "Vieilledent", , "ghislain.vieilledent@cirad.fr", role = "aut"),
+    person("Cirad", role = c("cph", "fnd"))
   )
 Description: Download and combine environmental and climatic variables in one files. Downloaded files are in .tif format reprojected with wanted projection.
 License: file LICENSE
@@ -32,5 +33,6 @@ Imports:
     stats,
     stringr,
     terra,
+    tictoc,
     utils,
     wdpar

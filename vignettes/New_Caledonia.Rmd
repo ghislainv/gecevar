@@ -1,20 +1,20 @@
 ---
-title: "New_Caledonia"
+title: "New Caledonia"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{New_Caledonia}
+  %\VignetteIndexEntry{New Caledonia}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-## Installation
+### Installation
 
 Install the development version of **cegevar** from [Github](https://github.com/ghislainv/gecevar) with
 `devtools::install_github("ghislainv/gecevar")`
 
-# Import libraries
+## Import libraries
 
-First thing to do is import libraries we will need for this package (includes **gecevar** itself).
+First thing to do is import **gecevar** library.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
@@ -30,49 +30,77 @@ knitr::opts_chunk$set(
 
 ```{r libraries, warning = FALSE, message = FALSE}
 library(gecevar)
-library(rnaturalearth)
-library(terra)
-library(sf)
-library(terra)
-library(stars)
-library(tictoc)
 ```
 
-# Get extent and latitude/longitude coordinates 
+## Get extent and latitude/longitude coordinates 
 
-In this example, we take New Caledonia as example. It's French island near to New Zeland and Tonga's island.
+In this example, we take New Caledonia as example. It's French island near to New Zeland and Tonga's islands.
 we need to begin to find EPSG code for New Caledonia. It's can be found in [epsg.io](https://epsg.io).
-Beware to keep the same EPSG for all function in this package. 
+Beware to keep the same EPSG for all functions in this package. 
+
 One small check on [https://www.naturalearthdata.com/](https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-details/) to make sure that New Caledonia is available as ```country_name```.
 
-```{r get_extent}
+```{r get_extent, eval = FALSE}
 name <- "New Caledonia"
 epsg <- 3163
 all_extent <- transform_shp_country_extent(EPSG = epsg,
-                                           country_name = name)
+                                           country_name = name,
+                                           shapefile_path = NULL,
+                                           extent = NULL)
 extent <- all_extent[1]
 extent_latlon <- as.numeric(all_extent[2:5])
-extent
-extent_latlon
 ```
+This chunk code take less then 5 seconds to run. 
 
 We got as output a vector size 5. 
 First output is a character with extent of New Caledonia according to EPSG:3163.
 Four next output are extent in latitude and longitude coordinates, (same extent as with EPSG:4326).
 
-# Download environmental variables in one file
+## Download environmental variables in one file
 
 One variable is protected area named WDPA in downloaded file. This variable need an identification by country name. 
 Make sure that our country name is available in [www.protectedplanet.net](https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA).
 Otherwise leave `country_name = NULL`. 
 
-```{r get_env_var, progress_bar = FALSE}
-# start <- Sys.time()
+```{r get_env_var}
 environ_path <- get_env_variables(extent_latlon = extent_latlon,
-                                  EPSG = epsg, extent = extent,
+                                  extent = extent,
+                                  EPSG = epsg, 
                                   country_name = "New Caledonia",
-                                  destination = "/home/pierre/Bureau")
-# end <- Sys.time()
-# print(end - start)
+                                  destination = "/home/pierre/Bureau",
+                                  resolution = 1000)
 ```
+
+This chunk code take around 204 seconds to run. 
+
+## Download climatic variables in one file
+
+Climatic variables are extract from [chelsa-climat.org](https://chelsa-climate.org/). 
+
+We get with `get_chelsa_variables` function many variables. You can find the chelsa's documentation [here](https://chelsa-climate.org/wp-admin/download-page/CHELSA_tech_specification_V2.pdf) about all variables downloaded.
+Variables give the average value on the data recovered between 1981 and 2010.
+Some variables are available for each month like average temperature, min temperature, max temperature, precipitation, potential evapotranspiration (PET) with Penman's formula, and total cloud cover.
+Others variables are annualy available : climatic water deficit, number of dry month and 19 bio variables.
+This function takes time because total size to download from [chelsa-climat.org](https://chelsa-climate.org/) is around 4.8Gb.
+
+```{r env_clim}
+climatic_path <- get_chelsa_variables(extent = extent,
+                                      EPSG = epsg,
+                                      destination = "/home/pierre/Bureau",
+                                      resolution = 1000)
+```
+
+## Merge environmental and climatic variables
+
+Now you can merge all our variables in one file. 
+
+```{r merge}
+merge_path <- merge_files(environ_path = environ_path,
+                          climat_path = climat_path, 
+                          destination = "/home/pierre/Bureau/")
+```
+
+This chunk code take around 31 seconds to run. 
+In our case, gecevar.tif is a 3.1Mb weight file.
+Output is a absolute path to gecevar.tif file whom just been created. 
 

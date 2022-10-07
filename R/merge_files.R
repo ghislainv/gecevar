@@ -15,10 +15,10 @@ merge_files <- function(environ_path, climat_path, destination){
   #' @export
 
   nodat = -9999
-  system(glue('gdal_merge.py -ot Int16 -of GTiff -o {paste(destination, "output", "gecevar.tif", sep = "/")} -a_nodata {nodat} -separate \\
+  system(glue('gdal_merge.py -ot Int16 -of GTiff -o {paste(destination, "gecevar.tif", sep = "/")} -a_nodata {nodat} -separate \\
             -co "COMPRESS=LZW" -co "PREDICTOR=2" {environ_path} {climat_path}'))
-  all_var <- split(st_as_stars(read_stars(paste(destination, "output", "gecevar.tif", sep = "/"))))
+  all_var <- split(st_as_stars(read_stars(paste(destination,  "gecevar.tif", sep = "/"))))
   names(all_var) <-  c(names(split(read_stars(environ_path))), names(split(read_stars(climat_path))))
-  write_stars(merge(all_var), paste(destination, "output", "gecevar.tif", sep = "/"), options = c("COMPRESS=LZW","PREDICTOR=2"))
+  write_stars(merge(all_var), paste(destination, "gecevar.tif", sep = "/"), options = c("COMPRESS=LZW","PREDICTOR=2"))
 
   }

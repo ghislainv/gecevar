@@ -9,7 +9,8 @@ get_env_variables(
   extent,
   EPSG,
   country_name = NULL,
-  destination
+  destination,
+  resolution = 1000
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ get_env_variables(
 \item{country_name}{(optional) character. country name (in english) which be use to collect protected areas. This country must be available in \verb{https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA}, default is NULL.}
 
 \item{destination}{character. absolute path where to download files like \code{here()} output.}
+
+\item{resolution}{int. in meters, recommended resolution are 250m, 500m, 1km, 2km or 5km, default is 1km. See more in details.}
 }
 \value{
 character. absolute path to environ.tif file.
@@ -29,4 +32,7 @@ character. absolute path to environ.tif file.
 \description{
 Variables are type of soil, elevation, slope, aspect, roughness, solar radiation, distance to sea,
 protected areas, distance to roads, distance to cities and town, distance to rivers & lake.
+}
+\details{
+\code{resolution} need to be carefully choosen because if Tiff file is too big, R can crash.
 }

@@ -1,4 +1,4 @@
-get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, destination){
+get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, destination, resolution = 1000){
   #' Create multilayer Tiff file with 11 environmental variables
   #'
   #' @description
@@ -10,7 +10,9 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
   #' @param EPSG int. to consider for this country/area.
   #' @param country_name (optional) character. country name (in english) which be use to collect protected areas. This country must be available in `https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA`, default is NULL.
   #' @param destination character. absolute path where to download files like `here()` output.
+  #' @param resolution int. in meters, recommended resolution are 250m, 500m, 1km, 2km or 5km, default is 1km. See more in details.
   #' @return character. absolute path to environ.tif file.
+  #' @details `resolution` need to be carefully choosen because if Tiff file is too big, R can crash.
   #'
   #' @import glue
   #' @import sf
@@ -74,7 +76,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
   sourcefile <- paste(destination, "data_raw", "soilgrids250_v2_0", "temp", "soilgridNoExtent.tif", sep = "/")
   destfile <- paste(destination, "data_raw", "soilgrids250_v2_0", "soilgrids_1km.tif", sep = "/")
   system(glue("gdalwarp -overwrite -s_srs {proj.s} -t_srs {proj.t} \\
-        -r bilinear -tr 1000 1000 -ot Int16 -srcnodata {nodat} -of GTiff \\
+        -r bilinear -tr {resolution} {resolution} -ot Int16 -srcnodata {nodat} -of GTiff \\
         {sourcefile} \\
         {destfile}"))
 
@@ -133,25 +135,25 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
   out_f <- paste(destination, "data_raw", "srtm_v1_4_90m", "temp", "roughness.tif", sep = "/")
   system(glue('gdaldem roughness {in_f} {out_f} -co "COMPRESS=LZW" -co "PREDICTOR=2"'))
 
-  # Resolution from 90m x 90m to 1000m x 1000m using gdalwarp
+  # Resolution from 90m x 90m to choosen resolution using gdalwarp
   # elevation
   out_f <- paste(destination, "data_raw", "srtm_v1_4_90m", "elevation_1km.tif", sep = "/")
-  system(glue('gdalwarp -r bilinear -tr 1000 1000 -ot Int16 -of GTiff \\
+  system(glue('gdalwarp -r bilinear -tr {resolution} {resolution} -ot Int16 -of GTiff \\
         -co "COMPRESS=LZW" -co "PREDICTOR=2" -overwrite {in_f} {out_f}'))
   # aspect
   in_f <- paste(destination, "data_raw", "srtm_v1_4_90m", "temp", "aspect.tif", sep = "/")
   out_f <-paste(destination, "data_raw", "srtm_v1_4_90m", "aspect_1km.tif", sep = "/")
-  system(glue('gdalwarp -r bilinear -tr 1000 1000 -ot Int16 -of GTiff \\
+  system(glue('gdalwarp -r bilinear -tr {resolution} {resolution} -ot Int16 -of GTiff \\
         -co "COMPRESS=LZW" -co "PREDICTOR=2" -overwrite {in_f} {out_f}'))
   # slope
   in_f <- paste(destination, "data_raw", "srtm_v1_4_90m", "temp", "slope.tif", sep = "/")
   out_f <- paste(destination, "data_raw", "srtm_v1_4_90m", "slope_1km.tif", sep = "/")
-  system(glue('gdalwarp -r bilinear -tr 1000 1000 -ot Int16 -of GTiff \\
+  system(glue('gdalwarp -r bilinear -tr {resolution} {resolution} -ot Int16 -of GTiff \\
         -co "COMPRESS=LZW" -co "PREDICTOR=2" -overwrite {in_f} {out_f}'))
   # roughness
   in_f <- paste(destination, "data_raw", "srtm_v1_4_90m", "temp", "roughness.tif", sep = "/")
   out_f <- paste(destination, "data_raw", "srtm_v1_4_90m", "roughness_1km.tif", sep = "/")
-  system(glue('gdalwarp -r bilinear -tr 1000 1000 -ot Int16 -of GTiff \\
+  system(glue('gdalwarp -r bilinear -tr {resolution} {resolution} -ot Int16 -of GTiff \\
         -co "COMPRESS=LZW" -co "PREDICTOR=2" -overwrite {in_f} {out_f}'))
 
   ##==============================
@@ -190,12 +192,12 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
   system(glue("r.out.gdal -f --verbose --overwrite input=global_rad createopt='COMPRESS=LZW' nodata={nodat} \\
   			 output={paste(destination, 'data_raw', 'srtm_v1_4_90m', 'temp', 'srad.tif', sep = '/')} type=Int16"))
 
-  # Resolution from 90m x 90m to 1000m x 1000m using gdalwarp
+  # Resolution from 90m x 90m to choosen resolution using gdalwarp
   # srad
   in_f <- paste(destination, "data_raw", "srtm_v1_4_90m", "temp", "srad.tif", sep = "/")
   out_f <- paste(destination, "data_raw", "srtm_v1_4_90m", "srad_1km.tif", sep = "/")
   system(glue('gdalwarp  -t_srs {proj.t} \\
-        -r bilinear -tr 1000 1000 -ot Int16 -of GTiff \\
+        -r bilinear -tr {resolution} {resolution} -ot Int16 -of GTiff \\
         -co "COMPRESS=LZW" -co "PREDICTOR=2" -overwrite {in_f} {out_f}'))
 
   # unlink(paste(destination, "data_raw", "srtm_v1_4_90m", "temp", sep = "/"), recursive = TRUE)
@@ -238,7 +240,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
     st_set_crs(WDPA, EPSG)
     WDPA <- st_transform_proj(WDPA, proj.t)
     WDPA <- st_combine(WDPA)
-    WDPA <- st_rasterize(st_as_sf(WDPA), dx = 1000, dy = 1000)
+    WDPA <- st_rasterize(st_as_sf(WDPA), dx = resolution, dy = resolution)
     write_stars(WDPA, options = c("COMPRESS=LZW", "PREDICTOR=2"), NA_value = nodat,
                 dsn = paste(destination, "data_raw", "WDPA", "WDPA_1kmBool.tif", sep = "/"))
   }
@@ -256,7 +258,8 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
     file_size = osm_country$file_size,
     force_download = TRUE,
     max_file_size = osm_country$file_size + 1,
-    download_directory = paste(destination, "data_raw", "OSM", "temp", sep = "/"))
+    download_directory = paste(destination, "data_raw", "OSM", "temp", sep = "/"),
+    quiet = TRUE)
 
   download_file <- list.files(paste(destination, "data_raw", "OSM", "temp", sep = "/"), pattern = "osm.pbf", full.names = TRUE)
   type_object <- c("lines", "points", "lines", "multipolygons", "multipolygons")
@@ -287,7 +290,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
               -ot Byte -of GTiff -a_nodata {nodat} -a_srs {proj.t} -tr 100 100 {file.tif}"))
     system(glue("gdal_proximity.py {file.tif} {distance.tif} -f -overwrite -co 'COMPRESS=LZW' -co 'PREDICTOR=2' \\
               -values 1 -ot Int16 -of GTiff -distunits GEO "))
-    system(glue("gdalwarp -overwrite -r average -tr 1000 1000 -ot Int16 -srcnodata {nodat} -of GTiff \\
+    system(glue("gdalwarp -overwrite -r average -tr {resolution} {resolution} -ot Int16 -srcnodata {nodat} -of GTiff \\
               -dstnodata {nodat} {distance.tif} {distance_1km.tif}"))
   }
   # unlink(paste(destination, "data_raw", "OSM", "temp", sep = "/"), recursive = TRUE) # delete temporary files
@@ -320,7 +323,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
             {paste(destination, "data_raw", "distSea", "distSea.tif", sep = "/")} {paste(destination, "data_raw", "OSM", "roadsdistance_1km.tif", sep = "/")} \\
             {paste(destination, "data_raw", "OSM", "placedistance_1km.tif", sep = "/")} {paste(destination, "data_raw", "OSM", "wateringplacedistance_1km.tif", sep = "/")} \\
             {paste(destination, "data_raw", "WDPA", "WDPA_1kmBool.tif", sep = "/")} '))
-  environ <- split(read_stars(paste(destination, "data_raw", "environ.tif", sep = "/")))
+  environ <- split(st_as_stars(read_stars(paste(destination, "data_raw", "environ.tif", sep = "/"))))
   names(environ) <- c( "aspect", "elevation", "roughness", "slope", "srad", "soilgrids",
                        "distanceSea", "distanceRoad", "distancePlace", "distancewater", "WDPA")
   }else{
@@ -332,7 +335,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
             {paste(destination, "data_raw", "soilgrids250_v2_0", "soilgrids_1km.tif", sep = "/")}  \\
             {paste(destination, "data_raw", "distSea", "distSea.tif", sep = "/")} {paste(destination, "data_raw", "OSM", "roadsdistance_1km.tif", sep = "/")} \\
             {paste(destination, "data_raw", "OSM", "placedistance_1km.tif", sep = "/")} {paste(destination, "data_raw", "OSM", "wateringplacedistance_1km.tif", sep = "/")}'))
-    environ <- split(read_stars(paste(destination, "data_raw", "environ.tif", sep = "/")))
+    environ <- split(st_as_stars(read_stars(paste(destination, "data_raw", "environ.tif", sep = "/"))))
     names(environ) <- c( "aspect", "elevation", "roughness", "slope", "srad", "soilgrids",
                          "distanceSea", "distanceRoad", "distancePlace", "distancewater")
   }

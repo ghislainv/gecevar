@@ -20,7 +20,7 @@ transform_shp_country_extent <- function(EPSG, country_name = NULL, shapefile_pa
   #' @export
 
   if ((!is.null(country_name) + !is.null(shapefile_path) + !is.null(extent_short)) != 1){
-    stop("Only one attribute among country_name, shapefile_path and extent_short")
+    stop("One attribute among country_name, shapefile_path and extent_short")
 
   }
   if (!is.null(country_name)){

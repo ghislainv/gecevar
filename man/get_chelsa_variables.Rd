@@ -4,7 +4,7 @@
 \alias{get_chelsa_variables}
 \title{Create multilayer Tiff file with 93 variables from chelsa-climate.org}
 \usage{
-get_chelsa_variables(extent, EPSG, destination)
+get_chelsa_variables(extent, EPSG, destination, resolution = 1000)
 }
 \arguments{
 \item{extent}{character. First output of \code{transform_shp_coutry_extend}}
@@ -12,6 +12,8 @@ get_chelsa_variables(extent, EPSG, destination)
 \item{EPSG}{int. to consider for this country/area.}
 
 \item{destination}{character. absolute path where to download files like \code{here()} output.}
+
+\item{resolution}{int. in meters, recommended resolution are 250m, 500m, 1km, 2km or 5km, default is 1km. See more in details.}
 }
 \value{
 character. absolute path to climate_chelsa.tif.
@@ -21,4 +23,7 @@ Gives the average values on the data recovered between 1981 and 2010.
 Monthly variables are average temperatures, min temperatures, max temperatures, precipitation, potential evapotranspiration,
 and total cloud cover.
 Others variables are climatic water  deficit, number of dry month and 19 bio variables (more information in chelsa documentations).
+}
+\details{
+\code{resolution} need to be carefully choosen because if Tiff file is too big, R can crash.
 }
