@@ -4,7 +4,13 @@
 \alias{get_chelsa_variables}
 \title{Create multilayer Tiff file with 93 variables from chelsa-climate.org}
 \usage{
-get_chelsa_variables(extent, EPSG, destination, resolution = 1000)
+get_chelsa_variables(
+  extent,
+  EPSG,
+  destination,
+  resolution = 1000,
+  rm_download = FALSE
+)
 }
 \arguments{
 \item{extent}{character. First output of \code{transform_shp_coutry_extend}}
@@ -14,6 +20,8 @@ get_chelsa_variables(extent, EPSG, destination, resolution = 1000)
 \item{destination}{character. absolute path where to download files like \code{here()} output.}
 
 \item{resolution}{int. in meters, recommended resolution are 250m, 500m, 1km, 2km or 5km, default is 1km. See more in details.}
+
+\item{rm_download}{boolean. If TRUE remove download files and folders. Keep only environ.tif in \code{data_raw} folder, default is FALSE.}
 }
 \value{
 character. absolute path to climate_chelsa.tif.

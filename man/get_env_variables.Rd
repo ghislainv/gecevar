@@ -10,7 +10,8 @@ get_env_variables(
   EPSG,
   country_name = NULL,
   destination,
-  resolution = 1000
+  resolution = 1000,
+  rm_download = FALSE
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ get_env_variables(
 \item{destination}{character. absolute path where to download files like \code{here()} output.}
 
 \item{resolution}{int. in meters, recommended resolution are 250m, 500m, 1km, 2km or 5km, default is 1km. See more in details.}
+
+\item{rm_download}{boolean. If TRUE remove download files and folders. Keep only environ.tif in \code{data_raw} folder, default is FALSE.}
 }
 \value{
 character. absolute path to environ.tif file.

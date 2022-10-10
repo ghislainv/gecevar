@@ -1,4 +1,4 @@
-get_chelsa_variables <- function(extent, EPSG, destination, resolution = 1000){
+get_chelsa_variables <- function(extent, EPSG, destination, resolution = 1000, rm_download = FALSE){
   #' Create multilayer Tiff file with 93 variables from chelsa-climate.org
   #'
   #' @description
@@ -11,6 +11,7 @@ get_chelsa_variables <- function(extent, EPSG, destination, resolution = 1000){
   #' @param EPSG int. to consider for this country/area.
   #' @param destination character. absolute path where to download files like `here()` output.
   #' @param resolution int. in meters, recommended resolution are 250m, 500m, 1km, 2km or 5km, default is 1km. See more in details.
+  #' @param rm_download boolean. If TRUE remove download files and folders. Keep only environ.tif in `data_raw` folder, default is FALSE.
   #' @return character. absolute path to climate_chelsa.tif.
   #' @details `resolution` need to be carefully choosen because if Tiff file is too big, R can crash.
   #'
@@ -29,34 +30,52 @@ get_chelsa_variables <- function(extent, EPSG, destination, resolution = 1000){
   proj.t <- paste0("EPSG:", EPSG)
   dir.create(paste(destination, "data_raw","chelsa_v2_1", sep = "/"), showWarnings = FALSE) ## folder for climatic data
   dir.create(paste(destination, "data_raw","chelsa_v2_1","temp", sep = "/"), showWarnings = FALSE) ## Temporary folder
-
+  progress_bar <- 0
+  nb_var_download <- 12 * 6 + 19
+  print("Download in progress")
+  pb = txtProgressBar(min = 0, max = nb_var_download, initial = 0)
   for(m in str_pad(1:12, width = 2, pad = "0")){
     ## Monthly minimum temperature (°C).
-    download.file(paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/1981-2010/tasmin/CHELSA_tasmin_',m,'_1981-2010_V.2.1.tif'),
-                  destfile = paste(destination, "data_raw", "chelsa_v2_1", "temp", paste0("tasmin_",m,".tif"), sep = "/"), method = 'wget')
+    system(glue("curl -s {paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/1981-2010/tasmin/CHELSA_tasmin_',m,'_1981-2010_V.2.1.tif')} \\
+                  --output {paste(destination, 'data_raw', 'chelsa_v2_1', 'temp', paste0('tasmin_', m, '.tif'), sep = '/')}"))
+    progress_bar <- progress_bar + 1
+    setTxtProgressBar(pb, progress_bar)
     ## Monthly maximum temperature (°C).
-    download.file(paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/1981-2010/tasmax/CHELSA_tasmax_',m,'_1981-2010_V.2.1.tif'),
-                  destfile = paste(destination, "data_raw","chelsa_v2_1", "temp", paste0("tasmax_",m,".tif"), sep = "/"), method = 'wget')
+    system(glue("curl -s {paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/1981-2010/tasmax/CHELSA_tasmax_',m,'_1981-2010_V.2.1.tif')} \\
+                  --output {paste(destination, 'data_raw', 'chelsa_v2_1', 'temp', paste0('tasmax_', m, '.tif'), sep = '/')}"))
+    progress_bar <- progress_bar + 1
+    setTxtProgressBar(pb, progress_bar)
     ## Monthly average temperature (°C).
-    download.file(paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/1981-2010/tas/CHELSA_tas_',m,'_1981-2010_V.2.1.tif'),
-                  destfile = paste(destination, "data_raw", "chelsa_v2_1", "temp", paste0("tas_",m,".tif"), sep = "/"), method = 'wget')
+    system(glue(" curl -s {paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/1981-2010/tas/CHELSA_tas_',m,'_1981-2010_V.2.1.tif')} \\
+                  --output {paste(destination, 'data_raw', 'chelsa_v2_1', 'temp', paste0('tas_', m, '.tif'), sep = '/')}"))
+    progress_bar <- progress_bar + 1
+    setTxtProgressBar(pb, progress_bar)
     ## Monthly precipitation (mm ~ kg/m2).
-    download.file(paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/1981-2010/pr/CHELSA_pr_',m,'_1981-2010_V.2.1.tif'),
-                  destfile = paste(destination, "data_raw", "chelsa_v2_1", "temp", paste0("pr_",m,".tif"), sep = "/"), method = 'wget')
-    ## Monthly cloud cover
-    download.file(paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/1981-2010/tcc/CHELSA_tcc_',m,'_1981-2010_V.2.1.tif'),
-                  destfile = paste(destination, "data_raw", "chelsa_v2_1", "temp", paste0("tcc_mean_",m,".tif"), sep = "/"), method = 'wget')
+    system(glue("curl -s {paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/1981-2010/pr/CHELSA_pr_',m,'_1981-2010_V.2.1.tif')} \\
+                  --output {paste(destination, 'data_raw', 'chelsa_v2_1', 'temp', paste0('pr_', m, '.tif'), sep = '/')}"))
+    progress_bar <- progress_bar + 1
+    setTxtProgressBar(pb, progress_bar)
+    ## Monthly cloud area fraction
+    system(glue("curl -s {paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/1981-2010/clt/CHELSA_tcc_',m,'_1981-2010_V.2.1.tif')} \\
+                  --output {paste(destination, 'data_raw', 'chelsa_v2_1', 'temp', paste0('tcc_mean_', m, '.tif'), sep = '/')}"))
+    progress_bar <- progress_bar + 1
+    setTxtProgressBar(pb, progress_bar)
     ## Monthly Pet_ penman
     # https://www.fao.org/3/x0490e/x0490e06.htm
-    download.file(paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/1981-2010/pet/CHELSA_pet_penman_',m,'_1981-2010_V.2.1.tif'),
-                  destfile = paste(destination, "data_raw", "chelsa_v2_1", "temp", paste0("pet_penman",m,".tif"), sep = "/"), method = 'wget')
+    system(glue(" curl -s {paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/1981-2010/pet/CHELSA_pet_penman_',m,'_1981-2010_V.2.1.tif')} \\
+                  --output {paste(destination, 'data_raw', 'chelsa_v2_1', 'temp', paste0('pet_penman',m,'.tif'), sep = '/')}"))
+    progress_bar <- progress_bar + 1
+    setTxtProgressBar(pb, progress_bar)
   }
-  for(i in 1:19){
+  for(i in str_pad(1:19, width = 2, pad = "0")){
     # 19 Bioclimatic variables
     # See https://chelsa-climate.org/wp-admin/download-page/CHELSA_tech_specification_V2.pdf for details
-    download.file(paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/1981-2010/bio/CHELSA_bio',i,'_1981-2010_V.2.1.tif'),
-                  destfile = paste(destination, "data_raw", "chelsa_v2_1", "temp", paste0("bio", str_pad(i, 2, pad = "0"), ".tif"), sep = "/"), method = 'wget')
+    system(glue("curl -s {paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/1981-2010/bio/CHELSA_bio',i,'_1981-2010_V.2.1.tif')} \\
+                  --output {paste(destination, 'data_raw', 'chelsa_v2_1', 'temp', paste0('bio', i, '.tif'), sep = '/')}"))
+    progress_bar <- progress_bar + 1
+    setTxtProgressBar(pb, progress_bar)
   }
+  close(pb)
 
   for(var in c("tasmin", "tasmax", "tas_", "pr", "bio", "tcc", "pet_penman"))
   {
@@ -143,7 +162,9 @@ get_chelsa_variables <- function(extent, EPSG, destination, resolution = 1000){
   names(current) <- c(names(split(read_stars(paste(destination, "data_raw", "chelsa_v2_1", "clim_1km.tif", sep = "/")))), "cwd", "ndm")
   write_stars(obj = merge(current), options = c("COMPRESS=LZW","PREDICTOR=2"), type = "Int16",
               NA_value = nodat, dsn = paste(destination, "output", "current_chelsa.tif", sep = "/"))
-
+  if (rm_download){
+    unlink(paste(destination, "data_raw", "chelsa_v2_1", sep = "/"), recursive = TRUE)
+  }
   return(paste(destination, "output", "current_chelsa.tif", sep = "/"))
 }
 

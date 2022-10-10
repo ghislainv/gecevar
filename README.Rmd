@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 
 ## System requirements
 
-Make sure GDAL and GRASS GIS are installed on your system.
+Make sure Curl, GDAL and GRASS GIS are installed on your system.
 
 ## Installation
 

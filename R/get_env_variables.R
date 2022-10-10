@@ -1,4 +1,4 @@
-get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, destination, resolution = 1000){
+get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, destination, resolution = 1000, rm_download = FALSE){
   #' Create multilayer Tiff file with 11 environmental variables
   #'
   #' @description
@@ -11,6 +11,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
   #' @param country_name (optional) character. country name (in english) which be use to collect protected areas. This country must be available in `https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA`, default is NULL.
   #' @param destination character. absolute path where to download files like `here()` output.
   #' @param resolution int. in meters, recommended resolution are 250m, 500m, 1km, 2km or 5km, default is 1km. See more in details.
+  #' @param rm_download boolean. If TRUE remove download files and folders. Keep only environ.tif in `data_raw` folder, default is FALSE.
   #' @return character. absolute path to environ.tif file.
   #' @details `resolution` need to be carefully choosen because if Tiff file is too big, R can crash.
   #'
@@ -160,7 +161,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
   ##
   ## Solar radiation
   ##
-  #### with r.sun at 90m resolution
+  ## with r.sun at 90m resolution
   ## Solar radiation (in Wh.m-2.day-1) was computed from altitude,
   ## slope and aspect using the function r.sun from the GRASS GIS software.
   ## We incorporated the shadowing effect of terrain to compute the solar radiation.
@@ -200,8 +201,6 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
         -r bilinear -tr {resolution} {resolution} -ot Int16 -of GTiff \\
         -co "COMPRESS=LZW" -co "PREDICTOR=2" -overwrite {in_f} {out_f}'))
 
-  # unlink(paste(destination, "data_raw", "srtm_v1_4_90m", "temp", sep = "/"), recursive = TRUE)
-
   ##===========================
   ##
   ## Distance to Sea
@@ -228,6 +227,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
   ## Available at: www.protectedplanet.net
   ##
   ##=========================
+
   if (!is.null(country_name)){
     dir.create(paste(destination, "data_raw", "WDPA", sep = "/"), showWarnings = FALSE)
     dir.create(paste(destination, "data_raw", "WDPA", "temp", sep = "/"), showWarnings = FALSE)
@@ -244,6 +244,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
     write_stars(WDPA, options = c("COMPRESS=LZW", "PREDICTOR=2"), NA_value = nodat,
                 dsn = paste(destination, "data_raw", "WDPA", "WDPA_1kmBool.tif", sep = "/"))
   }
+
   ##=========================
   ##
   ## Open Street Map : distance from cities, roads, rivers
@@ -293,7 +294,6 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
     system(glue("gdalwarp -overwrite -r average -tr {resolution} {resolution} -ot Int16 -srcnodata {nodat} -of GTiff \\
               -dstnodata {nodat} {distance.tif} {distance_1km.tif}"))
   }
-  # unlink(paste(destination, "data_raw", "OSM", "temp", sep = "/"), recursive = TRUE) # delete temporary files
 
   file.remove(list.files(paste(destination, "data_raw", "OSM", sep = "/"), pattern = "distance.tif", full.names = TRUE)) # delete temporary files
   water <- paste("lake", "reservoir", "river", sep = "|")
@@ -341,6 +341,14 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
   }
   write_stars(merge(environ), dsn = paste(destination, "data_raw", "environ.tif", sep = "/"), options = c("COMPRESS=LZW","PREDICTOR=2"))
 
+  if (rm_download){
+    unlink(paste(destination, "data_raw", "distSea", sep = "/"), recursive = TRUE)
+    unlink(paste(destination, "data_raw", "grassdata", sep = "/"), recursive = TRUE)
+    unlink(paste(destination, "data_raw", "OSM", sep = "/"), recursive = TRUE)
+    unlink(paste(destination, "data_raw", "soilgrids250_v2_0", sep = "/"), recursive = TRUE)
+    unlink(paste(destination, "data_raw", "srtm_v1_4_90m", sep = "/"), recursive = TRUE)
+    unlink(paste(destination, "data_raw", "WDPA", sep = "/"), recursive = TRUE)
+  }
   return(paste(destination, "data_raw", "environ.tif", sep = "/"))
 }
 
