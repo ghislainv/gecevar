@@ -16,18 +16,6 @@ Install the development version of **cegevar** from [Github](https://github.com/
 
 First thing to do is import **gecevar** library.
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(
-  fig.align="center",
-  fig.width=8, fig.height=6,
-  cache=TRUE,
-  collapse=TRUE,
-  comment="#>",
-  highlight=TRUE,
-  eval=FALSE
-)
-```
-
 ```{r libraries, warning = FALSE, message = FALSE}
 library(gecevar)
 ```
@@ -46,7 +34,7 @@ epsg <- 3163
 all_extent <- transform_shp_country_extent(EPSG = epsg,
                                            country_name = name,
                                            shapefile_path = NULL,
-                                           extent = NULL)
+                                           extent_short = NULL)
 extent <- all_extent[1]
 extent_latlon <- as.numeric(all_extent[2:5])
 ```
@@ -62,16 +50,17 @@ One variable is protected area named WDPA in downloaded file. This variable need
 Make sure that our country name is available in [www.protectedplanet.net](https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA).
 Otherwise leave `country_name = NULL`. 
 
-```{r get_env_var}
+```{r get_env_var, eval = FALSE}
 environ_path <- get_env_variables(extent_latlon = extent_latlon,
                                   extent = extent,
                                   EPSG = epsg, 
                                   country_name = "New Caledonia",
                                   destination = "/home/pierre/Bureau",
-                                  resolution = 1000)
+                                  resolution = 1000,
+                                  rm_download = FALSE)
 ```
 
-This chunk code take around 204 seconds to run. 
+This chunk code take around 252 seconds to run. 
 
 ## Download climatic variables in one file
 
@@ -81,22 +70,23 @@ We get with `get_chelsa_variables` function many variables. You can find the che
 Variables give the average value on the data recovered between 1981 and 2010.
 Some variables are available for each month like average temperature, min temperature, max temperature, precipitation, potential evapotranspiration (PET) with Penman's formula, and total cloud cover.
 Others variables are annualy available : climatic water deficit, number of dry month and 19 bio variables.
-This function takes time because total size to download from [chelsa-climat.org](https://chelsa-climate.org/) is around 4.8Gb.
+This function takes around 8min to run.
 
-```{r env_clim}
+```{r env_clim, eval = FALSE}
 climatic_path <- get_chelsa_variables(extent = extent,
                                       EPSG = epsg,
                                       destination = "/home/pierre/Bureau",
-                                      resolution = 1000)
+                                      resolution = 1000,
+                                      rm_download = FALSE)
 ```
 
 ## Merge environmental and climatic variables
 
 Now you can merge all our variables in one file. 
 
-```{r merge}
+```{r merge, eval = FALSE}
 merge_path <- merge_files(environ_path = environ_path,
-                          climat_path = climat_path, 
+                          climat_path = climatic_path, 
                           destination = "/home/pierre/Bureau/")
 ```
 
