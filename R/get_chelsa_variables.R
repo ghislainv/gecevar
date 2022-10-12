@@ -20,6 +20,8 @@ get_chelsa_variables <- function(extent, EPSG, destination, resolution = 1000, r
   #' @import utils
   #' @import rgdal
   #' @import glue
+  #' @import SPEI
+  #' @import terra
   #' @export
 
   dir.create(path = destination, recursive = TRUE, showWarnings = FALSE)
@@ -90,7 +92,7 @@ get_chelsa_variables <- function(extent, EPSG, destination, resolution = 1000, r
     for(i in 1:length(files.tif))
     {
       sourcefile <- files.tif[i]
-      destfile <- gsub(".tif", "_1km.tif", files.tif[i])
+      destfile <- gsub(".tif", "_res.tif", files.tif[i])
       system(glue("gdalwarp -overwrite -s_srs {proj.s} -t_srs {proj.t} \\
         -r bilinear -tr {resolution} {resolution} -te {extent} -ot Int16 -of GTiff -srcnodata 0 -dstnodata {nodat} \\
         {sourcefile} {destfile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
@@ -105,29 +107,29 @@ get_chelsa_variables <- function(extent, EPSG, destination, resolution = 1000, r
       # file.remove(sourcefile)
     }
     files.tif <- list.files(paste(destination, "data_raw", "chelsa_v2_1", "temp", sep = "/"), pattern = var, full.names = TRUE)
-    files.tif <- files.tif[grep("[[:digit:]]_1km", files.tif)] # remove original file but not delete it
+    files.tif <- files.tif[grep("[[:digit:]]_res", files.tif)] # remove original file but not delete it
     r <- read_stars(sort(files.tif), along = "band")
     r <- split(r)
     names(r) <- c(paste0(var, 1:length(names(r))))
     r <- merge(r)
     write_stars(obj = r, options = c("COMPRESS=LZW","PREDICTOR=2"),
-                type = "Int16", dsn = paste(destination, "data_raw","chelsa_v2_1", paste0(var,"_1km.tif"), sep = "/"))
+                type = "Int16", dsn = paste(destination, "data_raw","chelsa_v2_1", paste0(var,"_res.tif"), sep = "/"))
     # file.remove(files.tif)
   }
 
   # Stack Tasmin, Tasmax, Tas, Pr, Tcc, Pet Penman & bio
-  files.tif <- paste(destination, "data_raw", "chelsa_v2_1", paste0(c("tasmin","tasmax","tas_","pr", "clt", "pet_penman", "bio"), "_1km.tif"), sep = "/")
+  files.tif <- paste(destination, "data_raw", "chelsa_v2_1", paste0(c("tasmin","tasmax","tas_","pr", "clt", "pet_penman", "bio"), "_res.tif"), sep = "/")
   r <- c(read_stars(files.tif[1]), read_stars(files.tif[2]), read_stars(files.tif[3]), read_stars(files.tif[4]),
          read_stars(files.tif[5]), read_stars(files.tif[6]), read_stars(files.tif[7]), along = "band")
   write_stars(obj = r, options = c("COMPRESS=LZW","PREDICTOR=2"), NA_value = nodat,
-              type = "Int16", dsn = paste(destination, "data_raw","chelsa_v2_1", "clim_1km.tif", sep = "/"))
+              type = "Int16", dsn = paste(destination, "data_raw","chelsa_v2_1", "clim_res.tif", sep = "/"))
   # file.remove(files.tif)
   rm(r)
 
   ## CWD: climatic water deficit
   ## NDM: number of dry months
-  pr_file <- paste(destination, "data_raw", "chelsa_v2_1","pr_1km.tif", sep = "/")
-  pet_penman_file <- paste(destination, "data_raw", "chelsa_v2_1","pet_penman_1km.tif", sep = "/")
+  pr_file <- paste(destination, "data_raw", "chelsa_v2_1","pr_res.tif", sep = "/")
+  pet_penman_file <- paste(destination, "data_raw", "chelsa_v2_1","pet_penman_res.tif", sep = "/")
 
   for (i in 1:12)
   {
@@ -135,10 +137,10 @@ get_chelsa_variables <- function(extent, EPSG, destination, resolution = 1000, r
     # CWD is a positive values for a lack of water
     system(glue('gdal_calc.py -A {pet_penman_file} --A_band={i} -B {pr_file} --B_band={i} --quiet --type=Int16 \\
                --creation-option="COMPRESS=LZW" --creation-option="PREDICTOR=2"  --calc="A-B" --NoDataValue={nodat} \\
-               --outfile={paste(destination, "data_raw", "chelsa_v2_1", paste0("cwd", i, "_1km.tif"), sep = "/")} --overwrite'), ignore.stdout = TRUE, ignore.stderr = TRUE)
+               --outfile={paste(destination, "data_raw", "chelsa_v2_1", paste0("cwd", i, "_res.tif"), sep = "/")} --overwrite'), ignore.stdout = TRUE, ignore.stderr = TRUE)
     # Number of Dry Month ie sum(CWD > 0)
-    cwd_file <- paste(destination, "data_raw", "chelsa_v2_1", paste0("cwd", i, "_1km.tif"), sep = "/")
-    ndm_file <- paste(destination, "data_raw", "chelsa_v2_1", "temp", paste0("ndm", i, "_1km.tif"), sep = "/")
+    cwd_file <- paste(destination, "data_raw", "chelsa_v2_1", paste0("cwd", i, "_res.tif"), sep = "/")
+    ndm_file <- paste(destination, "data_raw", "chelsa_v2_1", "temp", paste0("ndm", i, "_res.tif"), sep = "/")
     system(glue('gdal_calc.py -A {cwd_file} --A_band={1} --quiet --type=Int16 \\
               --creation-option="COMPRESS=LZW" --creation-option="PREDICTOR=2" \\
               --outfile={ndm_file} --calc="A>0" --overwrite --NoDataValue={nodat}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
@@ -148,24 +150,69 @@ get_chelsa_variables <- function(extent, EPSG, destination, resolution = 1000, r
   system(glue('gdal_calc.py -A {ndm_files[1]} -B {ndm_files[2]} -C {ndm_files[3]} -D {ndm_files[4]}  -E {ndm_files[5]} \\
             -F {ndm_files[6]} -G {ndm_files[7]} -H {ndm_files[8]} -I {ndm_files[9]} -J {ndm_files[10]} -K {ndm_files[11]} \\
             -L {ndm_files[12]} --quiet --type=Int16 --creation-option="COMPRESS=LZW" --creation-option="PREDICTOR=2" \\
-            --outfile={paste(destination, "data_raw", "chelsa_v2_1", "ndm_1km.tif", sep = "/")} --NoDataValue={nodat} \\
+            --outfile={paste(destination, "data_raw", "chelsa_v2_1", "ndm_res.tif", sep = "/")} --NoDataValue={nodat} \\
             --calc="A+B+C+D+E+F+G+H+I+J+K+L" --overwrite'), ignore.stdout = TRUE, ignore.stderr = TRUE)
 
   cwd_files <- list.files(paste(destination, "data_raw", "chelsa_v2_1", sep = "/"), pattern = "cwd", full.names = TRUE)
   system(glue('gdal_calc.py -A {cwd_files[1]} -B {cwd_files[2]} -C {cwd_files[3]} -D {cwd_files[4]} -E {cwd_files[5]} \\
             -F {cwd_files[6]} -G {cwd_files[7]} -H {cwd_files[8]} -I {cwd_files[9]} -J {cwd_files[10]} -K {cwd_files[11]} \\
             -L {cwd_files[12]} --quiet --type=Int16 --creation-option="COMPRESS=LZW" --creation-option="PREDICTOR=2" \\
-            --outfile={paste(destination, "data_raw", "chelsa_v2_1", "cwd_1km.tif", sep = "/")} --NoDataValue={nodat} \\
+            --outfile={paste(destination, "data_raw", "chelsa_v2_1", "cwd_res.tif", sep = "/")} --NoDataValue={nodat} \\
             --calc="numpy.maximum(A,0)+numpy.maximum(B,0)+numpy.maximum(C,0)+numpy.maximum(D,0)+numpy.maximum(E,0)+numpy.maximum(F,0) \\
             +numpy.maximum(G,0)+numpy.maximum(H,0)+numpy.maximum(I,0)+numpy.maximum(J,0)+numpy.maximum(K,0)+numpy.maximum(L,0)" --overwrite'), ignore.stdout = TRUE, ignore.stderr = TRUE)
 
+  ## PET with Thornthwaite formula
+
+  tas <- read_stars(paste(destination, "data_raw", "chelsa_v2_1", "tas__res.tif", sep = "/"))
+  # keep only latitude coordinates
+  lat <- coordinates(spTransform(as_Spatial(st_as_sf(tas)), CRS("+proj=longlat +datum=WGS84")))[,2]
+  tas_matrix <- NULL
+  for (month in 1:12) {
+    tas_matrix <- cbind(tas_matrix, c(tas[[1]][,, month]))
+  }
+  Sys.time()
+  pet_thornthwaite <- colSums(thornthwaite(Tave = t(tas_matrix / 10), t(lat)))
+  Sys.time()
+  pet_stars <- split(tas)[1,,]
+  pet_stars[[1]][!is.na(pet_stars[[1]])] <- pet_thornthwaite
+  names(pet_stars) <- "pet_thornthwaite"
+  write_stars(pet_stars , dsn = paste(destination, "data_raw", "chelsa_v2_1", "pet_thornthwaite_res.tif", sep = "/"),
+              options = c("COMPRESS=LZW","PREDICTOR=2"))
+
+  ## CWD with Thornthwaite PET
+
+  pr <- read_stars(paste(destination, "data_raw", "chelsa_v2_1", "pr_res.tif", sep = "/"))
+  pr_matrix <- NULL
+  for (month in 1:12) {
+    pr_matrix <- cbind(pr_matrix, c(pr[[1]][,, month]))
+  }
+  cwd_matrix <- pmax(pet_thornthwaite - pr_matrix, 0)
+  cwd_thornthwaite <- rowSums(cwd_matrix)
+  cwd_stars <- split(tas)[1,,]
+  cwd_stars[[1]][!is.na(cwd_stars[[1]])] <- cwd_thornthwaite
+  names(cwd_stars) <- "cwd_thornthwaite"
+  write_stars(cwd_stars , dsn = paste(destination, "data_raw", "chelsa_v2_1", "cwd_thornthwaite_res.tif", sep = "/"),
+              options = c("COMPRESS=LZW","PREDICTOR=2"))
+  ## NDM with Thornthwaite
+  ndm_matrix <- rowSums(cwd_matrix > 0)
+  ndm_stars <- split(tas)[1,,]
+  ndm_stars[[1]][!is.na(ndm_stars[[1]])] <- ndm_matrix
+  names(ndm_stars) <- "ndm_thornthwaite"
+  write_stars(ndm_stars , dsn = paste(destination, "data_raw", "chelsa_v2_1", "ndm_thornthwaite_res.tif", sep = "/"),
+              options = c("COMPRESS=LZW","PREDICTOR=2"))
+
   system(glue('gdal_merge.py -o {paste(destination, "data_raw", "current_chelsa.tif", sep = "/")} -of GTiff -ot Int16 -co "COMPRESS=LZW" \\
-            -co "PREDICTOR=2" -separate -a_nodata {nodat} {paste(destination, "data_raw", "chelsa_v2_1", "clim_1km.tif", sep = "/")} \\
-            {paste(destination, "data_raw", "chelsa_v2_1", "cwd_1km.tif", sep = "/")} {paste(destination, "data_raw", "chelsa_v2_1", "ndm_1km.tif", sep = "/")}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
+            -co "PREDICTOR=2" -separate -a_nodata {nodat} {paste(destination, "data_raw", "chelsa_v2_1", "clim_res.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "chelsa_v2_1", "cwd_res.tif", sep = "/")} {paste(destination, "data_raw", "chelsa_v2_1", "ndm_res.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "chelsa_v2_1", "pet_thornthwaite_res.tif", sep = "/")} {paste(destination, "data_raw", "chelsa_v2_1", "cwd_thornthwaite_res.tif", sep = "/")} \\
+              {paste(destination, "data_raw", "chelsa_v2_1", "ndm_thornthwaite_res.tif", sep = "/"}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
   current <- split(read_stars(paste(destination, "data_raw",  "current_chelsa.tif", sep = "/")))
-  names(current) <- c(names(split(read_stars(paste(destination, "data_raw", "chelsa_v2_1", "clim_1km.tif", sep = "/")))), "cwd", "ndm")
+  names(current) <- c(names(split(read_stars(paste(destination, "data_raw", "chelsa_v2_1", "clim_res.tif", sep = "/")))), "cwd", "ndm", "pet_thornthwaite", "cwd_thornthwaite", "ndm_thornthwaite")
   write_stars(obj = merge(current), options = c("COMPRESS=LZW","PREDICTOR=2"), type = "Int16",
               NA_value = nodat, dsn = paste(destination, "data_raw", "current_chelsa.tif", sep = "/"))
+
+
+
   if (rm_download){
     unlink(paste(destination, "data_raw", "chelsa_v2_1", sep = "/"), recursive = TRUE)
   }

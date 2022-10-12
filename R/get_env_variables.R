@@ -72,7 +72,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
   system(glue('gdal_translate -of GTiff  -r bilinear \\
               {sourcefile} {destfile}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
   system(glue('gdalwarp -tr {resolution} {resolution} -te {extent} -s_srs {proj.s} -t_srs {proj.t} -overwrite {destfile} \\
-              {paste(destination, "data_raw", "soilgrids250_v2_0", "soilgrids_res.tif", sep = "/")}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
+              -r mode {paste(destination, "data_raw", "soilgrids250_v2_0", "soilgrids_res.tif", sep = "/")}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
 
   ##==============================
   ##
@@ -229,7 +229,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
                   destfile = paste(destination, "data_raw", "WDPA","temp", paste0("WDPA_WDOECM_", date,"_Public_", ISO_country_code, ".zip"), sep = "/"), method = 'auto', mode = "wb", quiet = TRUE)
     unzip(paste(destination, "data_raw", "WDPA","temp", paste0("WDPA_WDOECM_", date,"_Public_", ISO_country_code, ".zip"), sep = "/"),
           exdir = paste(destination, 'data_raw', 'WDPA', 'temp', sep = '/'))
-    WDPA <- vect(paste(destination, "data_raw", "WDPA", "temp", paste0("WDPA_WDOECM_", date, "_Public_", ISO_country_code, ".gdb/"), sep = "/"))
+    WDPA <- vect(paste(destination, "data_raw", "WDPA", "temp", paste0("WDPA_WDOECM_", date, "_Public_", ISO_country_code, ".gdb/"), sep = "/"), layer = paste0("WDPA_WDOECM_poly_", date, "_", ISO_countrycode))
     WDPA <- st_as_sf(WDPA)[3]
     WDPA <- st_transform(WDPA, EPSG)
     WDPA <- st_rasterize(WDPA, dx = resolution, dy = resolution)
@@ -283,7 +283,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
     system(glue("gdal_rasterize  {projshp} -te {extent} -tap -burn 1 -co 'COMPRESS=LZW' -co 'PREDICTOR=2' \\
               -ot Byte -of GTiff -a_nodata {nodat} -a_srs {proj.t} -tr 100 100 {file.tif}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
     system(glue("gdal_proximity.py {file.tif} {distance.tif} -f -overwrite -co 'COMPRESS=LZW' -co 'PREDICTOR=2' \\
-              -values 1 -ot Int16 -of GTiff -distunits GEO "), ignore.stdout = TRUE, ignore.stderr = TRUE)
+              -values 1 -ot Int16 -of GTiff -distunits GEO -use_input_nodata NO"), ignore.stdout = TRUE, ignore.stderr = TRUE)
     system(glue("gdalwarp -overwrite -r average -tr {resolution} {resolution} -ot Int16 -srcnodata {nodat} -of GTiff \\
               -dstnodata {nodat} {distance.tif} {distance_res.tif}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
   }

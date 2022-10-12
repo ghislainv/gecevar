@@ -29,6 +29,7 @@ Imports:
     rnaturalearthdata,
     rnaturalearthhires,
     sf,
+    SPEI,
     stars,
     stats,
     stringr,
