@@ -73,7 +73,7 @@ Others variables are annualy available : climatic water deficit, number of dry m
 This function takes around 8min to run.
 
 ```{r env_clim, eval = FALSE}
-climatic_path <- get_chelsa_variables(extent = extent,
+climat_path <- get_chelsa_variables(extent = extent,
                                       EPSG = epsg,
                                       destination = "/home/pierre/Bureau",
                                       resolution = 1000,
@@ -86,11 +86,11 @@ Now you can merge all our variables in one file.
 
 ```{r merge, eval = FALSE}
 merge_path <- merge_files(environ_path = environ_path,
-                          climat_path = climatic_path, 
+                          climat_path = climat_path, 
                           destination = "/home/pierre/Bureau/")
 ```
 
-This chunk code take around 31 seconds to run. 
+This chunk code take around 30 seconds to run. 
 In our case, gecevar.tif is a 3.1Mb weight file.
 Output is a absolute path to gecevar.tif file whom just been created. 
 
