@@ -208,7 +208,8 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
         -values {nodat} -distunits GEO -use_input_nodata NO {sourcefile} {destfile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
   distSea <- read_stars(paste(destination, "data_raw", "distSea", "distSea.tif", sep = "/"))
   distSea[[1]][distSea[[1]] == 0] <- NA
-  write_stars(distSea, paste(destination, "data_raw", "distSea", "distSea.tif", sep = "/"), options = c("COMPRESS=LZW", "PREDICTOR=2"))
+  write_stars(distSea, paste(destination, "data_raw", "distSea", "distSea.tif", sep = "/"), NA_value = nodat,
+              options = c("COMPRESS=LZW", "PREDICTOR=2"))
 
   ##=========================
   ##
@@ -229,7 +230,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
                   destfile = paste(destination, "data_raw", "WDPA","temp", paste0("WDPA_WDOECM_", date,"_Public_", ISO_country_code, ".zip"), sep = "/"), method = 'auto', mode = "wb", quiet = TRUE)
     unzip(paste(destination, "data_raw", "WDPA","temp", paste0("WDPA_WDOECM_", date,"_Public_", ISO_country_code, ".zip"), sep = "/"),
           exdir = paste(destination, 'data_raw', 'WDPA', 'temp', sep = '/'))
-    WDPA <- vect(paste(destination, "data_raw", "WDPA", "temp", paste0("WDPA_WDOECM_", date, "_Public_", ISO_country_code, ".gdb/"), sep = "/"), layer = paste0("WDPA_WDOECM_poly_", date, "_", ISO_countrycode))
+    WDPA <- vect(paste(destination, "data_raw", "WDPA", "temp", paste0("WDPA_WDOECM_", date, "_Public_", ISO_country_code, ".gdb/"), sep = "/"), layer = paste0("WDPA_WDOECM_poly_", date, "_", ISO_country_code))
     WDPA <- st_as_sf(WDPA)[3]
     WDPA <- st_transform(WDPA, EPSG)
     WDPA <- st_rasterize(WDPA, dx = resolution, dy = resolution)
@@ -264,7 +265,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
                   'waterway=river',
                   'water=lake',
                   'water=reservoir and reservoir_type!=sewage and reservoir_type!=water_storage')
-  destfile <- paste0(substring(download_file, 1, nchar(download_file)-8), ".o5m")
+  destfile <- paste0(substring(download_file, 1, nchar(download_file) - 8), ".o5m")
   system(glue('osmconvert {download_file} -o={destfile}'))
   for (i in 1:length(osm_key))
   {
@@ -292,13 +293,18 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
   water <- paste("lake", "reservoir", "river", sep = "|")
   watering_place <- list.files(paste(destination, "data_raw","OSM", sep = "/"), pattern = water, full.names = TRUE)
   dim_matrix <- dim(read_stars(watering_place[1])[[1]])[1]
-  watering_place.tif <- pmin(read_stars(watering_place[1])[[1]],
-                             read_stars(watering_place[2])[[1]],
-                             read_stars(watering_place[3])[[1]])
-  lake <- read_stars(paste(destination, "data_raw", "OSM", "lakedistance_res.tif", sep = "/"))
-  watering_place.tif <- st_as_stars(watering_place.tif, dimension = st_dimensions(lake))
+  watering_place.tif <- read_stars(watering_place[1])
+  watering_place.tif[[1]] <- pmin(read_stars(watering_place[1])[[1]],
+                                  read_stars(watering_place[2])[[1]],
+                                  read_stars(watering_place[3])[[1]])
   write_stars(watering_place.tif, paste(destination, "data_raw", "OSM", "wateringplacedistance_res.tif", sep = "/"))
   file.remove(list.files(paste(destination, "data_raw","OSM", sep = "/"), pattern = water, full.names = TRUE))
+
+  for (j in list.files(path = paste(destination, "data_raw","OSM", sep = "/"), pattern = ".tif", full.names = TRUE))
+  {
+    osm_dist <- st_crop(read_stars(j), st_as_sf(seaBool))
+    write_stars(osm_dist, j, options = c("COMPRESS=LZW","PREDICTOR=2"))
+  }
 
   ##=====================================
   ##

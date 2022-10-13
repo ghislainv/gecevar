@@ -1,11 +1,11 @@
 get_chelsa_variables <- function(extent, EPSG, destination, resolution = 1000, rm_download = FALSE){
-  #' Create multilayer Tiff file with 93 variables from chelsa-climate.org
+  #' Create multilayer Tiff file with 107 variables from chelsa-climate.org
   #'
   #' @description
   #' Gives the average values on the data recovered between 1981 and 2010.
-  #' Monthly variables are average temperatures, min temperatures, max temperatures, precipitation, potential evapotranspiration,
+  #' Monthly variables are average temperatures, min temperatures, max temperatures, precipitation, potential evapotranspiration (with Penman formula and with Thornthwaite formula),
   #' and total cloud cover.
-  #' Others variables are climatic water  deficit, number of dry month and 19 bio variables (more information in chelsa documentations).
+  #' Others variables are climatic water deficit (with Penman and Thornthwaite), number of dry month (with Penman and Thornthwaite) and 19 bio variables (more information in chelsa documentations).
   #'
   #' @param extent character. First output of `transform_shp_coutry_extend`
   #' @param EPSG int. to consider for this country/area.
@@ -22,6 +22,7 @@ get_chelsa_variables <- function(extent, EPSG, destination, resolution = 1000, r
   #' @import glue
   #' @import SPEI
   #' @import terra
+  #' @import sp
   #' @export
 
   dir.create(path = destination, recursive = TRUE, showWarnings = FALSE)
@@ -171,32 +172,34 @@ get_chelsa_variables <- function(extent, EPSG, destination, resolution = 1000, r
     tas_matrix <- cbind(tas_matrix, c(tas[[1]][,, month]))
   }
   Sys.time()
-  pet_thornthwaite <- colSums(thornthwaite(Tave = t(tas_matrix / 10), t(lat)))
+  pet_thornthwaite <- t(thornthwaite(Tave = t(tas_matrix / 10), t(lat)))
   Sys.time()
-  pet_stars <- split(tas)[1,,]
-  pet_stars[[1]][!is.na(pet_stars[[1]])] <- pet_thornthwaite
-  names(pet_stars) <- "pet_thornthwaite"
-  write_stars(pet_stars , dsn = paste(destination, "data_raw", "chelsa_v2_1", "pet_thornthwaite_res.tif", sep = "/"),
+  pet_stars <- tas
+  for (i in 1:12){
+    pet_stars[[1]][,, i][!is.na(pet_stars[[1]][,, i])] <- pet_thornthwaite[, i]
+  }
+  pet_stars <- split(pet_stars)
+  names(pet_stars) <- paste0("pet_thornthwaite_", 1:12)
+  write_stars(merge(pet_stars) , dsn = paste(destination, "data_raw", "chelsa_v2_1", "pet_thornthwaite_res.tif", sep = "/"),
               options = c("COMPRESS=LZW","PREDICTOR=2"))
 
   ## CWD with Thornthwaite PET
 
   pr <- read_stars(paste(destination, "data_raw", "chelsa_v2_1", "pr_res.tif", sep = "/"))
-  pr_matrix <- NULL
-  for (month in 1:12) {
-    pr_matrix <- cbind(pr_matrix, c(pr[[1]][,, month]))
-  }
-  cwd_matrix <- pmax(pet_thornthwaite - pr_matrix, 0)
-  cwd_thornthwaite <- rowSums(cwd_matrix)
-  cwd_stars <- split(tas)[1,,]
-  cwd_stars[[1]][!is.na(cwd_stars[[1]])] <- cwd_thornthwaite
-  names(cwd_stars) <- "cwd_thornthwaite"
-  write_stars(cwd_stars , dsn = paste(destination, "data_raw", "chelsa_v2_1", "cwd_thornthwaite_res.tif", sep = "/"),
+  cwd_thornthwaite <- merge(pet_stars) - pr
+  cwd_thornthwaite[[1]] <- pmax(cwd_thornthwaite[[1]], 0)
+  cwd_thornthwaite <- split(cwd_thornthwaite)
+  names(cwd_thornthwaite) <- "cwd_thornthwaite"
+  cwd_annual <- split(tas)[1,,]
+  cwd_annual[[1]] <- rowSums(merge(cwd_thornthwaite)[[1]], dims = 2)
+  names(cwd_annual) <- "cwd_thornthwaite"
+  write_stars(cwd_annual, dsn = paste(destination, "data_raw", "chelsa_v2_1", "cwd_thornthwaite_res.tif", sep = "/"),
               options = c("COMPRESS=LZW","PREDICTOR=2"))
+
   ## NDM with Thornthwaite
-  ndm_matrix <- rowSums(cwd_matrix > 0)
+
   ndm_stars <- split(tas)[1,,]
-  ndm_stars[[1]][!is.na(ndm_stars[[1]])] <- ndm_matrix
+  ndm_stars[[1]] <- rowSums(merge(cwd_thornthwaite)[[1]] > 0, dims = 2)
   names(ndm_stars) <- "ndm_thornthwaite"
   write_stars(ndm_stars , dsn = paste(destination, "data_raw", "chelsa_v2_1", "ndm_thornthwaite_res.tif", sep = "/"),
               options = c("COMPRESS=LZW","PREDICTOR=2"))
@@ -205,9 +208,9 @@ get_chelsa_variables <- function(extent, EPSG, destination, resolution = 1000, r
             -co "PREDICTOR=2" -separate -a_nodata {nodat} {paste(destination, "data_raw", "chelsa_v2_1", "clim_res.tif", sep = "/")} \\
             {paste(destination, "data_raw", "chelsa_v2_1", "cwd_res.tif", sep = "/")} {paste(destination, "data_raw", "chelsa_v2_1", "ndm_res.tif", sep = "/")} \\
             {paste(destination, "data_raw", "chelsa_v2_1", "pet_thornthwaite_res.tif", sep = "/")} {paste(destination, "data_raw", "chelsa_v2_1", "cwd_thornthwaite_res.tif", sep = "/")} \\
-              {paste(destination, "data_raw", "chelsa_v2_1", "ndm_thornthwaite_res.tif", sep = "/"}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
+            {paste(destination, "data_raw", "chelsa_v2_1", "ndm_thornthwaite_res.tif", sep = "/")}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
   current <- split(read_stars(paste(destination, "data_raw",  "current_chelsa.tif", sep = "/")))
-  names(current) <- c(names(split(read_stars(paste(destination, "data_raw", "chelsa_v2_1", "clim_res.tif", sep = "/")))), "cwd", "ndm", "pet_thornthwaite", "cwd_thornthwaite", "ndm_thornthwaite")
+  names(current) <- c(names(split(read_stars(paste(destination, "data_raw", "chelsa_v2_1", "clim_res.tif", sep = "/")))), "cwd_penman", "ndm_penman", paste0("pet_thornthwaite_", 1:12), "cwd_thornthwaite", "ndm_thornthwaite")
   write_stars(obj = merge(current), options = c("COMPRESS=LZW","PREDICTOR=2"), type = "Int16",
               NA_value = nodat, dsn = paste(destination, "data_raw", "current_chelsa.tif", sep = "/"))
 
