@@ -54,7 +54,7 @@ environ_path <- get_env_variables(extent_latlon = extent_latlon,
                                   extent = extent,
                                   EPSG = epsg, 
                                   country_name = "New Caledonia",
-                                  destination = "/home/pierre/Bureau",
+                                  destination = "/home/pierre/Bureau/NC",
                                   resolution = 1000,
                                   rm_download = FALSE)
 ```
@@ -74,7 +74,7 @@ This function takes around 15min to run.
 ```{r env_clim, eval = FALSE}
 climat_path <- get_chelsa_variables(extent = extent,
                                       EPSG = epsg,
-                                      destination = "/home/pierre/Bureau",
+                                      destination = "/home/pierre/Bureau/NC",
                                       resolution = 1000,
                                       rm_download = FALSE)
 ```

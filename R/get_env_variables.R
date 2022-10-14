@@ -18,13 +18,14 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
   #' @import glue
   #' @import sf
   #' @import stars
-  #' @import rgrass7
+  #' @import rgrass
   #' @import osmextract
   #' @import RCurl
   #' @import countrycode
   #' @import stringr
   #' @import httr
   #' @import retry
+  #' @import xml2
   #' @export
 
   options(warn = -1)
@@ -352,6 +353,11 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
     unlink(paste(destination, "data_raw", "WDPA", sep = "/"), recursive = TRUE)
     unlink(paste(destination, "data_raw", "environ_nocrop.tif", sep = "/"), recursive = TRUE)
   }
+  # Add legend for soilgrids layer
+  data("xml")
+  xml = xml
+  writeLines(as.character(xml), paste(destination, "data_raw", "environ.tif.aux.xml", sep = "/"))
+  writeLines(readLines(paste(destination, "data_raw", "environ.tif.aux.xml", sep = "/"))[-1], paste(destination, "data_raw", "environ.tif.aux.xml", sep = "/"))
 
   return(paste(destination, "data_raw", "environ.tif", sep = "/"))
 }
