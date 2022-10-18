@@ -372,6 +372,9 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
     unlink(paste(destination, "data_raw", "environ_nocrop.tif", sep = "/"), recursive = TRUE)
   }
 
+  unique_values <- unique(values(rast(paste(destination, "data_raw", "environ.tif", sep = "/"))[[6]]))
+  create_xml_legend(unique_values = unique_values, destination = destination, name_file = "environ")
+
   return(paste(destination, "data_raw", "environ.tif", sep = "/"))
 }
 

@@ -22,7 +22,7 @@ create_xml_legend <- function(unique_values, destination, name_file){
         <Usage>5</Usage>
       </FieldDefn>
       <FieldDefn index="1">
-        <Name>RSG</Name>
+        <Name>SoilType</Name>
         <Type>2</Type>
         <Usage>2</Usage>
       </FieldDefn>'

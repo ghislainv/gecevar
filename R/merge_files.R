@@ -20,4 +20,7 @@ merge_files <- function(environ_path, climat_path, destination){
   all_var <- split(st_as_stars(read_stars(paste(destination,  "gecevar.tif", sep = "/"))))
   names(all_var) <-  c(names(split(read_stars(environ_path))), names(split(read_stars(climat_path))))
   write_stars(merge(all_var), paste(destination, "gecevar.tif", sep = "/"), options = c("COMPRESS=LZW","PREDICTOR=2"))
+
+  unique_values <- unique(values(rast(paste(destination, "gecevar.tif", sep = "/"))[[6]]))
+  create_xml_legend(unique_values = unique_values, destination = destination, name_file = "gecevar")
   }
