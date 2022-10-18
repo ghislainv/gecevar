@@ -15,6 +15,25 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
   #' @return character. absolute path to environ.tif file.
   #' @details `resolution` need to be carefully choosen because if Tiff file is too big, R can crash.
   #'
+  #' @details
+  #'
+  #' Unit of each environ variable :
+  #'
+  #' | Name                                 | Unit          |
+  #' | ------------------------------------ | ------------- |
+  #' | Elevation                            | m             |
+  #' | Aspect                               | degrees       |
+  #' | Roughness                            | m             |
+  #' | Slope                                | degrees       |
+  #' | Solar radiation                      | Wh.m^{-2}.day |
+  #' | Soilgrids                            | category      |
+  #' | Distance sea                         | m             |
+  #' | Distance road                        | m             |
+  #' | Distance place                       | m             |
+  #' | Distance watering place              | m             |
+  #' | Protected Area (WDPA)                | category      |
+  #' @md
+  #'
   #' @import glue
   #' @import sf
   #' @import stars
@@ -354,10 +373,10 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
     unlink(paste(destination, "data_raw", "environ_nocrop.tif", sep = "/"), recursive = TRUE)
   }
   # Add legend for soilgrids layer
-  data("xml")
-  xml = xml
-  writeLines(as.character(xml), paste(destination, "data_raw", "environ.tif.aux.xml", sep = "/"))
-  writeLines(readLines(paste(destination, "data_raw", "environ.tif.aux.xml", sep = "/"))[-1], paste(destination, "data_raw", "environ.tif.aux.xml", sep = "/"))
+  # data("xml")
+  # xml = xml
+  # writeLines(as.character(xml), paste(destination, "data_raw", "environ.tif.aux.xml", sep = "/"))
+  # writeLines(readLines(paste(destination, "data_raw", "environ.tif.aux.xml", sep = "/"))[-1], paste(destination, "data_raw", "environ.tif.aux.xml", sep = "/"))
 
   return(paste(destination, "data_raw", "environ.tif", sep = "/"))
 }

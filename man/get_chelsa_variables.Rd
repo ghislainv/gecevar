@@ -34,4 +34,38 @@ Others variables are climatic water deficit (with Penman and Thornthwaite), numb
 }
 \details{
 \code{resolution} need to be carefully choosen because if Tiff file is too big, R can crash.
+
+Unit of each climatic variable :\tabular{ll}{
+   Name \tab Unit \cr
+   Temperature average (tas) \tab °C x 10 \cr
+   Temperature min (tasmin) \tab °C x 10 \cr
+   Temperature max (tasmax) \tab °C x 10 \cr
+   Precipitation \tab kg.m^{-1} \cr
+   Cloud area fraction (clt) \tab \% \cr
+   PET Penman \tab kg.m^{-1} \cr
+   PET Thornthwaite \tab kg.m^{-1} \cr
+   Climatic Water Deficit (Penman) \tab kg.m^{-1} \cr
+   Climatic Water Deficit (Thornthwaite) \tab kg.m^{-1} \cr
+   Number of dry month (Penman) \tab month \cr
+   Number of dry month (Thornthwaite) \tab month \cr
+   bio 1 \tab °C x 10 \cr
+   bio 2 \tab °C x 10 \cr
+   bio 3 \tab °C x 10 \cr
+   bio 4 \tab °C x 10 \cr
+   bio 5 \tab °C x 10 \cr
+   bio 6 \tab °C x 10 \cr
+   bio 7 \tab °C x 10 \cr
+   bio 8 \tab °C x 10 \cr
+   bio 9 \tab °C x 10 \cr
+   bio 10 \tab °C x 10 \cr
+   bio 11 \tab °C x 10 \cr
+   bio 12 \tab kg.m^{-2}.year^{-1} \cr
+   bio 13 \tab kg.m^{-2}.month^{-1} \cr
+   bio 14 \tab kg.m^{-2}.month^{-1} \cr
+   bio 15 \tab kg.m^{-2} \cr
+   bio 16 \tab kg.m^{-2}.month^{-1} \cr
+   bio 17 \tab kg.m^{-2}.month^{-1} \cr
+   bio 18 \tab kg.m^{-2}.month^{-1} \cr
+   bio 19 \tab kg.m^{-2}.month^{-1} \cr
+}
 }

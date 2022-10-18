@@ -11,6 +11,7 @@ An object of class \code{character} of length 1.
 xml
 }
 \description{
+Internal data.
 Contains soilgrids legend for output files \code{gecevar.tif} and \code{environ.tif}.
 If we want to open \code{gecevar.tif} or \code{environ.tif} with QGIS, we will need \code{RasterAttributeTable} extention to add soilgrid's legend.
 This legend contains all type of soil available in \href{https://soilgrids.org/}{soilgrids.org}.

@@ -22,8 +22,8 @@ merge_files <- function(environ_path, climat_path, destination){
   names(all_var) <-  c(names(split(read_stars(environ_path))), names(split(read_stars(climat_path))))
   write_stars(merge(all_var), paste(destination, "gecevar.tif", sep = "/"), options = c("COMPRESS=LZW","PREDICTOR=2"))
   # Add legend for soilgrids layer
-  data("xml")
-  xml <- xml
-  writeLines(as.character(xml), paste(destination, "data_raw", "environ.tif.aux.xml", sep = "/"))
-  writeLines(readLines(paste(destination, "data_raw", "environ.tif.aux.xml", sep = "/"))[-1], paste(destination, "data_raw", "environ.tif.aux.xml", sep = "/"))
+  # data("xml")
+  # xml <- xml
+  # writeLines(as.character(xml), paste(destination, "gecevar.tif.aux.xml", sep = "/"))
+  # writeLines(readLines(paste(destination, "gecevar.tif.aux.xml", sep = "/"))[-1], paste(destination, "gecevar.tif.aux.xml", sep = "/"))
   }

@@ -38,4 +38,19 @@ protected areas, distance to roads, distance to cities and town, distance to riv
 }
 \details{
 \code{resolution} need to be carefully choosen because if Tiff file is too big, R can crash.
+
+Unit of each environ variable :\tabular{ll}{
+   Name \tab Unit \cr
+   Elevation \tab m \cr
+   Aspect \tab degrees \cr
+   Roughness \tab m \cr
+   Slope \tab degrees \cr
+   Solar radiation \tab Wh.m^{-2}.day \cr
+   Soilgrids \tab category \cr
+   Distance sea \tab m \cr
+   Distance road \tab m \cr
+   Distance place \tab m \cr
+   Distance watering place \tab m \cr
+   Protected Area (WDPA) \tab category \cr
+}
 }

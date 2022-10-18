@@ -86,7 +86,7 @@ Now you can merge all our variables in one file.
 ```{r merge, eval = FALSE}
 merge_path <- merge_files(environ_path = environ_path,
                           climat_path = climat_path, 
-                          destination = "/home/pierre/Bureau/")
+                          destination = "/home/pierre/Bureau/NC")
 ```
 
 This chunk code take around 30 seconds to run. 
