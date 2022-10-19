@@ -17,6 +17,10 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
   #'
   #' @details
   #'
+  #' environ.tif.aux.xml is an extention of environ.tif, it allows to classify soilgrid variable with QGIS with RasterAttributeTable extension.
+  #' Nevertheless it's cause problems to open it with `stars` package but not with `terra`. If you have any problems to open environ.tif, you can remove environ.tif.aux.xml.
+  #' This solve all accessibility problems with `stars` and `terra`.
+  #'
   #' Unit of each environ variable :
   #'
   #' | Name                                 | Unit          |
@@ -134,7 +138,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
   system(glue('gdalbuildvrt {destfile} -input_file_list {paste(destination, "data_raw", "srtm_v1_4_90m", "temp", "sourcefilevrt.txt", sep = "/")}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
   system(glue('gdalwarp -overwrite -t_srs {proj.t} -tap -r bilinear -dstnodata {nodat} \\
             -co "COMPRESS=LZW" -co "PREDICTOR=2" -te {extent} -ot Int16 -of GTiff \\
-            -tr 90 90 {destfile} {paste(destination, "data_raw", "srtm_v1_4_90m", "temp", "elevation.tif", sep = "/")}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
+            -tr {resolution / 2} {resolution / 2} {destfile} {paste(destination, "data_raw", "srtm_v1_4_90m", "temp", "elevation.tif", sep = "/")}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
 
   ## Compute slope, aspect and roughness using gdaldem
   # compute slope
@@ -148,7 +152,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
   out_f <- paste(destination, "data_raw", "srtm_v1_4_90m", "temp", "roughness.tif", sep = "/")
   system(glue('gdaldem roughness {in_f} {out_f} -co "COMPRESS=LZW" -co "PREDICTOR=2"'), ignore.stdout = TRUE, ignore.stderr = TRUE)
 
-  # Resolution from 90m x 90m to choosen resolution using gdalwarp
+  # Resolution from resolution/2 to choosen resolution using gdalwarp
   # elevation
   out_f <- paste(destination, "data_raw", "srtm_v1_4_90m", "elevation_res.tif", sep = "/")
   system(glue('gdalwarp -r bilinear -tr {resolution} {resolution} -ot Int16 -of GTiff -dstnodata {nodat} \\
@@ -362,6 +366,9 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
   system(glue("gdal_translate -projwin {extent_num[1]} {extent_num[4]} {extent_num[3]} {extent_num[2]} -projwin_srs {proj.t} {paste(destination, 'data_raw', 'environ_nocrop.tif', sep = '/')} \\
               {paste(destination, 'data_raw', 'environ.tif', sep = '/')}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
 
+  unique_values <- unique(values(rast(paste(destination, "data_raw", "environ.tif", sep = "/"))[[6]]))
+  create_xml_legend(unique_values = unique_values, destination = paste(destination, "data_raw", sep = "/"), name_file = "environ")
+
   if (rm_download){
     unlink(paste(destination, "data_raw", "distSea", sep = "/"), recursive = TRUE)
     unlink(paste(destination, "data_raw", "grassdata", sep = "/"), recursive = TRUE)
@@ -372,8 +379,6 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name = NULL, 
     unlink(paste(destination, "data_raw", "environ_nocrop.tif", sep = "/"), recursive = TRUE)
   }
 
-  unique_values <- unique(values(rast(paste(destination, "data_raw", "environ.tif", sep = "/"))[[6]]))
-  create_xml_legend(unique_values = unique_values, destination = destination, name_file = "environ")
 
   return(paste(destination, "data_raw", "environ.tif", sep = "/"))
 }

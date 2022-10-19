@@ -9,9 +9,16 @@ merge_files <- function(environ_path, climat_path, destination){
   #' @param destination character. absolute path where to download files like `here()` output.
   #' @return character. absolute path to gecevar.tif.
   #'
+  #' @details
+  #'
+  #' gecevar.tif.aux.xml is an extention of gecevar.tif, it allows to classify soilgrid variable with QGIS with RasterAttributeTable extension.
+  #' Nevertheless it's cause problems to open it with `stars` package but not with `terra`. If you have any problems to open gecevar.tif, you can remove gecevar.tif.aux.xml.
+  #' This solve all accessibility problems with `stars` and `terra`.
+  #'
   #' @import glue
   #' @import rgdal
   #' @import stars
+  #' @import terra
   #' @export
 
   nodat = -9999

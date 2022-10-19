@@ -25,6 +25,12 @@
     <loc>/index.html</loc>
   </url>
   <url>
+    <loc>/reference/create_xml_legend.html</loc>
+  </url>
+  <url>
+    <loc>/reference/get_chelsa_futur.html</loc>
+  </url>
+  <url>
     <loc>/reference/get_chelsa_variables.html</loc>
   </url>
   <url>
@@ -38,8 +44,5 @@
   </url>
   <url>
     <loc>/reference/transform_shp_country_extent.html</loc>
-  </url>
-  <url>
-    <loc>/reference/xml.html</loc>
   </url>
 </urlset>

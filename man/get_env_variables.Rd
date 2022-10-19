@@ -39,6 +39,10 @@ protected areas, distance to roads, distance to cities and town, distance to riv
 \details{
 \code{resolution} need to be carefully choosen because if Tiff file is too big, R can crash.
 
+environ.tif.aux.xml is an extention of environ.tif, it allows to classify soilgrid variable with QGIS with RasterAttributeTable extension.
+Nevertheless it's cause problems to open it with \code{stars} package but not with \code{terra}. If you have any problems to open environ.tif, you can remove environ.tif.aux.xml.
+This solve all accessibility problems with \code{stars} and \code{terra}.
+
 Unit of each environ variable :\tabular{ll}{
    Name \tab Unit \cr
    Elevation \tab m \cr

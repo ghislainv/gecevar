@@ -19,3 +19,8 @@ character. absolute path to gecevar.tif.
 \description{
 Use output of \code{get_env_variables} and \code{get_chelsa_variables} to create an unique file with more than 100 variables.
 }
+\details{
+gecevar.tif.aux.xml is an extention of gecevar.tif, it allows to classify soilgrid variable with QGIS with RasterAttributeTable extension.
+Nevertheless it's cause problems to open it with \code{stars} package but not with \code{terra}. If you have any problems to open gecevar.tif, you can remove gecevar.tif.aux.xml.
+This solve all accessibility problems with \code{stars} and \code{terra}.
+}

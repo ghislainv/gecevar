@@ -1,11 +1,11 @@
-get_chelsa_variables <- function(extent, EPSG, destination, resolution = 1000, rm_download = FALSE){
+get_chelsa_current <- function(extent, EPSG, destination, resolution = 1000, rm_download = FALSE){
   #' Create multilayer Tiff file with 107 variables from chelsa-climate.org
   #'
   #' @description
   #' Gives the average values on the data recovered between 1981 and 2010.
   #' Monthly variables are average temperatures, min temperatures, max temperatures, precipitation, potential evapotranspiration (with Penman formula and with Thornthwaite formula),
   #' and total cloud cover.
-  #' Others variables are climatic water deficit (with Penman and Thornthwaite), number of dry month (with Penman and Thornthwaite) and 19 bio variables (more information in chelsa documentations).
+  #' Others variables are climatic water deficit (with Penman and Thornthwaite), number of dry month (with Penman and Thornthwaite) and 19 bio variables (more information in chelsa documentation).
   #'
   #' @param extent character. First output of `transform_shp_coutry_extend`
   #' @param EPSG int. to consider for this country/area.

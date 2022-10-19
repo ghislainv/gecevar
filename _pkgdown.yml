@@ -10,7 +10,7 @@ authors:
     href: "https://ecology.ghislainv.fr"
   Cirad:
     href: "https://www.cirad.fr"
-    html: "<img src='reference/figures/logo-cirad.svg' height='24'>"
+    html: "<img src='https://www.cirad.fr/var/cirad/storage/images/_aliases/reference/9/1/0/3/3019-11-fre-FR/logo-cirad.png' height='60'>"
 
 navbar:
   structure:

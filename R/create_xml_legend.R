@@ -8,10 +8,10 @@ create_xml_legend <- function(unique_values, destination, name_file){
   #' @param destination character. absolute path where create .tif.aux.xml file.
   #' @param name_file character. Name of the file to create, `gecevar` or `environ`.
   #' @import rjson
-  #'
+  #' @export
 
   json <- fromJSON(file = "https://files.isric.org/soilgrids/latest/data/wrb/MostProbable.rat.json")
-  df <- as.data.frame(json)[,2:dim(df)[2]]
+  df <- as.data.frame(json)[, -1]
 
   header <- '<PAMDataset>
   <PAMRasterBand band="6">
