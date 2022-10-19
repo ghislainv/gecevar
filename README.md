@@ -12,7 +12,7 @@ available as multiband raster files at a choosen resolution (a least
 
 ## System requirements
 
-Make sure Curl, GDAL and GRASS GIS are installed on your system.
+Make sure GDAL and GRASS GIS are installed on your system.
 
 ## Installation
 
