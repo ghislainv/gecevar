@@ -50,9 +50,8 @@ get_chelsa_futur <- function(extent, EPSG, destination, resolution = 1000, phase
   #'
   #' @import stars
   #' @import stringr
-  #' @import utils
-  #' @import rgdal
-  #' @import glue
+  #' @importFrom utils txtProgressBar setTxtProgressBar
+  #' @importFrom glue glue
   #' @import geosphere
   #' @import terra
   #' @import sp
@@ -65,13 +64,13 @@ get_chelsa_futur <- function(extent, EPSG, destination, resolution = 1000, phase
   proj.s <- "EPSG:4326"
   proj.t <- paste0("EPSG:", EPSG)
   dir.create(paste(destination, "data_raw", sep = "/"), showWarnings = FALSE)
-  dir.create(paste(destination, "data_raw","chelsa_v2_1", sep = "/"), showWarnings = FALSE) ## folder for climatic data
-  dir.create(paste(destination, "data_raw","chelsa_v2_1", paste("climat", phase, "GFDL-ESM4", "ssp", ssp, sep = "_"), "temp", sep = "/"), showWarnings = FALSE, recursive = TRUE)
-  dir.create(paste(destination, "data_raw","chelsa_v2_1", paste("climat", phase, "IPSL-CM6A-LR", "ssp", ssp, sep = "_"), "temp", sep = "/"), showWarnings = FALSE, recursive = TRUE)
-  dir.create(paste(destination, "data_raw","chelsa_v2_1", paste("climat", phase, "MPI-ESM1-2-HR", "ssp", ssp, sep = "_"), "temp", sep = "/"), showWarnings = FALSE, recursive = TRUE)
-  dir.create(paste(destination, "data_raw","chelsa_v2_1", paste("climat", phase, "MRI-ESM2-0", "ssp", ssp, sep = "_"), "temp", sep = "/"), showWarnings = FALSE, recursive = TRUE)
-  dir.create(paste(destination, "data_raw","chelsa_v2_1", paste("climat", phase, "UKESM1-0-LL", "ssp", ssp, sep = "_"), "temp", sep = "/"), showWarnings = FALSE, recursive = TRUE)
-  dir.create(paste(destination, "data_raw","chelsa_v2_1", paste("climat", phase, "average", "ssp", ssp, sep = "_"),  sep = "/"), showWarnings = FALSE, recursive = TRUE)
+  dir.create(paste(destination, "data_raw","futur_chelsa", sep = "/"), showWarnings = FALSE) ## folder for climatic data
+  dir.create(paste(destination, "data_raw","futur_chelsa", paste("climat", phase, "GFDL-ESM4", "ssp", ssp, sep = "_"), "temp", sep = "/"), showWarnings = FALSE, recursive = TRUE)
+  dir.create(paste(destination, "data_raw","futur_chelsa", paste("climat", phase, "IPSL-CM6A-LR", "ssp", ssp, sep = "_"), "temp", sep = "/"), showWarnings = FALSE, recursive = TRUE)
+  dir.create(paste(destination, "data_raw","futur_chelsa", paste("climat", phase, "MPI-ESM1-2-HR", "ssp", ssp, sep = "_"), "temp", sep = "/"), showWarnings = FALSE, recursive = TRUE)
+  dir.create(paste(destination, "data_raw","futur_chelsa", paste("climat", phase, "MRI-ESM2-0", "ssp", ssp, sep = "_"), "temp", sep = "/"), showWarnings = FALSE, recursive = TRUE)
+  dir.create(paste(destination, "data_raw","futur_chelsa", paste("climat", phase, "UKESM1-0-LL", "ssp", ssp, sep = "_"), "temp", sep = "/"), showWarnings = FALSE, recursive = TRUE)
+  dir.create(paste(destination, "data_raw","futur_chelsa", paste("climat", phase, "average", "ssp", ssp, sep = "_"),  sep = "/"), showWarnings = FALSE, recursive = TRUE)
   progress_bar <- 0
   nb_var_download <- (12 * 5 + 19) * 5
   print("Download in progress")
@@ -82,28 +81,28 @@ get_chelsa_futur <- function(extent, EPSG, destination, resolution = 1000, phase
       ## Monthly minimum temperature (°C).
       system(glue("gdal_translate -projwin {extent_latlon[1]} {extent_latlon[4]} {extent_latlon[3]} {extent_latlon[2]} -projwin_srs EPSG:4326 \\
                 /vsicurl/{paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/', phase, '/', model, '/ssp', ssp, '/tasmin/CHELSA_', tolower(model), '_r1i1p1f1_w5e5_ssp', ssp, '_tasmin_', m, '_', str_replace(phase, pattern = '-', '_'), '_norm.tif')} \\
-                {paste(destination, 'data_raw', 'chelsa_v2_1', paste('climat', phase, model, 'ssp', ssp, sep = '_'), 'temp', paste0('tasmin', m, '.tif'), sep = '/')}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
+                {paste(destination, 'data_raw', 'futur_chelsa', paste('climat', phase, model, 'ssp', ssp, sep = '_'), 'temp', paste0('tasmin', m, '.tif'), sep = '/')}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
       progress_bar <- progress_bar + 1
       setTxtProgressBar(pb, progress_bar)
 
       ## Monthly maximum temperature (°C).
       system(glue("gdal_translate -projwin {extent_latlon[1]} {extent_latlon[4]} {extent_latlon[3]} {extent_latlon[2]} -projwin_srs EPSG:4326 \\
                 /vsicurl/{paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/', phase, '/', model, '/ssp', ssp, '/tasmax/CHELSA_', tolower(model), '_r1i1p1f1_w5e5_ssp', ssp, '_tasmax_', m, '_', str_replace(phase, pattern = '-', '_'), '_norm.tif')} \\
-                {paste(destination, 'data_raw', 'chelsa_v2_1', paste('climat', phase, model, 'ssp', ssp, sep = '_'), 'temp', paste0('tasmax', m, '.tif'), sep = '/')}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
+                {paste(destination, 'data_raw', 'futur_chelsa', paste('climat', phase, model, 'ssp', ssp, sep = '_'), 'temp', paste0('tasmax', m, '.tif'), sep = '/')}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
       progress_bar <- progress_bar + 1
       setTxtProgressBar(pb, progress_bar)
 
       ## Monthly average temperature (°C).
       system(glue("gdal_translate -projwin {extent_latlon[1]} {extent_latlon[4]} {extent_latlon[3]} {extent_latlon[2]} -projwin_srs EPSG:4326 \\
                 /vsicurl/{paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/', phase, '/', model, '/ssp', ssp, '/tas/CHELSA_', tolower(model), '_r1i1p1f1_w5e5_ssp', ssp, '_tas_', m, '_', str_replace(phase, pattern = '-', '_'), '_norm.tif')} \\
-                {paste(destination, 'data_raw', 'chelsa_v2_1', paste('climat', phase, model, 'ssp', ssp, sep = '_'), 'temp', paste0('tas', m, '.tif'), sep = '/')}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
+                {paste(destination, 'data_raw', 'futur_chelsa', paste('climat', phase, model, 'ssp', ssp, sep = '_'), 'temp', paste0('tas', m, '.tif'), sep = '/')}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
       progress_bar <- progress_bar + 1
       setTxtProgressBar(pb, progress_bar)
 
       ## Monthly precipitation (mm ~ kg/m2).
       system(glue("gdal_translate -projwin {extent_latlon[1]} {extent_latlon[4]} {extent_latlon[3]} {extent_latlon[2]} -projwin_srs EPSG:4326 \\
                 /vsicurl/{paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/', phase, '/', model, '/ssp', ssp, '/pr/CHELSA_', tolower(model), '_r1i1p1f1_w5e5_ssp', ssp, '_pr_', m, '_', str_replace(phase, pattern = '-', '_'), '_norm.tif')} \\
-                {paste(destination, 'data_raw', 'chelsa_v2_1', paste('climat', phase, model, 'ssp', ssp, sep = '_'), 'temp', paste0('pr', m, '.tif'), sep = '/')}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
+                {paste(destination, 'data_raw', 'futur_chelsa', paste('climat', phase, model, 'ssp', ssp, sep = '_'), 'temp', paste0('pr', m, '.tif'), sep = '/')}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
       progress_bar <- progress_bar + 1
       setTxtProgressBar(pb, progress_bar)
     }
@@ -114,7 +113,7 @@ get_chelsa_futur <- function(extent, EPSG, destination, resolution = 1000, phase
       # See https://chelsa-climate.org/wp-admin/download-page/CHELSA_tech_specification_V2.pdf for details
       system(glue("gdal_translate -projwin {extent_latlon[1]} {extent_latlon[4]} {extent_latlon[3]} {extent_latlon[2]} -projwin_srs EPSG:4326 \\
                 /vsicurl/{paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/', phase, '/', model, '/ssp', ssp, '/bio/CHELSA_bio', i, '_', phase, '_', tolower(model), '_ssp', ssp, '_V.2.1.tif')} \\
-                {paste(destination, 'data_raw', 'chelsa_v2_1', paste('climat', phase, model, 'ssp', ssp, sep = '_'), 'temp', paste0('bio', i, '.tif'), sep = '/')}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
+                {paste(destination, 'data_raw', 'futur_chelsa', paste('climat', phase, model, 'ssp', ssp, sep = '_'), 'temp', paste0('bio', i, '.tif'), sep = '/')}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
       progress_bar <- progress_bar + 1
       setTxtProgressBar(pb, progress_bar)
     }
@@ -124,7 +123,7 @@ get_chelsa_futur <- function(extent, EPSG, destination, resolution = 1000, phase
   for (model in c("GFDL-ESM4", "IPSL-CM6A-LR", "MPI-ESM1-2-HR", "MRI-ESM2-0", "UKESM1-0-LL")){
     for(var in c("tasmin", "tasmax", "tas", "pr", "bio"))
     {
-      files.tif <- list.files(paste(destination, "data_raw", "chelsa_v2_1", paste('climat', phase, model, 'ssp', ssp, sep = '_'), "temp", sep = "/"), pattern = paste0(var, "[0-9]"), full.names = TRUE)
+      files.tif <- list.files(paste(destination, "data_raw", "futur_chelsa", paste('climat', phase, model, 'ssp', ssp, sep = '_'), "temp", sep = "/"), pattern = paste0(var, "[0-9]"), full.names = TRUE)
       for(i in 1:length(files.tif))
       {
         sourcefile <- files.tif[i]
@@ -142,27 +141,27 @@ get_chelsa_futur <- function(extent, EPSG, destination, resolution = 1000, phase
           rm(change_scale)
         }
       }
-      files.tif <- list.files(paste(destination, "data_raw", "chelsa_v2_1", paste('climat', phase, model, 'ssp', ssp, sep = '_'), "temp", sep = "/"), pattern = paste0(var, "[0-9]"), full.names = TRUE)
+      files.tif <- list.files(paste(destination, "data_raw", "futur_chelsa", paste('climat', phase, model, 'ssp', ssp, sep = '_'), "temp", sep = "/"), pattern = paste0(var, "[0-9]"), full.names = TRUE)
       files.tif <- files.tif[grep("[[:digit:]]_res", files.tif)] # remove original file but not delete it
       r <- read_stars(sort(files.tif), along = "band")
       r <- split(r)
       names(r) <- c(paste0(var, 1:length(names(r))))
       r <- merge(r)
       write_stars(obj = r, options = c("COMPRESS=LZW","PREDICTOR=2"),
-                  type = "Int16", dsn = paste(destination, "data_raw","chelsa_v2_1", paste('climat', phase, model, 'ssp', ssp, sep = '_'), paste0(var,"_res.tif"), sep = "/"))
+                  type = "Int16", dsn = paste(destination, "data_raw","futur_chelsa", paste('climat', phase, model, 'ssp', ssp, sep = '_'), paste0(var,"_res.tif"), sep = "/"))
     }
 
     # Stack Tasmin, Tasmax, Tas, Pr & bio
-    files.tif <- paste(destination, "data_raw", "chelsa_v2_1", paste('climat', phase, model, 'ssp', ssp, sep = '_'), paste0(c("tasmin","tasmax","tas","pr", "bio"), "_res.tif"), sep = "/")
+    files.tif <- paste(destination, "data_raw", "futur_chelsa", paste('climat', phase, model, 'ssp', ssp, sep = '_'), paste0(c("tasmin","tasmax","tas","pr", "bio"), "_res.tif"), sep = "/")
     r <- c(read_stars(files.tif[1]), read_stars(files.tif[2]), read_stars(files.tif[3]), read_stars(files.tif[4]),
            read_stars(files.tif[5]), along = "band")
     write_stars(obj = r, options = c("COMPRESS=LZW","PREDICTOR=2"), NA_value = nodat,
-                type = "Int16", dsn = paste(destination, "data_raw","chelsa_v2_1", paste('climat', phase, model, 'ssp', ssp, sep = '_'), "clim_res.tif", sep = "/"))
+                type = "Int16", dsn = paste(destination, "data_raw","futur_chelsa", paste('climat', phase, model, 'ssp', ssp, sep = '_'), "clim_res.tif", sep = "/"))
     rm(r)
 
     ## PET with Thornthwaite formula
 
-    tas <- read_stars(paste(destination, "data_raw", "chelsa_v2_1", paste('climat', phase, model, 'ssp', ssp, sep = '_'), "tas_res.tif", sep = "/"))
+    tas <- read_stars(paste(destination, "data_raw", "futur_chelsa", paste('climat', phase, model, 'ssp', ssp, sep = '_'), "tas_res.tif", sep = "/"))
     # keep only latitude coordinates
     lat <- sp::coordinates(spTransform(as_Spatial(st_as_sf(tas)), CRS("+proj=longlat +datum=WGS84")))
     tas_matrix <- NULL
@@ -185,12 +184,12 @@ get_chelsa_futur <- function(extent, EPSG, destination, resolution = 1000, phase
     rm(PET_Thornthwaite, tas_matrix)
     pet_stars <- split(pet_stars)
     names(pet_stars) <- paste0("pet_thornthwaite", 1:12)
-    write_stars(merge(pet_stars) , dsn = paste(destination, "data_raw", "chelsa_v2_1", paste('climat', phase, model, 'ssp', ssp, sep = '_'), "pet_thornthwaite_res.tif", sep = "/"),
+    write_stars(merge(pet_stars) , dsn = paste(destination, "data_raw", "futur_chelsa", paste('climat', phase, model, 'ssp', ssp, sep = '_'), "pet_thornthwaite_res.tif", sep = "/"),
                 options = c("COMPRESS=LZW","PREDICTOR=2"))
 
     ## CWD with Thornthwaite PET
 
-    pr <- read_stars(paste(destination, "data_raw", "chelsa_v2_1", paste('climat', phase, model, 'ssp', ssp, sep = '_'), "pr_res.tif", sep = "/"))
+    pr <- read_stars(paste(destination, "data_raw", "futur_chelsa", paste('climat', phase, model, 'ssp', ssp, sep = '_'), "pr_res.tif", sep = "/"))
     cwd_thornthwaite <- merge(pet_stars) - pr
     rm(pet_stars)
     cwd_thornthwaite[[1]] <- pmax(cwd_thornthwaite[[1]], 0)
@@ -200,7 +199,7 @@ get_chelsa_futur <- function(extent, EPSG, destination, resolution = 1000, phase
     cwd_annual[[1]] <- rowSums(merge(cwd_thornthwaite)[[1]], dims = 2)
     names(cwd_annual) <- "cwd_thornthwaite"
 
-    write_stars(cwd_annual, dsn = paste(destination, "data_raw", "chelsa_v2_1", paste('climat', phase, model, 'ssp', ssp, sep = '_'), "cwd_thornthwaite_res.tif", sep = "/"),
+    write_stars(cwd_annual, dsn = paste(destination, "data_raw", "futur_chelsa", paste('climat', phase, model, 'ssp', ssp, sep = '_'), "cwd_thornthwaite_res.tif", sep = "/"),
                 options = c("COMPRESS=LZW","PREDICTOR=2"))
     rm(cwd_annual)
 
@@ -210,30 +209,30 @@ get_chelsa_futur <- function(extent, EPSG, destination, resolution = 1000, phase
     ndm_stars[[1]] <- rowSums(merge(cwd_thornthwaite)[[1]] > 0, dims = 2)
     rm(cwd_thornthwaite)
     names(ndm_stars) <- "ndm_thornthwaite"
-    write_stars(ndm_stars , dsn = paste(destination, "data_raw", "chelsa_v2_1", paste('climat', phase, model, 'ssp', ssp, sep = '_'), "ndm_thornthwaite_res.tif", sep = "/"),
+    write_stars(ndm_stars , dsn = paste(destination, "data_raw", "futur_chelsa", paste('climat', phase, model, 'ssp', ssp, sep = '_'), "ndm_thornthwaite_res.tif", sep = "/"),
                 options = c("COMPRESS=LZW","PREDICTOR=2"))
     rm(ndm_stars)
 
-    system(glue('gdal_merge.py -o {paste(destination, "data_raw", "chelsa_v2_1", paste("climat", phase, model, "ssp", ssp, sep = "_"), "futur_chelsa.tif", sep = "/")} -of GTiff -ot Int16 -co "COMPRESS=LZW" \\
-            -co "PREDICTOR=2" -separate -a_nodata {nodat} {paste(destination, "data_raw", "chelsa_v2_1", paste("climat", phase, model, "ssp", ssp, sep = "_"), "clim_res.tif", sep = "/")} \\
-            {paste(destination, "data_raw", "chelsa_v2_1", paste("climat", phase, model, "ssp", ssp, sep = "_"), "pet_thornthwaite_res.tif", sep = "/")} {paste(destination, "data_raw", "chelsa_v2_1", paste("climat", phase, model, "ssp", ssp, sep = "_"), "cwd_thornthwaite_res.tif", sep = "/")} \\
-            {paste(destination, "data_raw", "chelsa_v2_1", paste("climat", phase, model, "ssp", ssp, sep = "_"), "ndm_thornthwaite_res.tif", sep = "/")}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
+    system(glue('gdal_merge.py -o {paste(destination, "data_raw", "futur_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), "futur_chelsa.tif", sep = "/")} -of GTiff -ot Int16 -co "COMPRESS=LZW" \\
+            -co "PREDICTOR=2" -separate -a_nodata {nodat} {paste(destination, "data_raw", "futur_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), "clim_res.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "futur_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), "pet_thornthwaite_res.tif", sep = "/")} {paste(destination, "data_raw", "futur_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), "cwd_thornthwaite_res.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "futur_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), "ndm_thornthwaite_res.tif", sep = "/")}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
 
-    futur <- split(read_stars(paste(destination, "data_raw", "chelsa_v2_1", paste("climat", phase, model, "ssp", ssp, sep = "_"),  "futur_chelsa.tif", sep = "/")))
-    names(futur) <- c(names(split(read_stars(paste(destination, "data_raw", "chelsa_v2_1", paste("climat", phase, model, "ssp", ssp, sep = "_"), "clim_res.tif", sep = "/")))), paste0("pet_thornthwaite_", 1:12), "cwd_thornthwaite", "ndm_thornthwaite")
+    futur <- split(read_stars(paste(destination, "data_raw", "futur_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"),  "futur_chelsa.tif", sep = "/")))
+    names(futur) <- c(names(split(read_stars(paste(destination, "data_raw", "futur_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), "clim_res.tif", sep = "/")))), paste0("pet_thornthwaite_", 1:12), "cwd_thornthwaite", "ndm_thornthwaite")
     write_stars(obj = merge(futur), options = c("COMPRESS=LZW","PREDICTOR=2"), type = "Int16",
-                NA_value = nodat, dsn = paste(destination, "data_raw", "chelsa_v2_1", paste("climat", phase, model, "ssp", ssp, sep = "_"), paste0(paste("climat", phase, model, "ssp", ssp, sep = "_"),".tif"), sep = "/"))
+                NA_value = nodat, dsn = paste(destination, "data_raw", "futur_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), paste0(paste("climat", phase, model, "ssp", ssp, sep = "_"),".tif"), sep = "/"))
     rm(futur)
-    unlink(paste(destination, "data_raw", "chelsa_v2_1", paste("climat", phase, model, "ssp", ssp, sep = "_"), "temp", sep = "/"), recursive = TRUE)
-    unlink(list.files(paste(destination, "data_raw", "chelsa_v2_1", paste("climat", phase, model, "ssp", ssp, sep = "_"), sep = "/"), pattern = "res", full.names = TRUE))
-    unlink(paste(destination, "data_raw", "chelsa_v2_1", paste("climat", phase, model, "ssp", ssp, sep = "_"), "futur_chelsa.tif", sep = "/"))
+    unlink(paste(destination, "data_raw", "futur_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), "temp", sep = "/"), recursive = TRUE)
+    unlink(list.files(paste(destination, "data_raw", "futur_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), sep = "/"), pattern = "res", full.names = TRUE))
+    unlink(paste(destination, "data_raw", "futur_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), "futur_chelsa.tif", sep = "/"))
   }
   ## Mean of the five models
-  Average_model <- read_stars(paste(destination, "data_raw", "chelsa_v2_1", paste("climat", phase, "GFDL-ESM4", "ssp", ssp, sep = "_"), paste0(paste("climat", phase, "GFDL-ESM4", "ssp", ssp, sep = "_"),".tif"), sep = "/"))
+  Average_model <- read_stars(paste(destination, "data_raw", "futur_chelsa", paste("climat", phase, "GFDL-ESM4", "ssp", ssp, sep = "_"), paste0(paste("climat", phase, "GFDL-ESM4", "ssp", ssp, sep = "_"),".tif"), sep = "/"))
   for (model in c("IPSL-CM6A-LR", "MPI-ESM1-2-HR", "MRI-ESM2-0", "UKESM1-0-LL")){
-    Average_model <- Average_model + read_stars(paste(destination, "data_raw", "chelsa_v2_1", paste("climat", phase, model, "ssp", ssp, sep = "_"), paste0(paste("climat", phase, model, "ssp", ssp, sep = "_"),".tif"), sep = "/"))
+    Average_model <- Average_model + read_stars(paste(destination, "data_raw", "futur_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), paste0(paste("climat", phase, model, "ssp", ssp, sep = "_"),".tif"), sep = "/"))
   }
   Average_model <- Average_model / 5
-  write_stars(obj = Average_model, dsn = paste(destination, "data_raw", "chelsa_v2_1", paste("climat", phase, "average", "ssp", ssp, sep = "_"), paste0(paste("climat", phase, "average", "ssp", ssp, sep = "_"), ".tif"), sep = "/"),
+  write_stars(obj = Average_model, dsn = paste(destination, "data_raw", "futur_chelsa", paste("climat", phase, "average", "ssp", ssp, sep = "_"), paste0(paste("climat", phase, "average", "ssp", ssp, sep = "_"), ".tif"), sep = "/"),
               options = c("COMPRESS=LZW","PREDICTOR=2"))
 }

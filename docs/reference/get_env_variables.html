@@ -64,7 +64,7 @@ protected areas, distance to roads, distance to cities and town, distance to riv
 <span>  <span class="va">extent_latlon</span>,</span>
 <span>  <span class="va">extent</span>,</span>
 <span>  <span class="va">EPSG</span>,</span>
-<span>  country_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">country_name</span>,</span>
 <span>  <span class="va">destination</span>,</span>
 <span>  resolution <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  rm_download <span class="op">=</span> <span class="cn">FALSE</span></span>
@@ -86,7 +86,7 @@ protected areas, distance to roads, distance to cities and town, distance to riv
 
 
 <dt>country_name</dt>
-<dd><p>(optional) character. country name (in english) which be use to collect protected areas. This country must be available in <code>https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA</code>, default is NULL.</p></dd>
+<dd><p>character. country name (in english) which be use to collect protected areas. This country must be available in <code>https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA</code>.</p></dd>
 
 
 <dt>destination</dt>
@@ -112,7 +112,7 @@ protected areas, distance to roads, distance to cities and town, distance to riv
     <p><code>resolution</code> need to be carefully choosen because if Tiff file is too big, R can crash.</p>
 <p>environ.tif.aux.xml is an extention of environ.tif, it allows to classify soilgrid variable with QGIS with RasterAttributeTable extension.
 Nevertheless it's cause problems to open it with <code>stars</code> package but not with <code>terra</code>. If you have any problems to open environ.tif, you can remove environ.tif.aux.xml.
-This solve all accessibility problems with <code>stars</code> and <code>terra</code>.</p>
+This solve all accessibility problems with <code>stars</code> and <code>terra</code> packages.</p>
 <p>Unit of each environ variable :</p><table class="table table"><tr><td>Name</td><td>Unit</td></tr><tr><td>Elevation</td><td>m</td></tr><tr><td>Aspect</td><td>degrees</td></tr><tr><td>Roughness</td><td>m</td></tr><tr><td>Slope</td><td>degrees</td></tr><tr><td>Solar radiation</td><td>Wh.m^-2.day</td></tr><tr><td>Soilgrids</td><td>category</td></tr><tr><td>Distance sea</td><td>m</td></tr><tr><td>Distance road</td><td>m</td></tr><tr><td>Distance place</td><td>m</td></tr><tr><td>Distance watering place</td><td>m</td></tr><tr><td>Protected Area (WDPA)</td><td>category</td></tr></table></div>
 
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

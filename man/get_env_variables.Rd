@@ -8,7 +8,7 @@ get_env_variables(
   extent_latlon,
   extent,
   EPSG,
-  country_name = NULL,
+  country_name,
   destination,
   resolution = 1000,
   rm_download = FALSE
@@ -21,7 +21,7 @@ get_env_variables(
 
 \item{EPSG}{int. to consider for this country/area.}
 
-\item{country_name}{(optional) character. country name (in english) which be use to collect protected areas. This country must be available in \verb{https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA}, default is NULL.}
+\item{country_name}{character. country name (in english) which be use to collect protected areas. This country must be available in \verb{https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA}.}
 
 \item{destination}{character. absolute path where to download files like \code{here()} output.}
 
@@ -41,7 +41,7 @@ protected areas, distance to roads, distance to cities and town, distance to riv
 
 environ.tif.aux.xml is an extention of environ.tif, it allows to classify soilgrid variable with QGIS with RasterAttributeTable extension.
 Nevertheless it's cause problems to open it with \code{stars} package but not with \code{terra}. If you have any problems to open environ.tif, you can remove environ.tif.aux.xml.
-This solve all accessibility problems with \code{stars} and \code{terra}.
+This solve all accessibility problems with \code{stars} and \code{terra} packages.
 
 Unit of each environ variable :\tabular{ll}{
    Name \tab Unit \cr

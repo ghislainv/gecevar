@@ -59,7 +59,7 @@ environ_path <- get_env_variables(extent_latlon = extent_latlon,
                                   rm_download = FALSE)
 ```
 
-This chunk code take around 209 seconds to run. 
+This chunk code take around 3min to run. 
 
 ## Download climatic variables in one file
 
@@ -67,9 +67,9 @@ Climatic variables are extract from [chelsa-climat.org](https://chelsa-climate.o
 
 We get with `get_chelsa_current` function many variables. You can find the chelsa's documentation [here](https://chelsa-climate.org/wp-admin/download-page/CHELSA_tech_specification_V2.pdf) about all variables downloaded.
 Variables give the average value on the data recovered between 1981 and 2010.
-Some variables are available for each month like average temperature, min temperature, max temperature, precipitation, potential evapotranspiration (PET) with Penman's formula and Thornthwaite's formula, and total cloud cover.
+Some variables are available for each month like average temperature, min temperature, max temperature, precipitation, potential evapotranspiration (PET) with Penman's formula and Thornthwaite's formula, and cloud area fraction (clt).
 Others variables are annualy available : climatic water deficit (with Penman's formula and Thornthwaite's formula), number of dry month (with Penman's formula and Thornthwaite's formula) and 19 bio variables.
-This function takes around 15min to run.
+This function takes around 10min to run.
 
 ```{r env_clim, eval = FALSE}
 climat_path <- get_chelsa_current(extent = extent,
@@ -90,14 +90,14 @@ merge_path <- merge_files(environ_path = environ_path,
 ```
 
 This chunk code take around 30 seconds to run. 
-In our case, gecevar.tif is a 8.7Mb weight file.
+In our case, gecevar.tif is a 35Mb weight file.
 Output is a absolute path to gecevar.tif file whom just been created. 
 
 ## Download futur climat 
 
 Extracted from chelsa the climate data from the five available models, namely, GFDL-ESM4, IPSL-CM6A-LR, MPI-ESM1-2-HR, MRI-ESM2-0 and UKESM1-0-LL.
 Compute the average of these models for a SSP choosen. 
-This function download 5 models, so it's five time slower than `get_chelsa_current`.
+This function take around 40min to run.
 
 ```{r futur, eval = FALSE}
 system.time({

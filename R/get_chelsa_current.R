@@ -54,12 +54,11 @@ get_chelsa_current <- function(extent, EPSG, destination, resolution = 1000, rm_
   #'
   #' @import stars
   #' @import stringr
-  #' @import utils
-  #' @import rgdal
-  #' @import glue
+  #' @importFrom utils txtProgressBar setTxtProgressBar
   #' @import geosphere
   #' @import terra
   #' @import sp
+  #' @importFrom glue glue
   #' @export
 
   dir.create(path = destination, recursive = TRUE, showWarnings = FALSE)
@@ -118,7 +117,7 @@ get_chelsa_current <- function(extent, EPSG, destination, resolution = 1000, rm_
     # See https://chelsa-climate.org/wp-admin/download-page/CHELSA_tech_specification_V2.pdf for details
     system(glue("gdal_translate -projwin {extent_latlon[1]} {extent_latlon[4]} {extent_latlon[3]} {extent_latlon[2]} -projwin_srs EPSG:4326 \\
                 /vsicurl/{paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/1981-2010/bio/CHELSA_bio', i, '_1981-2010_V.2.1.tif')} \\
-                {paste(destination, 'data_raw', 'chelsa_v2_1', 'temp', paste0('bio', i, '.tif'), sep = '/')}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
+                {paste(destination, 'data_raw', 'chelsa_v2_1', 'temp', paste0('bio', str_pad(i, width = 2, pad = '0'), '.tif'), sep = '/')}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
   }
 
   for(var in c("tasmin", "tasmax", "tas", "pr", "bio", "clt", "pet_penman"))
@@ -140,17 +139,15 @@ get_chelsa_current <- function(extent, EPSG, destination, resolution = 1000, rm_
                     type = "Int16", dsn = destfile)
         rm(change_scale)
       }
-      # file.remove(sourcefile)
     }
     files.tif <- list.files(paste(destination, "data_raw", "chelsa_v2_1", "temp", sep = "/"), pattern = paste0(var, "[0-9]"), full.names = TRUE)
-    files.tif <- files.tif[grep("[[:digit:]]_res", files.tif)] # remove original file but not delete it
+    files.tif <- files.tif[grep("res", files.tif)]
     r <- read_stars(sort(files.tif), along = "band")
     r <- split(r)
     names(r) <- c(paste0(var, 1:length(names(r))))
     r <- merge(r)
     write_stars(obj = r, options = c("COMPRESS=LZW","PREDICTOR=2"),
                 type = "Int16", dsn = paste(destination, "data_raw","chelsa_v2_1", paste0(var,"_res.tif"), sep = "/"))
-    # file.remove(files.tif)
   }
 
   # Stack Tasmin, Tasmax, Tas, Pr, Tcc, Pet Penman & bio

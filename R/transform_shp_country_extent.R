@@ -13,10 +13,9 @@ transform_shp_country_extent <- function(EPSG, country_name = NULL, shapefile_pa
   #' @return character vector. with extent of the area in one character, other are latlon coord of area
   #' @details `country_name` must be available on `https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-details/` website.
   #' @import sf
-  #' @import rnaturalearth
-  #' @import rnaturalearthdata
-  #' @import rnaturalearthhires
+  #' @importFrom utils download.file unzip
   #' @import terra
+  #' @import countrycode
   #' @export
 
   if ((as.numeric(!is.null(country_name)) + as.numeric(!is.null(shapefile_path)) + as.numeric(!is.null(extent_short))) != 1){
@@ -24,15 +23,28 @@ transform_shp_country_extent <- function(EPSG, country_name = NULL, shapefile_pa
 
   }
   if (!is.null(country_name)){
-    map <- ne_countries(scale = 10, country = country_name, returnclass = "sf")
-    coord <- st_coordinates(map)
-    lonmin <- floor(min(coord[,1]))
-    lonmax <- ceiling(max(coord[,1]))
-    latmin <- floor(min(coord[,2]))
-    latmax <- ceiling(max(coord[,2]))
+    ISO_country_code <- countryname(country_name, destination = "iso3c")
+    URL <- paste0("https://geodata.ucdavis.edu/gadm/gadm3.6/gpkg/gadm36_", ISO_country_code, "_gpkg.zip")
+    download.file(URL, quiet = TRUE, destfile = paste(getwd(), "gaul.zip", sep = '/'))
+    # Unzip
+    unzip(paste(getwd(), "gaul.zip", sep = '/'),
+          exdir = paste(getwd(), "gaul", sep = '/'), overwrite = TRUE)
+    # Read vector (level 0 for country borders)
+    coord <- st_bbox(sf::st_read(paste(getwd(), "gaul", paste0("gadm36_", ISO_country_code, ".gpkg"), sep = '/'),
+                           layer = paste0("gadm36_", ISO_country_code, "_0"), quiet = TRUE))
+    unlink(paste(getwd(), "gaul/", sep = "/"), recursive = TRUE)
+    unlink(paste(getwd(), "gaul.zip", sep = "/"), recursive = TRUE)
+    lonmin <- floor(coord[1])
+    lonmax <- ceiling(coord[3])
+    latmin <- floor(coord[2])
+    latmax <- ceiling(coord[4])
     extent_latlon <- c(lonmin = lonmin, latmin = latmin, lonmax = lonmax, latmax = latmax)
-    map <- st_transform(map, EPSG)
-    extent <- round(st_bbox(map))
+    e <- ext(extent_latlon[1], extent_latlon[3], extent_latlon[2], extent_latlon[4])
+    e <- as.polygons(e)
+    crs(e) <- "epsg:4326"
+    extent <- st_bbox(project(e, paste0("epsg:", EPSG)))
+    extent <- c(floor(extent[1]), floor(extent[2]), ceiling(extent[3]), ceiling(extent[4]))
+
   }
   if (!is.null(shapefile_path)){
     map <- read_sf(shapefile_path)
