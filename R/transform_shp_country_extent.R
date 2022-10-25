@@ -5,13 +5,12 @@ transform_shp_country_extent <- function(EPSG, country_name = NULL, shapefile_pa
   #' With a country name, a shapefile or a extent and an EPSG value.
   #' Succed to give extent in EPSG reproject and extent with default EPSG also knows as latitude and longitude coordinates.
   #'
-  #' @param country_name character. English country name. Check `details` for more information, default is NULL.
+  #' @param country_name character. English country name, default is NULL.
   #' @param shapefile_path character. Path to a .shp file, default is NULL.
   #' @param extent_short int vector. length 4, with this order c(xmin, ymin, xmax, ymax), default is NULL.
   #' @param EPSG int. to consider for this country/area.
   #'
   #' @return character vector. with extent of the area in one character, other are latlon coord of area
-  #' @details `country_name` must be available on `https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-details/` website.
   #' @import sf
   #' @importFrom utils download.file unzip
   #' @import terra
@@ -23,12 +22,13 @@ transform_shp_country_extent <- function(EPSG, country_name = NULL, shapefile_pa
 
   }
   if (!is.null(country_name)){
+    dir.create(paste(getwd(), "gaul", sep = "/"), showWarnings = FALSE)
     ISO_country_code <- countryname(country_name, destination = "iso3c")
     URL <- paste0("https://geodata.ucdavis.edu/gadm/gadm3.6/gpkg/gadm36_", ISO_country_code, "_gpkg.zip")
-    download.file(URL, quiet = TRUE, destfile = paste(getwd(), "gaul.zip", sep = '/'))
+    tempZip <- tempfile()
+    download.file(URL, quiet = TRUE, destfile = tempZip)
     # Unzip
-    unzip(paste(getwd(), "gaul.zip", sep = '/'),
-          exdir = paste(getwd(), "gaul", sep = '/'), overwrite = TRUE)
+    unzip(tempZip, exdir = paste(getwd(), "gaul", sep = "/"), overwrite = TRUE)
     # Read vector (level 0 for country borders)
     coord <- st_bbox(sf::st_read(paste(getwd(), "gaul", paste0("gadm36_", ISO_country_code, ".gpkg"), sep = '/'),
                            layer = paste0("gadm36_", ISO_country_code, "_0"), quiet = TRUE))

@@ -1,0 +1,39 @@
+---
+title: "Particularities"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Particularities}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Packages and methods used
+
+In this package, we decided to use `Gdal` and `GRASS` feature for their optimization and speed to saving time and space. 
+In the same way, we used Cloud Optimized GeoTIFFs (COG) to download only the subset needed for all climatics files. This technique can be used thanks to `gdal_translate` function. 
+In R itself, `terra` and `stars` packages help to handle and visualize Tiff files as R object.
+
+## Computing time
+
+Comparison with 3 different areas : New Caledonia, French guyana and Madagascar.
+
+For all area, resolution is set to 1km. Others parameters don't change computing time.
+
+| Area          | transform_shp_country_extent | get_env_variable | get_chelsa_current | get_chelsa_futur |
+| :-----------: | :--------------------------: | :--------------: | :----------------: | :--------------: |
+| Madagascar    | 45s                          | 12min20          |                    |                  |
+| New Caledonia | 30s                          | 15min            | 15min              |                  |
+| French guyana |                              |                  |                    |                  |
+
+## Output size
+
+| Area          | layer's size | number of cells | Number of full cells |
+| :-----------: | :----------: | :-------------: | :------------------: |
+| Madagascar    | 1673 x 875   | 1.463.875       | 1.463.875            | 
+| New Caledonia | 688 x 1921   | 1.321.648       | 211.048              |
+| French guyana |  |  |
+
+## Type of output
+
+Each output is a multilayer Tiff file with `-32768` as nodata value. All values are in `Int16` for optimize space.
+

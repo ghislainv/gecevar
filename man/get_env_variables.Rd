@@ -11,7 +11,8 @@ get_env_variables(
   country_name,
   destination,
   resolution = 1000,
-  rm_download = FALSE
+  rm_download = FALSE,
+  forest_year = 2010
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ get_env_variables(
 \item{resolution}{int. in meters, recommended resolution are 250m, 500m, 1km, 2km or 5km, default is 1km. See more in details.}
 
 \item{rm_download}{boolean. If TRUE remove download files and folders. Keep only environ.tif in \code{data_raw} folder, default is FALSE.}
+
+\item{forest_year}{int. Forest at the decade choosen. Must be one of 2000, 2010 or 2020, default is 2010.}
 }
 \value{
 character. absolute path to environ.tif file.
@@ -51,10 +54,13 @@ Unit of each environ variable :\tabular{ll}{
    Slope \tab degrees \cr
    Solar radiation \tab Wh.m^{-2}.day \cr
    Soilgrids \tab category \cr
+   Forest \tab binary \cr
+   Distance to forest \tab m \cr
    Distance sea \tab m \cr
    Distance road \tab m \cr
    Distance place \tab m \cr
    Distance watering place \tab m \cr
    Protected Area (WDPA) \tab category \cr
+   Population density \tab people/km² \cr
 }
 }

@@ -2,7 +2,7 @@
 
 export(create_xml_legend)
 export(get_chelsa_current)
-export(get_chelsa_futur)
+export(get_chelsa_future)
 export(get_env_variables)
 export(merge_files)
 export(transform_shp_country_extent)

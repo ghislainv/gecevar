@@ -14,7 +14,7 @@ transform_shp_country_extent(
 \arguments{
 \item{EPSG}{int. to consider for this country/area.}
 
-\item{country_name}{character. English country name. Check \code{details} for more information, default is NULL.}
+\item{country_name}{character. English country name, default is NULL.}
 
 \item{shapefile_path}{character. Path to a .shp file, default is NULL.}
 
@@ -26,7 +26,4 @@ character vector. with extent of the area in one character, other are latlon coo
 \description{
 With a country name, a shapefile or a extent and an EPSG value.
 Succed to give extent in EPSG reproject and extent with default EPSG also knows as latitude and longitude coordinates.
-}
-\details{
-\code{country_name} must be available on \verb{https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-details/} website.
 }

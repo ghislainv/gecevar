@@ -26,8 +26,8 @@ navbar:
       - text: Code of conduct
         href: articles/Code_of_conduct.html
     intro:
-      text: Get started
-      href: articles/New_Caledonia.html
+      text: Articles
+      href: articles/index.html
     reference:
       text: Reference
       href: reference/index.html

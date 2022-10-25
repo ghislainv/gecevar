@@ -27,7 +27,7 @@ protected areas, distance to roads, distance to cities and town, distance to riv
   </a>
 </li>
 <li class="nav-item">
-  <a class="nav-link" href="../articles/New_Caledonia.html">Get started</a>
+  <a class="nav-link" href="../articles/index.html">Articles</a>
 </li>
 <li class="active nav-item">
   <a class="nav-link" href="../reference/index.html">Reference</a>
@@ -67,7 +67,8 @@ protected areas, distance to roads, distance to cities and town, distance to riv
 <span>  <span class="va">country_name</span>,</span>
 <span>  <span class="va">destination</span>,</span>
 <span>  resolution <span class="op">=</span> <span class="fl">1000</span>,</span>
-<span>  rm_download <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  rm_download <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  forest_year <span class="op">=</span> <span class="fl">2010</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -100,6 +101,10 @@ protected areas, distance to roads, distance to cities and town, distance to riv
 <dt>rm_download</dt>
 <dd><p>boolean. If TRUE remove download files and folders. Keep only environ.tif in <code>data_raw</code> folder, default is FALSE.</p></dd>
 
+
+<dt>forest_year</dt>
+<dd><p>int. Forest at the decade choosen. Must be one of 2000, 2010 or 2020, default is 2010.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -113,7 +118,7 @@ protected areas, distance to roads, distance to cities and town, distance to riv
 <p>environ.tif.aux.xml is an extention of environ.tif, it allows to classify soilgrid variable with QGIS with RasterAttributeTable extension.
 Nevertheless it's cause problems to open it with <code>stars</code> package but not with <code>terra</code>. If you have any problems to open environ.tif, you can remove environ.tif.aux.xml.
 This solve all accessibility problems with <code>stars</code> and <code>terra</code> packages.</p>
-<p>Unit of each environ variable :</p><table class="table table"><tr><td>Name</td><td>Unit</td></tr><tr><td>Elevation</td><td>m</td></tr><tr><td>Aspect</td><td>degrees</td></tr><tr><td>Roughness</td><td>m</td></tr><tr><td>Slope</td><td>degrees</td></tr><tr><td>Solar radiation</td><td>Wh.m^-2.day</td></tr><tr><td>Soilgrids</td><td>category</td></tr><tr><td>Distance sea</td><td>m</td></tr><tr><td>Distance road</td><td>m</td></tr><tr><td>Distance place</td><td>m</td></tr><tr><td>Distance watering place</td><td>m</td></tr><tr><td>Protected Area (WDPA)</td><td>category</td></tr></table></div>
+<p>Unit of each environ variable :</p><table class="table table"><tr><td>Name</td><td>Unit</td></tr><tr><td>Elevation</td><td>m</td></tr><tr><td>Aspect</td><td>degrees</td></tr><tr><td>Roughness</td><td>m</td></tr><tr><td>Slope</td><td>degrees</td></tr><tr><td>Solar radiation</td><td>Wh.m^-2.day</td></tr><tr><td>Soilgrids</td><td>category</td></tr><tr><td>Forest</td><td>binary</td></tr><tr><td>Distance to forest</td><td>m</td></tr><tr><td>Distance sea</td><td>m</td></tr><tr><td>Distance road</td><td>m</td></tr><tr><td>Distance place</td><td>m</td></tr><tr><td>Distance watering place</td><td>m</td></tr><tr><td>Protected Area (WDPA)</td><td>category</td></tr><tr><td>Population density</td><td>people/km²</td></tr></table></div>
 
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside></div>

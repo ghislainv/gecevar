@@ -14,10 +14,11 @@ Install the development version of **cegevar** from [Github](https://github.com/
 
 ## Import libraries
 
-First thing to do is import **gecevar** library.
+First thing to do is import **gecevar** and **terra** libraries.
 
 ```{r libraries, warning = FALSE, message = FALSE}
 library(gecevar)
+library(terra)
 ```
 
 ## Get extent and latitude/longitude coordinates 
@@ -26,7 +27,6 @@ In this example, we take New Caledonia as example. It's French island near to Ne
 we need to begin to find EPSG code for New Caledonia. It's can be found in [epsg.io](https://epsg.io).
 Beware to keep the same EPSG for all functions in this package. 
 
-One small check on [https://www.naturalearthdata.com/](https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-details/) to make sure that New Caledonia is available as ```country_name```.
 
 ```{r get_extent, eval = FALSE}
 name <- "New Caledonia"
@@ -37,6 +37,8 @@ all_extent <- transform_shp_country_extent(EPSG = epsg,
                                            extent_short = NULL)
 extent <- all_extent[1]
 extent_latlon <- as.numeric(all_extent[2:5])
+extent
+extent_latlon
 ```
 
 We got as output a vector size 5. 
@@ -57,19 +59,17 @@ environ_path <- get_env_variables(extent_latlon = extent_latlon,
                                   destination = "/home/pierre/Bureau/NC",
                                   resolution = 1000,
                                   rm_download = FALSE)
+r_env <- rast(environ_path)
+names(r_env)
+plot(r_env$soilgrids)
 ```
-
-This chunk code take around 3min to run. 
 
 ## Download climatic variables in one file
 
 Climatic variables are extract from [chelsa-climat.org](https://chelsa-climate.org/). 
 
-We get with `get_chelsa_current` function many variables. You can find the chelsa's documentation [here](https://chelsa-climate.org/wp-admin/download-page/CHELSA_tech_specification_V2.pdf) about all variables downloaded.
+We get with `get_chelsa_current` function many variables.
 Variables give the average value on the data recovered between 1981 and 2010.
-Some variables are available for each month like average temperature, min temperature, max temperature, precipitation, potential evapotranspiration (PET) with Penman's formula and Thornthwaite's formula, and cloud area fraction (clt).
-Others variables are annualy available : climatic water deficit (with Penman's formula and Thornthwaite's formula), number of dry month (with Penman's formula and Thornthwaite's formula) and 19 bio variables.
-This function takes around 10min to run.
 
 ```{r env_clim, eval = FALSE}
 climat_path <- get_chelsa_current(extent = extent,
@@ -77,6 +77,9 @@ climat_path <- get_chelsa_current(extent = extent,
                                       destination = "/home/pierre/Bureau/NC",
                                       resolution = 1000,
                                       rm_download = FALSE)
+r_clim <- rast(climat_path)
+names(r_clim)
+plot(r_clim$cwd_thornthwaithe)
 ```
 
 ## Merge environmental and climatic variables
@@ -89,82 +92,19 @@ merge_path <- merge_files(environ_path = environ_path,
                           destination = "/home/pierre/Bureau/NC")
 ```
 
-This chunk code take around 30 seconds to run. 
-In our case, gecevar.tif is a 35Mb weight file.
 Output is a absolute path to gecevar.tif file whom just been created. 
 
 ## Download futur climat 
 
-Extracted from chelsa the climate data from the five available models, namely, GFDL-ESM4, IPSL-CM6A-LR, MPI-ESM1-2-HR, MRI-ESM2-0 and UKESM1-0-LL.
+Extracted from [chelsa-climat.org](https://chelsa-climate.org/) the climate data from the five available models, namely, GFDL-ESM4, IPSL-CM6A-LR, MPI-ESM1-2-HR, MRI-ESM2-0 and UKESM1-0-LL.
 Compute the average of these models for a SSP choosen. 
-This function take around 40min to run.
 
 ```{r futur, eval = FALSE}
-system.time({
 get_chelsa_futur(extent = extent,
                  EPSG = epsg, 
                  destination = "/home/pierre/Bureau/NC",
                  resolution = 1000,
                  phase = "2071-2100",
                  ssp = 585,
-                 rm_download = FALSE)})
+                 rm_download = FALSE)
 ```
-
-
-
-## Learn more about each variables
-
-Elevation is extract from [soilgrids.org](https://soilgrids.org/).
-Aspect, roughness and slope are computed with [gdal](https://gdal.org/index.html#) library.
-Solar radiation is computed with [grass](https://grass.osgeo.org/grass80/manuals/) by using elevation, aspect, slope and roughness. Solar radiation is calculated on equinox day (20th March).
-Soilgrids data are extract from [soilgrids.org](https://soilgrids.org/).
-Distance to sea is computed with [gdal](https://gdal.org/index.html#) library.
-Distance to road/place/watering place are computed with [openstreetmap.org](https://www.openstreetmap.org) and [gdal](https://gdal.org/index.html#) library.
-Protected area are extracted from [protectedplanet.net](https://www.protectedplanet.net/en), enable to extract only countries.
-Climatic variables are extracted from [chelsa-climat.org](https://chelsa-climate.org).
-Precise definition of bio variables are available on [chelsa-climat.org](https://chelsa-climate.org/wp-admin/download-page/CHELSA_tech_specification_V2.pdf).
-
-
-| Name                                 | Unit                   |
-| ------------------------------------ | ---------------------- |
-| Elevation                            | m                      |
-| Aspect                               | degrees                |
-| Roughness                            | m                      |
-| Slope                                | degrees                |
-| Solar radiation                      | $Wh.m^{-2}.day$        |
-| Soilgrids                            | category               |
-| Distance sea                         | m                      |
-| Distance road                        | m                      |
-| Distance place                       | m                      |
-| Distance watering place              | m                      |
-| Protected Area (WDPA)                | category               |
-| Temperature average (tas)            | °C x 10                |
-| Temperature min (tasmin)             | °C x 10                |
-| Temperature max (tasmax)             | °C x 10                |
-| Precipitation                        | $kg.m^{-1}$            |
-| Cloud area fraction (clt)            | %                      |
-| PET Penman                           | $kg.m^{-1}$            |
-| PET Thornthwaite                     | $kg.m^{-1}$            |
-| Climatic Water Deficit (Penman)      | $kg.m^{-1}$            |
-| Climatic Water Deficit (Thornthwaite)| $kg.m^{-1}$            |
-| Number of dry month (Penman)         | month                  |
-| Number of dry month (Thornthwaite)   | month                  |
-| bio 1                                | °C x 10                |
-| bio 2                                | °C x 10                |
-| bio 3                                | °C x 10                |
-| bio 4                                | °C x 10                |
-| bio 5                                | °C x 10                |
-| bio 6                                | °C x 10                |
-| bio 7                                | °C x 10                |
-| bio 8                                | °C x 10                |
-| bio 9                                | °C x 10                |
-| bio 10                               | °C x 10                |
-| bio 11                               | °C x 10                |
-| bio 12                               | $kg.m^{-2}.year^{-1}$  |
-| bio 13                               | $kg.m^{-2}.month^{-1}$ |
-| bio 14                               | $kg.m^{-2}.month^{-1}$ |
-| bio 15                               | $kg.m^{-2}$            |
-| bio 16                               | $kg.m^{-2}.month^{-1}$ |
-| bio 17                               | $kg.m^{-2}.month^{-1}$ |
-| bio 18                               | $kg.m^{-2}.month^{-1}$ |
-| bio 19                               | $kg.m^{-2}.month^{-1}$ |

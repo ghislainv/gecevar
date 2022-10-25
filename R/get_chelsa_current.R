@@ -156,7 +156,6 @@ get_chelsa_current <- function(extent, EPSG, destination, resolution = 1000, rm_
          read_stars(files.tif[5]), read_stars(files.tif[6]), read_stars(files.tif[7]), along = "band")
   write_stars(obj = r, options = c("COMPRESS=LZW","PREDICTOR=2"), NA_value = nodat,
               type = "Int16", dsn = paste(destination, "data_raw","chelsa_v2_1", "clim_res.tif", sep = "/"))
-  # file.remove(files.tif)
   rm(r)
 
   ## CWD: climatic water deficit
@@ -198,32 +197,35 @@ get_chelsa_current <- function(extent, EPSG, destination, resolution = 1000, rm_
 
   tas <- read_stars(paste(destination, "data_raw", "chelsa_v2_1", "tas_res.tif", sep = "/"))
   # keep only latitude coordinates
-  lat <- sp::coordinates(spTransform(as_Spatial(st_as_sf(tas)), CRS("+proj=longlat +datum=WGS84")))
+  extent <- st_bbox(tas)
+  e <- ext(extent[1], extent[3], extent[2], extent[4])
+  e <- terra::as.polygons(e)
+  crs(e) <- paste0("epsg:", EPSG)
+  extent_latlon <- st_bbox(terra::project(e, "epsg:4326"))
+  lat <- seq(extent_latlon[4], extent_latlon[2], length.out = dim(tas)[2])
+  lat <- rep(lat, each = dim(tas)[1])
   tas_matrix <- NULL
   for (month in 1:12) {
     tas_matrix <- cbind(tas_matrix, c(tas[[1]][,, month] / 10))
   }
-  # Sys.time()
-  # pet_thornthwaite <- t(thornthwaite(Tave = t(tas_matrix / 10), t(lat)))
-  # Sys.time()
   I <- (tas_matrix / 5)^1.514
   alpha <- (6.75e-7) * I^3 - (7.71e-5) * I^2 + (1.792e-2) * I + 0.49239
   L <- NULL
   month_length <- c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
   mid_month_day <- c(15, 43, 74, 104, 135, 165, 196, 227, 257, 288, 318, 349)
   for (i in 1:12){
-    L <- cbind(L, daylength(lat[, 2], doy = mid_month_day[i]))
+    L <- cbind(L, daylength(lat, doy = mid_month_day[i]))
   }
   PET_Thornthwaite <- 16 * (L / 12) * (10 * tas_matrix / I)^alpha
   pet_stars <- tas
   for (i in 1:12){
     pet_stars[[1]][,, i][!is.na(pet_stars[[1]][,, i])] <- PET_Thornthwaite[, i] * (month_length[i] / 30)
   }
-  rm(PET_Thornthwaite, tas_matrix)
+  rm(PET_Thornthwaite, tas_matrix, lat, I, L)
   pet_stars <- split(pet_stars)
   names(pet_stars) <- paste0("pet_thornthwaite", 1:12)
   write_stars(merge(pet_stars) , dsn = paste(destination, "data_raw", "chelsa_v2_1", "pet_thornthwaite_res.tif", sep = "/"),
-              options = c("COMPRESS=LZW","PREDICTOR=2"))
+              options = c("COMPRESS=LZW","PREDICTOR=2"), type = "Int16")
 
   ## CWD with Thornthwaite PET
 
@@ -238,7 +240,7 @@ get_chelsa_current <- function(extent, EPSG, destination, resolution = 1000, rm_
   names(cwd_annual) <- "cwd_thornthwaite"
 
   write_stars(cwd_annual, dsn = paste(destination, "data_raw", "chelsa_v2_1", "cwd_thornthwaite_res.tif", sep = "/"),
-              options = c("COMPRESS=LZW","PREDICTOR=2"))
+              options = c("COMPRESS=LZW","PREDICTOR=2"), type = "Int16")
   rm(cwd_annual)
 
   ## NDM with Thornthwaite
@@ -251,15 +253,15 @@ get_chelsa_current <- function(extent, EPSG, destination, resolution = 1000, rm_
               options = c("COMPRESS=LZW","PREDICTOR=2"))
   rm(ndm_stars)
 
-  system(glue('gdal_merge.py -o {paste(destination, "data_raw", "current_chelsa.tif", sep = "/")} -of GTiff -ot Int16 -co "COMPRESS=LZW" \\
+  system(glue('gdal_merge.py -o {paste(destination, "data_raw", "current_chelsa_no_name.tif", sep = "/")} -of GTiff -ot Int16 -co "COMPRESS=LZW" \\
             -co "PREDICTOR=2" -separate -a_nodata {nodat} {paste(destination, "data_raw", "chelsa_v2_1", "clim_res.tif", sep = "/")} \\
             {paste(destination, "data_raw", "chelsa_v2_1", "cwd_res.tif", sep = "/")} {paste(destination, "data_raw", "chelsa_v2_1", "ndm_res.tif", sep = "/")} \\
             {paste(destination, "data_raw", "chelsa_v2_1", "pet_thornthwaite_res.tif", sep = "/")} {paste(destination, "data_raw", "chelsa_v2_1", "cwd_thornthwaite_res.tif", sep = "/")} \\
             {paste(destination, "data_raw", "chelsa_v2_1", "ndm_thornthwaite_res.tif", sep = "/")}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
-  current <- split(read_stars(paste(destination, "data_raw",  "current_chelsa.tif", sep = "/")))
-  names(current) <- c(names(split(read_stars(paste(destination, "data_raw", "chelsa_v2_1", "clim_res.tif", sep = "/")))), "cwd_penman", "ndm_penman", paste0("pet_thornthwaite_", 1:12), "cwd_thornthwaite", "ndm_thornthwaite")
-  write_stars(obj = merge(current), options = c("COMPRESS=LZW","PREDICTOR=2"), type = "Int16",
-              NA_value = nodat, dsn = paste(destination, "data_raw", "current_chelsa.tif", sep = "/"))
+  current <- rast(paste(destination, "data_raw",  "current_chelsa_no_name.tif", sep = "/"))
+  names(current) <- c(names(rast(paste(destination, "data_raw", "chelsa_v2_1", "clim_res.tif", sep = "/"))), "cwd_penman", "ndm_penman", paste0("pet_thornthwaite_", 1:12), "cwd_thornthwaite", "ndm_thornthwaite")
+  writeRaster(current, datatype = "Int16", filename = paste(destination, "data_raw", "current_chelsa.tif", sep = "/"),
+              overwrite = TRUE, gdal = c("COMPRESS=LZW","PREDICTOR=2"), progress = 0)
   rm(current)
 
   if (rm_download){

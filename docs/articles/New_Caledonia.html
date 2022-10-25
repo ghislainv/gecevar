@@ -42,7 +42,7 @@
   </a>
 </li>
 <li class="active nav-item">
-  <a class="nav-link" href="../articles/New_Caledonia.html">Get started</a>
+  <a class="nav-link" href="../articles/index.html">Articles</a>
 </li>
 <li class="nav-item">
   <a class="nav-link" href="../reference/index.html">Reference</a>
@@ -89,9 +89,11 @@
 <div class="section level2">
 <h2 id="import-libraries">Import libraries<a class="anchor" aria-label="anchor" href="#import-libraries"></a>
 </h2>
-<p>First thing to do is import <strong>gecevar</strong> library.</p>
+<p>First thing to do is import <strong>gecevar</strong> and
+<strong>terra</strong> libraries.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">gecevar</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">gecevar</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rspatial.org/terra/" class="external-link">terra</a></span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="get-extent-and-latitudelongitude-coordinates">Get extent and latitude/longitude coordinates<a class="anchor" aria-label="anchor" href="#get-extent-and-latitudelongitude-coordinates"></a>
@@ -100,9 +102,6 @@
 near to New Zeland and Tonga’s islands. we need to begin to find EPSG
 code for New Caledonia. It’s can be found in <a href="https://epsg.io" class="external-link">epsg.io</a>. Beware to keep the same EPSG for all
 functions in this package.</p>
-<p>One small check on <a href="https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-details/" class="external-link">https://www.naturalearthdata.com/</a>
-to make sure that New Caledonia is available as
-<code>country_name</code>.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">name</span> <span class="op">&lt;-</span> <span class="st">"New Caledonia"</span></span>
 <span><span class="va">epsg</span> <span class="op">&lt;-</span> <span class="fl">3163</span></span>
@@ -111,7 +110,9 @@ to make sure that New Caledonia is available as
 <span>                                           shapefile_path <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>                                           extent_short <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
 <span><span class="va">extent</span> <span class="op">&lt;-</span> <span class="va">all_extent</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span></span>
-<span><span class="va">extent_latlon</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">all_extent</span><span class="op">[</span><span class="fl">2</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">extent_latlon</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">all_extent</span><span class="op">[</span><span class="fl">2</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">extent</span></span>
+<span><span class="va">extent_latlon</span></span></code></pre></div>
 <p>We got as output a vector size 5. First output is a character with
 extent of New Caledonia according to EPSG:3163. Four next output are
 extent in latitude and longitude coordinates, (same extent as with
@@ -131,30 +132,27 @@ Otherwise leave <code>country_name = NULL</code>.</p>
 <span>                                  country_name <span class="op">=</span> <span class="st">"New Caledonia"</span>,</span>
 <span>                                  destination <span class="op">=</span> <span class="st">"/home/pierre/Bureau/NC"</span>,</span>
 <span>                                  resolution <span class="op">=</span> <span class="fl">1000</span>,</span>
-<span>                                  rm_download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<p>This chunk code take around 3min to run.</p>
+<span>                                  rm_download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="va">r_env</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">environ_path</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">r_env</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">r_env</span><span class="op">$</span><span class="va">soilgrids</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="download-climatic-variables-in-one-file">Download climatic variables in one file<a class="anchor" aria-label="anchor" href="#download-climatic-variables-in-one-file"></a>
 </h2>
 <p>Climatic variables are extract from <a href="https://chelsa-climate.org/" class="external-link">chelsa-climat.org</a>.</p>
 <p>We get with <code>get_chelsa_current</code> function many variables.
-You can find the chelsa’s documentation <a href="https://chelsa-climate.org/wp-admin/download-page/CHELSA_tech_specification_V2.pdf" class="external-link">here</a>
-about all variables downloaded. Variables give the average value on the
-data recovered between 1981 and 2010. Some variables are available for
-each month like average temperature, min temperature, max temperature,
-precipitation, potential evapotranspiration (PET) with Penman’s formula
-and Thornthwaite’s formula, and cloud area fraction (clt). Others
-variables are annualy available : climatic water deficit (with Penman’s
-formula and Thornthwaite’s formula), number of dry month (with Penman’s
-formula and Thornthwaite’s formula) and 19 bio variables. This function
-takes around 10min to run.</p>
+Variables give the average value on the data recovered between 1981 and
+2010.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">climat_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_chelsa_current.html">get_chelsa_current</a></span><span class="op">(</span>extent <span class="op">=</span> <span class="va">extent</span>,</span>
 <span>                                      EPSG <span class="op">=</span> <span class="va">epsg</span>,</span>
 <span>                                      destination <span class="op">=</span> <span class="st">"/home/pierre/Bureau/NC"</span>,</span>
 <span>                                      resolution <span class="op">=</span> <span class="fl">1000</span>,</span>
-<span>                                      rm_download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span>                                      rm_download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="va">r_clim</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">climat_path</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">r_clim</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">r_clim</span><span class="op">$</span><span class="va">cwd_thornthwaithe</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="merge-environmental-and-climatic-variables">Merge environmental and climatic variables<a class="anchor" aria-label="anchor" href="#merge-environmental-and-climatic-variables"></a>
@@ -164,213 +162,24 @@ takes around 10min to run.</p>
 <code class="sourceCode R"><span><span class="va">merge_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/merge_files.html">merge_files</a></span><span class="op">(</span>environ_path <span class="op">=</span> <span class="va">environ_path</span>,</span>
 <span>                          climat_path <span class="op">=</span> <span class="va">climat_path</span>, </span>
 <span>                          destination <span class="op">=</span> <span class="st">"/home/pierre/Bureau/NC"</span><span class="op">)</span></span></code></pre></div>
-<p>This chunk code take around 30 seconds to run. In our case,
-gecevar.tif is a 35Mb weight file. Output is a absolute path to
-gecevar.tif file whom just been created.</p>
+<p>Output is a absolute path to gecevar.tif file whom just been
+created.</p>
 </div>
 <div class="section level2">
 <h2 id="download-futur-climat">Download futur climat<a class="anchor" aria-label="anchor" href="#download-futur-climat"></a>
 </h2>
-<p>Extracted from chelsa the climate data from the five available
-models, namely, GFDL-ESM4, IPSL-CM6A-LR, MPI-ESM1-2-HR, MRI-ESM2-0 and
-UKESM1-0-LL. Compute the average of these models for a SSP choosen. This
-function take around 40min to run.</p>
+<p>Extracted from <a href="https://chelsa-climate.org/" class="external-link">chelsa-climat.org</a> the climate
+data from the five available models, namely, GFDL-ESM4, IPSL-CM6A-LR,
+MPI-ESM1-2-HR, MRI-ESM2-0 and UKESM1-0-LL. Compute the average of these
+models for a SSP choosen.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="op">{</span></span>
-<span><span class="fu"><a href="../reference/get_chelsa_futur.html">get_chelsa_futur</a></span><span class="op">(</span>extent <span class="op">=</span> <span class="va">extent</span>,</span>
+<code class="sourceCode R"><span><span class="fu">get_chelsa_futur</span><span class="op">(</span>extent <span class="op">=</span> <span class="va">extent</span>,</span>
 <span>                 EPSG <span class="op">=</span> <span class="va">epsg</span>, </span>
 <span>                 destination <span class="op">=</span> <span class="st">"/home/pierre/Bureau/NC"</span>,</span>
 <span>                 resolution <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>                 phase <span class="op">=</span> <span class="st">"2071-2100"</span>,</span>
 <span>                 ssp <span class="op">=</span> <span class="fl">585</span>,</span>
-<span>                 rm_download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="learn-more-about-each-variables">Learn more about each variables<a class="anchor" aria-label="anchor" href="#learn-more-about-each-variables"></a>
-</h2>
-<p>Elevation is extract from <a href="https://soilgrids.org/" class="external-link">soilgrids.org</a>. Aspect, roughness and
-slope are computed with <a href="https://gdal.org/index.html#" class="external-link">gdal</a>
-library. Solar radiation is computed with <a href="https://grass.osgeo.org/grass80/manuals/" class="external-link">grass</a> by using
-elevation, aspect, slope and roughness. Solar radiation is calculated on
-equinox day (20th March). Soilgrids data are extract from <a href="https://soilgrids.org/" class="external-link">soilgrids.org</a>. Distance to sea is
-computed with <a href="https://gdal.org/index.html#" class="external-link">gdal</a> library.
-Distance to road/place/watering place are computed with <a href="https://www.openstreetmap.org" class="external-link">openstreetmap.org</a> and <a href="https://gdal.org/index.html#" class="external-link">gdal</a> library. Protected area are
-extracted from <a href="https://www.protectedplanet.net/en" class="external-link">protectedplanet.net</a>,
-enable to extract only countries. Climatic variables are extracted from
-<a href="https://chelsa-climate.org" class="external-link">chelsa-climat.org</a>. Precise
-definition of bio variables are available on <a href="https://chelsa-climate.org/wp-admin/download-page/CHELSA_tech_specification_V2.pdf" class="external-link">chelsa-climat.org</a>.</p>
-<table class="table">
-<thead><tr class="header">
-<th>Name</th>
-<th>Unit</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td>Elevation</td>
-<td>m</td>
-</tr>
-<tr class="even">
-<td>Aspect</td>
-<td>degrees</td>
-</tr>
-<tr class="odd">
-<td>Roughness</td>
-<td>m</td>
-</tr>
-<tr class="even">
-<td>Slope</td>
-<td>degrees</td>
-</tr>
-<tr class="odd">
-<td>Solar radiation</td>
-<td><span class="math inline">\(Wh.m^{-2}.day\)</span></td>
-</tr>
-<tr class="even">
-<td>Soilgrids</td>
-<td>category</td>
-</tr>
-<tr class="odd">
-<td>Distance sea</td>
-<td>m</td>
-</tr>
-<tr class="even">
-<td>Distance road</td>
-<td>m</td>
-</tr>
-<tr class="odd">
-<td>Distance place</td>
-<td>m</td>
-</tr>
-<tr class="even">
-<td>Distance watering place</td>
-<td>m</td>
-</tr>
-<tr class="odd">
-<td>Protected Area (WDPA)</td>
-<td>category</td>
-</tr>
-<tr class="even">
-<td>Temperature average (tas)</td>
-<td>°C x 10</td>
-</tr>
-<tr class="odd">
-<td>Temperature min (tasmin)</td>
-<td>°C x 10</td>
-</tr>
-<tr class="even">
-<td>Temperature max (tasmax)</td>
-<td>°C x 10</td>
-</tr>
-<tr class="odd">
-<td>Precipitation</td>
-<td><span class="math inline">\(kg.m^{-1}\)</span></td>
-</tr>
-<tr class="even">
-<td>Cloud area fraction (clt)</td>
-<td>%</td>
-</tr>
-<tr class="odd">
-<td>PET Penman</td>
-<td><span class="math inline">\(kg.m^{-1}\)</span></td>
-</tr>
-<tr class="even">
-<td>PET Thornthwaite</td>
-<td><span class="math inline">\(kg.m^{-1}\)</span></td>
-</tr>
-<tr class="odd">
-<td>Climatic Water Deficit (Penman)</td>
-<td><span class="math inline">\(kg.m^{-1}\)</span></td>
-</tr>
-<tr class="even">
-<td>Climatic Water Deficit (Thornthwaite)</td>
-<td><span class="math inline">\(kg.m^{-1}\)</span></td>
-</tr>
-<tr class="odd">
-<td>Number of dry month (Penman)</td>
-<td>month</td>
-</tr>
-<tr class="even">
-<td>Number of dry month (Thornthwaite)</td>
-<td>month</td>
-</tr>
-<tr class="odd">
-<td>bio 1</td>
-<td>°C x 10</td>
-</tr>
-<tr class="even">
-<td>bio 2</td>
-<td>°C x 10</td>
-</tr>
-<tr class="odd">
-<td>bio 3</td>
-<td>°C x 10</td>
-</tr>
-<tr class="even">
-<td>bio 4</td>
-<td>°C x 10</td>
-</tr>
-<tr class="odd">
-<td>bio 5</td>
-<td>°C x 10</td>
-</tr>
-<tr class="even">
-<td>bio 6</td>
-<td>°C x 10</td>
-</tr>
-<tr class="odd">
-<td>bio 7</td>
-<td>°C x 10</td>
-</tr>
-<tr class="even">
-<td>bio 8</td>
-<td>°C x 10</td>
-</tr>
-<tr class="odd">
-<td>bio 9</td>
-<td>°C x 10</td>
-</tr>
-<tr class="even">
-<td>bio 10</td>
-<td>°C x 10</td>
-</tr>
-<tr class="odd">
-<td>bio 11</td>
-<td>°C x 10</td>
-</tr>
-<tr class="even">
-<td>bio 12</td>
-<td><span class="math inline">\(kg.m^{-2}.year^{-1}\)</span></td>
-</tr>
-<tr class="odd">
-<td>bio 13</td>
-<td><span class="math inline">\(kg.m^{-2}.month^{-1}\)</span></td>
-</tr>
-<tr class="even">
-<td>bio 14</td>
-<td><span class="math inline">\(kg.m^{-2}.month^{-1}\)</span></td>
-</tr>
-<tr class="odd">
-<td>bio 15</td>
-<td><span class="math inline">\(kg.m^{-2}\)</span></td>
-</tr>
-<tr class="even">
-<td>bio 16</td>
-<td><span class="math inline">\(kg.m^{-2}.month^{-1}\)</span></td>
-</tr>
-<tr class="odd">
-<td>bio 17</td>
-<td><span class="math inline">\(kg.m^{-2}.month^{-1}\)</span></td>
-</tr>
-<tr class="even">
-<td>bio 18</td>
-<td><span class="math inline">\(kg.m^{-2}.month^{-1}\)</span></td>
-</tr>
-<tr class="odd">
-<td>bio 19</td>
-<td><span class="math inline">\(kg.m^{-2}.month^{-1}\)</span></td>
-</tr>
-</tbody>
-</table>
+<span>                 rm_download <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
