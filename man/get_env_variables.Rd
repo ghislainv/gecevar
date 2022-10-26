@@ -12,7 +12,8 @@ get_env_variables(
   destination,
   resolution = 1000,
   rm_download = FALSE,
-  forest_year = 2010
+  forest_year = 2010,
+  gisBase = NULL
 )
 }
 \arguments{
@@ -22,7 +23,7 @@ get_env_variables(
 
 \item{EPSG}{int. to consider for this country/area.}
 
-\item{country_name}{character. country name (in english) which be use to collect protected areas. This country must be available in \verb{https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA}.}
+\item{country_name}{character. country name (in English) which be use to collect protected areas. This country must be available in \verb{https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA}.}
 
 \item{destination}{character. absolute path where to download files like \code{here()} output.}
 
@@ -30,17 +31,19 @@ get_env_variables(
 
 \item{rm_download}{boolean. If TRUE remove download files and folders. Keep only environ.tif in \code{data_raw} folder, default is FALSE.}
 
-\item{forest_year}{int. Forest at the decade choosen. Must be one of 2000, 2010 or 2020, default is 2010.}
+\item{forest_year}{int. Forest at the decade chosen. Must be one of 2000, 2010 or 2020, default is 2010.}
+
+\item{gisBase}{NULL or character. Parameter \code{gisBase} for \code{rgrass::initGRASS()}. The directory path to GRASS binaries and libraries, containing bin and lib subdirectories among others; if NULL, system("grass --config path") is tried.}
 }
 \value{
-character. absolute path to environ.tif file.
+character. Absolute path to \code{environ.tif} file.
 }
 \description{
 Variables are type of soil, elevation, slope, aspect, roughness, solar radiation, distance to sea,
 protected areas, distance to roads, distance to cities and town, distance to rivers & lake.
 }
 \details{
-\code{resolution} need to be carefully choosen because if Tiff file is too big, R can crash.
+\code{resolution} need to be carefully chosen because if .tif file is too large, R can crash.
 
 environ.tif.aux.xml is an extention of environ.tif, it allows to classify soilgrid variable with QGIS with RasterAttributeTable extension.
 Nevertheless it's cause problems to open it with \code{stars} package but not with \code{terra}. If you have any problems to open environ.tif, you can remove environ.tif.aux.xml.

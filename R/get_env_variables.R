@@ -243,28 +243,27 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
     dir.create(paste(destination, "data_raw", "forestatrisk", sep = "/"), showWarnings = FALSE)
     system(glue('gdal_translate -projwin {extent_latlon[1]} {extent_latlon[4]} {extent_latlon[3]} {extent_latlon[2]} -projwin_srs EPSG:4326 \\
                 /vsicurl/{paste0("https://forestatrisk.cirad.fr/tropics/tif/fcc_123_", continent_short, "_aea.tif")} \\
-                {paste(destination, "data_raw", "forestatrisk", "forest_nocrop.tif", sep = "/")}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
+                -co "COMPRESS=LZW" -co "PREDICTOR=2" {paste(destination, "data_raw", "forestatrisk", "forest_nocrop.tif", sep = "/")}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
     sourcefile <- paste(destination, "data_raw", "forestatrisk", "forest_nocrop.tif", sep = "/")
     destfile <- paste(destination, "data_raw", "forestatrisk", "forest.tif", sep = "/")
     system(glue("gdalwarp -overwrite -t_srs {proj.t} \\
-        -r med -tr {resolution} {resolution} -te {extent} -ot Int16 -of GTiff \\
+        -r bilinear -tr {resolution} {resolution} -te {extent} -ot Int16 -of GTiff \\
         {sourcefile} {destfile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
     unlink(paste(destination, "data_raw", "forestatrisk", "forest_nocrop.tif", sep = "/"))
     forest_stars <- read_stars(destfile)
     if (forest_year == 2000){
       # 1 is deforestation during 2000-2010
-      forest_stars[[1]] <- forest_stars[[1]] <= 1
+      forest_stars[[1]] <- forest_stars[[1]] >= 1
     }else{
       if (forest_year == 2010){
         # 2 is deforestation during 2010-2020
-        forest_stars[[1]] <- forest_stars[[1]] <= 2
+        forest_stars[[1]] <- forest_stars[[1]] >= 2
       }else{
         # 3 is forest in 2020
         forest_stars[[1]] <- forest_stars[[1]] == 3
       }
     }
-    write_stars(forest_stars, dsn = destfile, update = TRUE, type = "Int16", options = c("COMPRESS=LZW", "PREDICTOR=2"),
-                NA_value = nodat)
+    write_stars(forest_stars, dsn = destfile, update = TRUE, type = "Int16", options = c("COMPRESS=LZW", "PREDICTOR=2"))
     forest <- TRUE
   }else{
     print("Forest layer is not available for your country")
@@ -427,13 +426,19 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
     system(glue('gdal_merge.py -ot Int16 -of GTiff -o {paste(destination, "data_raw", "environ_no_name.tif", sep = "/")} -a_nodata {nodat} -separate \\
             -co "COMPRESS=LZW" -co "PREDICTOR=2" \\
             {paste(destination, "data_raw", "srtm_v1_4_90m", "aspect_res.tif", sep = "/")} \\
-            {paste(destination, "data_raw", "srtm_v1_4_90m", "elevation_res.tif", sep = "/")} {paste(destination, "data_raw", "srtm_v1_4_90m", "roughness_res.tif", sep = "/")} \\
-            {paste(destination, "data_raw", "srtm_v1_4_90m", "slope_res.tif", sep = "/")} {paste(destination, "data_raw", "srtm_v1_4_90m", "srad_res.tif", sep = "/")} \\
-            {paste(destination, "data_raw", "soilgrids250_v2_0", "soilgrids_res.tif", sep = "/")} {paste(destination, "data_raw", "distSea", "distSea.tif", sep = "/")} \\
-            {paste(destination, "data_raw", "forestatrisk", "forest.tif", sep = "/")} {paste(destination, "data_raw", "distForest", "distForest.tif", sep = "/")} \\
-            {paste(destination, "data_raw", "OSM", "roadsdistance_res.tif", sep = "/")} {paste(destination, "data_raw", "OSM", "placedistance_res.tif", sep = "/")} \\
-            {paste(destination, "data_raw", "OSM", "wateringplacedistance_res.tif", sep = "/")} {paste(destination, "data_raw", "WDPA", "WDPA_resBool.tif", sep = "/")} \\
-                {paste(destination, "data_raw", "world_pop", paste0(ISO_country_code, "_pop_res.tif"), sep = "/")}'),
+            {paste(destination, "data_raw", "srtm_v1_4_90m", "elevation_res.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "srtm_v1_4_90m", "roughness_res.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "srtm_v1_4_90m", "slope_res.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "srtm_v1_4_90m", "srad_res.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "soilgrids250_v2_0", "soilgrids_res.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "forestatrisk", "forest.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "distForest", "distForest.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "distSea", "distSea.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "OSM", "roadsdistance_res.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "OSM", "placedistance_res.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "OSM", "wateringplacedistance_res.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "WDPA", "WDPA_resBool.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "world_pop", paste0(ISO_country_code, "_pop_res.tif"), sep = "/")}'),
            ignore.stdout = TRUE, ignore.stderr = TRUE)
     environ <- rast(paste(destination, "data_raw", "environ_no_name.tif", sep = "/"))
     names(environ) <- c( "aspect", "elevation", "roughness", "slope", "srad", "soilgrids", "forest", "distanceForest",
@@ -442,12 +447,17 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
     system(glue('gdal_merge.py -ot Int16 -of GTiff -o {paste(destination, "data_raw", "environ_no_name.tif", sep = "/")} -a_nodata {nodat} -separate \\
             -co "COMPRESS=LZW" -co "PREDICTOR=2" \\
             {paste(destination, "data_raw", "srtm_v1_4_90m", "aspect_res.tif", sep = "/")} \\
-            {paste(destination, "data_raw", "srtm_v1_4_90m", "elevation_res.tif", sep = "/")} {paste(destination, "data_raw", "srtm_v1_4_90m", "roughness_res.tif", sep = "/")} \\
-            {paste(destination, "data_raw", "srtm_v1_4_90m", "slope_res.tif", sep = "/")} {paste(destination, "data_raw", "srtm_v1_4_90m", "srad_res.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "srtm_v1_4_90m", "elevation_res.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "srtm_v1_4_90m", "roughness_res.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "srtm_v1_4_90m", "slope_res.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "srtm_v1_4_90m", "srad_res.tif", sep = "/")} \\
             {paste(destination, "data_raw", "soilgrids250_v2_0", "soilgrids_res.tif", sep = "/")}  \\
-            {paste(destination, "data_raw", "distSea", "distSea.tif", sep = "/")} {paste(destination, "data_raw", "OSM", "roadsdistance_res.tif", sep = "/")} \\
-            {paste(destination, "data_raw", "OSM", "placedistance_res.tif", sep = "/")} {paste(destination, "data_raw", "OSM", "wateringplacedistance_res.tif", sep = "/")} \\
-            {paste(destination, "data_raw", "WDPA", "WDPA_resBool.tif", sep = "/")} {paste(destination, "data_raw", "world_pop", paste0(ISO_country_code, "_pop_res.tif"), sep = "/")}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
+            {paste(destination, "data_raw", "distSea", "distSea.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "OSM", "roadsdistance_res.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "OSM", "placedistance_res.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "OSM", "wateringplacedistance_res.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "WDPA", "WDPA_resBool.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "world_pop", paste0(ISO_country_code, "_pop_res.tif"), sep = "/")}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
     environ <- rast(paste(destination, "data_raw", "environ_no_name.tif", sep = "/"))
     names(environ) <- c( "aspect", "elevation", "roughness", "slope", "srad", "soilgrids",
                          "distanceSea", "distanceRoad", "distancePlace", "distancewater", "WDPA", "population")
@@ -471,6 +481,9 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
     unlink(paste(destination, "data_raw", "soilgrids250_v2_0", sep = "/"), recursive = TRUE)
     unlink(paste(destination, "data_raw", "srtm_v1_4_90m", sep = "/"), recursive = TRUE)
     unlink(paste(destination, "data_raw", "WDPA", sep = "/"), recursive = TRUE)
+    unlink(paste(destination, "data_raw", "forestatrisk", sep = "/"), recursive = TRUE)
+    unlink(paste(destination, "data_raw", "distForest", sep = "/"), recursive = TRUE)
+    unlink(paste(destination, "data_raw", "world_pop", sep = "/"), recursive = TRUE)
 
   }
 

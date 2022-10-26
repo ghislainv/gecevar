@@ -60,7 +60,7 @@ get_chelsa_future <- function(extent, EPSG, destination, resolution = 1000, phas
 
 
   dir.create(path = destination, recursive = TRUE, showWarnings = FALSE)
-  nodat <- -32768
+  nodat <- -9999
   proj.s <- "EPSG:4326"
   proj.t <- paste0("EPSG:", EPSG)
   dir.create(paste(destination, "data_raw", sep = "/"), showWarnings = FALSE)
@@ -214,8 +214,10 @@ get_chelsa_future <- function(extent, EPSG, destination, resolution = 1000, phas
     rm(ndm_stars)
 
     system(glue('gdal_merge.py -o {paste(destination, "data_raw", "future_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), "future_chelsa_no_name.tif", sep = "/")} -of GTiff -ot Int16 -co "COMPRESS=LZW" \\
-            -co "PREDICTOR=2" -separate -a_nodata {nodat} {paste(destination, "data_raw", "future_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), "clim_res.tif", sep = "/")} \\
-            {paste(destination, "data_raw", "future_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), "pet_thornthwaite_res.tif", sep = "/")} {paste(destination, "data_raw", "future_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), "cwd_thornthwaite_res.tif", sep = "/")} \\
+            -co "PREDICTOR=2" -separate -a_nodata {nodat} \\
+            {paste(destination, "data_raw", "future_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), "clim_res.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "future_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), "pet_thornthwaite_res.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "future_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), "cwd_thornthwaite_res.tif", sep = "/")} \\
             {paste(destination, "data_raw", "future_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), "ndm_thornthwaite_res.tif", sep = "/")}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
 
     future <- rast(paste(destination, "data_raw", "future_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"),  "future_chelsa_no_name.tif", sep = "/"))
