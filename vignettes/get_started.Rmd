@@ -76,7 +76,7 @@ plot(r_env$elevation, range = c(0, 2000), main = "Elevation (m)",
      cex.main = 2, plg = list(cex = 1), pax = list(cex.axis = 1))
 ```
 
-```{r fig_elev, echo = FALSE, out.width = 600, eval = TRUE}
+```{r fig_elev, echo = FALSE, out.width = 800, eval = TRUE}
 knitr::include_graphics("get_started_files/figs/elevation.png")
 ```
 
@@ -110,7 +110,7 @@ plot(r_clim$cwd_thornthwaite), range = c(0, 500), main = "CWD Thornthwaite (m)",
      cex.main = 2, plg = list(cex = 1), pax = list(cex.axis = 1))
 ```
 
-```{r fig_cwd, echo = FALSE, out.width = 600, eval = TRUE}
+```{r fig_cwd, echo = FALSE, out.width = 800, eval = TRUE}
 knitr::include_graphics("get_started_files/figs/cwd_thornthwaite.png")
 ```
 

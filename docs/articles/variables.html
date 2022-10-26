@@ -78,7 +78,7 @@
     
     
 <div class="section level2">
-<h2 id="learn-more-about-each-variables">Learn more about each variables<a class="anchor" aria-label="anchor" href="#learn-more-about-each-variables"></a>
+<h2 id="description-of-variables">Description of variables<a class="anchor" aria-label="anchor" href="#description-of-variables"></a>
 </h2>
 <p>Each variable is computed using <code>terra</code>,
 <code>stars</code> and/or <code>gdalwarp</code>. In the following table
@@ -424,11 +424,10 @@ month</td>
 </table>
 </div>
 <div class="section level2">
-<h2 id="potential-evapotranspiration-penman-monteith-and-thornthwaite-equation">Potential evapotranspiration : Penman-Monteith and Thornthwaite
-equation<a class="anchor" aria-label="anchor" href="#potential-evapotranspiration-penman-monteith-and-thornthwaite-equation"></a>
+<h2 id="potential-evapotranspiration">Potential evapotranspiration<a class="anchor" aria-label="anchor" href="#potential-evapotranspiration"></a>
 </h2>
 <div class="section level4">
-<h4 id="the-penman-monteith-form-of-the-combination-equation-is">The Penman-Monteith form of the combination equation is:<a class="anchor" aria-label="anchor" href="#the-penman-monteith-form-of-the-combination-equation-is"></a>
+<h4 id="penman-monteith-formula">Penman-Monteith formula<a class="anchor" aria-label="anchor" href="#penman-monteith-formula"></a>
 </h4>
 <p><span class="math display">\[\lambda ET = \frac{\Delta (R_n - G) +
 \rho_a c_p \frac{(e_s - e_a)}{r_a}}{\Delta + \gamma (1 +
@@ -440,7 +439,7 @@ saturation vapour pressure temperature relationship, <span class="math inline">\
 r_s and r_a are the (bulk) surface and aerodynamic resistances.</p>
 </div>
 <div class="section level4">
-<h4 id="the-thornthwaite-equation-is">The Thornthwaite equation is :<a class="anchor" aria-label="anchor" href="#the-thornthwaite-equation-is"></a>
+<h4 id="thornthwaite-formula">Thornthwaite formula<a class="anchor" aria-label="anchor" href="#thornthwaite-formula"></a>
 </h4>
 <p><span class="math inline">\(T_{mean(k)}\)</span> is the mean
 temperature for month <span class="math inline">\(k\)</span>. <span class="math inline">\(L\)</span>is the average day length (in hours) of
@@ -468,9 +467,9 @@ deficit.</p>
 pr_i, 0) \]</span></p>
 </div>
 <div class="section level4">
-<h4 id="number-of-dry-month">Number of dry month<a class="anchor" aria-label="anchor" href="#number-of-dry-month"></a>
+<h4 id="number-of-dry-months">Number of dry months<a class="anchor" aria-label="anchor" href="#number-of-dry-months"></a>
 </h4>
-<p>Number of dry month (NDM) is the annual number of months for which
+<p>Number of dry months (NDM) is the annual number of months for which
 potential evapotranspiration (pet) exceeds precipitation (pr). It’s a
 number between 0 and 12.</p>
 <p><span class="math display">\[ ndm = \Sigma^{12}_{i = 1}

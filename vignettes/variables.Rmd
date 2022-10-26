@@ -7,7 +7,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-## Learn more about each variables
+## Description of variables
 
 Each variable is computed using `terra`, `stars` and/or `gdalwarp`. 
 In the following table only others packages or functions are mentioned. 
@@ -62,15 +62,15 @@ Protected area are extracted from [protectedplanet.net](https://www.protectedpla
 | bio18            | $kg.m^{-2}.month^{-1}$ | Mean monthly precipitation amount of the warmest quarter | | [chelsa-climate.org](https://chelsa-climate.org) |
 | bio19            | $kg.m^{-2}.month^{-1}$ | Mean monthly precipitation amount of the coldest quarter  | | [chelsa-climate.org](https://chelsa-climate.org) |
 
-## Potential evapotranspiration : Penman-Monteith and Thornthwaite equation 
+## Potential evapotranspiration 
 
-#### The Penman-Monteith form of the combination equation is:
+#### Penman-Monteith formula
 
 $$\lambda ET = \frac{\Delta (R_n - G) + \rho_a c_p \frac{(e_s - e_a)}{r_a}}{\Delta + \gamma (1 + \frac{r_s}{r_a})}  $$
 
 where R_n is the net radiation, G is the soil heat flux, (e_s - e_a) represents the vapour pressure deficit of the air, r_a is the mean air density at constant pressure, c_p is the specific heat of the air, $\Delta$ represents the slope of the saturation vapour pressure temperature relationship, $\gamma$ is the psychrometric constant, and r_s and r_a are the (bulk) surface and aerodynamic resistances. 
 
-#### The Thornthwaite equation is : 
+#### Thornthwaite formula
 
 $T_{mean(k)}$ is the mean temperature for month $k$. $L$is the average day length (in hours) of the month $k$.
 
@@ -87,8 +87,8 @@ The minimal monthly value of CWD is set to 0 when there is more precipitation th
 
 $$ cwd = \Sigma^{12}_{i = 1} max(pet_i - pr_i, 0) $$
 
-#### Number of dry month
+#### Number of dry months
 
-Number of dry month (NDM) is the annual number of months for which potential evapotranspiration (pet) exceeds precipitation (pr). It's a number between 0 and 12.
+Number of dry months (NDM) is the annual number of months for which potential evapotranspiration (pet) exceeds precipitation (pr). It's a number between 0 and 12.
 
 $$ ndm = \Sigma^{12}_{i = 1} \unicode{x1D7D9}_{(pet_i - pr_i > 0)}  $$

@@ -141,7 +141,7 @@ Otherwise leave <code>country_name = NULL</code>.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">r_env</span><span class="op">$</span><span class="va">elevation</span>, range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">2000</span><span class="op">)</span>, main <span class="op">=</span> <span class="st">"Elevation (m)"</span>,</span>
 <span>     cex.main <span class="op">=</span> <span class="fl">2</span>, plg <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>cex <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>, pax <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>cex.axis <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="get_started_files/figs/elevation.png" width="600"></p>
+<p><img src="get_started_files/figs/elevation.png" width="800"></p>
 </div>
 <div class="section level2">
 <h2 id="download-climatic-variables">Download climatic variables<a class="anchor" aria-label="anchor" href="#download-climatic-variables"></a>
@@ -165,7 +165,7 @@ Variables give the average value on the data recovered between 1981 and
 the Thornthwaite equation.</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(r_clim<span class="sc">$</span>cwd_thornthwaite), range <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">500</span>), main <span class="ot">=</span> <span class="st">"CWD Thornthwaite (m)"</span>,</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>     cex.main <span class="ot">=</span> <span class="dv">2</span>, plg <span class="ot">=</span> <span class="fu">list</span>(<span class="at">cex =</span> <span class="dv">1</span>), pax <span class="ot">=</span> <span class="fu">list</span>(<span class="at">cex.axis =</span> <span class="dv">1</span>)<span class="er">)</span></span></code></pre></div>
-<p><img src="get_started_files/figs/cwd_thornthwaite.png" width="600"></p>
+<p><img src="get_started_files/figs/cwd_thornthwaite.png" width="800"></p>
 </div>
 <div class="section level2">
 <h2 id="merge-environmental-and-climatic-variables">Merge environmental and climatic variables<a class="anchor" aria-label="anchor" href="#merge-environmental-and-climatic-variables"></a>
