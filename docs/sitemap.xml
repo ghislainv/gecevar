@@ -1,72 +1,72 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/404.html</loc>
+    <loc>/404.html</loc>
   </url>
   <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/LICENSE-text.html</loc>
+    <loc>/LICENSE-text.html</loc>
   </url>
   <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/articles/Code_of_conduct.html</loc>
+    <loc>/articles/Code_of_conduct.html</loc>
   </url>
   <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/articles/Contributing.html</loc>
+    <loc>/articles/Contributing.html</loc>
   </url>
   <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/articles/Learn more about variables.html</loc>
+    <loc>/articles/Learn more about variables.html</loc>
   </url>
   <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/articles/Learn_more_about_variables.html</loc>
+    <loc>/articles/Learn_more_about_variables.html</loc>
   </url>
   <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/articles/New_Caledonia.html</loc>
+    <loc>/articles/New_Caledonia.html</loc>
   </url>
   <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/articles/Time_example.html</loc>
+    <loc>/articles/Time_example.html</loc>
   </url>
   <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/articles/get_started.html</loc>
+    <loc>/articles/get_started.html</loc>
   </url>
   <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/articles/index.html</loc>
+    <loc>/articles/index.html</loc>
   </url>
   <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/articles/specificities.html</loc>
+    <loc>/articles/specificities.html</loc>
   </url>
   <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/articles/variables.html</loc>
+    <loc>/articles/variables.html</loc>
   </url>
   <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/authors.html</loc>
+    <loc>/authors.html</loc>
   </url>
   <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/index.html</loc>
+    <loc>/index.html</loc>
   </url>
   <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/reference/create_xml_legend.html</loc>
+    <loc>/reference/create_xml_legend.html</loc>
   </url>
   <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/reference/get_chelsa_current.html</loc>
+    <loc>/reference/get_chelsa_current.html</loc>
   </url>
   <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/reference/get_chelsa_futur.html</loc>
+    <loc>/reference/get_chelsa_futur.html</loc>
   </url>
   <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/reference/get_chelsa_future.html</loc>
+    <loc>/reference/get_chelsa_future.html</loc>
   </url>
   <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/reference/get_chelsa_variables.html</loc>
+    <loc>/reference/get_chelsa_variables.html</loc>
   </url>
   <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/reference/get_env_variables.html</loc>
+    <loc>/reference/get_env_variables.html</loc>
   </url>
   <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/reference/index.html</loc>
+    <loc>/reference/index.html</loc>
   </url>
   <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/reference/merge_files.html</loc>
+    <loc>/reference/merge_files.html</loc>
   </url>
   <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/reference/transform_shp_country_extent.html</loc>
+    <loc>/reference/transform_shp_country_extent.html</loc>
   </url>
 </urlset>
