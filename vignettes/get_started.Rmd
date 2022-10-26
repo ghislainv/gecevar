@@ -44,7 +44,7 @@ The output is a vector of length 5.
 First element is a character with extent of New Caledonia according to EPSG:3163.
 The following four elements are extent in latitude and longitude coordinates (EPSG:4326).
 
-## Download environmental variables in one file
+## Download environmental variables
 
 One variable is protected area named WDPA in downloaded file. This variable need an identification by country name. 
 Make sure that our country name is available in [www.protectedplanet.net](https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA).
@@ -80,7 +80,7 @@ plot(r_env$elevation, range = c(0, 2000), main = "Elevation (m)",
 knitr::include_graphics("get_started_files/figs/elevation.png")
 ```
 
-## Download climatic variables in one file
+## Download climatic variables
 
 Climatic variables are extract from [chelsa-climate.org](https://chelsa-climate.org/). 
 
@@ -126,7 +126,7 @@ merge_path <- merge_files(environ_path = environ_path,
 
 Output is the absolute path to the `gecevar.tif` file which was created. 
 
-## Download futur climate
+## Download future climate
 
 Extracted from [chelsa-climate.org](https://chelsa-climate.org/) the climate data from the five available models, namely, GFDL-ESM4, IPSL-CM6A-LR, MPI-ESM1-2-HR, MRI-ESM2-0 and UKESM1-0-LL.
 Compute the average of these models for a SSP choosen. 
