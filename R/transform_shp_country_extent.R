@@ -39,8 +39,8 @@ transform_shp_country_extent <- function(EPSG, country_name = NULL, shapefile_pa
     lonmax <- ceiling(coord[3])
     latmin <- floor(coord[2])
     latmax <- ceiling(coord[4])
-    extent_latlon <- c(lonmin = lonmin, latmin = latmin, lonmax = lonmax, latmax = latmax)
-    e <- ext(extent_latlon[1], extent_latlon[3], extent_latlon[2], extent_latlon[4])
+    extent_final_latlon <- c(lonmin = lonmin, latmin = latmin, lonmax = lonmax, latmax = latmax)
+    e <- ext(extent_final_latlon[1], extent_final_latlon[3], extent_final_latlon[2], extent_final_latlon[4])
     e <- as.polygons(e)
     crs(e) <- "epsg:4326"
     extent <- st_bbox(project(e, paste0("epsg:", EPSG)))
@@ -56,29 +56,29 @@ transform_shp_country_extent <- function(EPSG, country_name = NULL, shapefile_pa
     lonmax <- ceiling(max(coord[,1]))
     latmin <- floor(min(coord[,2]))
     latmax <- ceiling(max(coord[,2]))
-    extent_latlon <- c(lonmin = lonmin, lonmax = lonmax, latmin = latmin, latmax = latmax)
-    extent_latlon <- as.polygons(ext(extent_latlon))
-    crs(extent_latlon) <- paste0("epsg:", EPSG)
-    extent_latlon <- st_bbox(project(extent_latlon, "epsg:4326"))
-    extent_latlon <- c(floor(extent_latlon[1]), floor(extent_latlon[2]), ceiling(extent_latlon[3]), ceiling(extent_latlon[4]))
+    extent_final_latlon <- c(lonmin = lonmin, lonmax = lonmax, latmin = latmin, latmax = latmax)
+    extent_final_latlon <- as.polygons(ext(extent_final_latlon))
+    crs(extent_final_latlon) <- paste0("epsg:", EPSG)
+    extent_final_latlon <- st_bbox(project(extent_final_latlon, "epsg:4326"))
+    extent_final_latlon <- c(floor(extent_final_latlon[1]), floor(extent_final_latlon[2]), ceiling(extent_final_latlon[3]), ceiling(extent_final_latlon[4]))
   }
   if (!is.null(extent_project)){
     extent <- round(extent_project)
     e <- ext(extent[1], extent[3], extent[2], extent[4])
     e <- as.polygons(e)
     crs(e) <- paste0("epsg:", EPSG)
-    extent_latlon <- st_bbox(project(e, "epsg:4326"))
-    extent_latlon <- c(floor(extent_latlon[1]), floor(extent_latlon[2]), ceiling(extent_latlon[3]), ceiling(extent_latlon[4]))
+    extent_final_latlon <- st_bbox(project(e, "epsg:4326"))
+    extent_final_latlon <- c(floor(extent_final_latlon[1]), floor(extent_final_latlon[2]), ceiling(extent_final_latlon[3]), ceiling(extent_final_latlon[4]))
   }
   if (!is.null(extent_latlon)){
     extent <- round(extent_latlon)
     e <- ext(extent[1], extent[3], extent[2], extent[4])
     e <- as.polygons(e)
     crs(e) <- "epsg:4326"
-    extent_latlon <- st_bbox(project(e, paste0("epsg:", EPSG)))
-    extent_latlon <- c(floor(extent_latlon[1]), floor(extent_latlon[2]), ceiling(extent_latlon[3]), ceiling(extent_latlon[4]))
+    extent_final_latlon <- st_bbox(project(e, paste0("epsg:", EPSG)))
+    extent_final_latlon <- c(floor(extent_final_latlon[1]), floor(extent_final_latlon[2]), ceiling(extent_final_latlon[3]), ceiling(extent_final_latlon[4]))
 
   }
   extent <- paste(extent[1], extent[2], extent[3], extent[4], sep = " ")
-  return(c(extent, extent_latlon))
+  return(c(extent, extent_final_latlon))
 }
