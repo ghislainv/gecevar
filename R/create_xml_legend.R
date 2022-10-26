@@ -11,7 +11,7 @@ create_xml_legend <- function(unique_values, destination, name_file){
   #' @export
 
   json <- fromJSON(file = "https://files.isric.org/soilgrids/latest/data/wrb/MostProbable.rat.json")
-  df <- as.data.frame(json)[, -1]
+  soil <- unlist(json)[-1]
 
   header <- '<PAMDataset>
   <PAMRasterBand band="6">
@@ -35,7 +35,7 @@ create_xml_legend <- function(unique_values, destination, name_file){
   for (i in 1:length(unique_values)){
     row <- glue('      <Row index="{i - 1}">
         <F>{unique_values[i]}</F>
-        <F>{df[i + 1]}</F>
+        <F>{soil[i + 1]}</F>
       </Row>')
     header <- paste(header, row, sep = '\n')
   }

@@ -254,9 +254,12 @@ get_chelsa_current <- function(extent, EPSG, destination, resolution = 1000, rm_
   rm(ndm_stars)
 
   system(glue('gdal_merge.py -o {paste(destination, "data_raw", "current_chelsa_no_name.tif", sep = "/")} -of GTiff -ot Int16 -co "COMPRESS=LZW" \\
-            -co "PREDICTOR=2" -separate -a_nodata {nodat} {paste(destination, "data_raw", "chelsa_v2_1", "clim_res.tif", sep = "/")} \\
-            {paste(destination, "data_raw", "chelsa_v2_1", "cwd_res.tif", sep = "/")} {paste(destination, "data_raw", "chelsa_v2_1", "ndm_res.tif", sep = "/")} \\
-            {paste(destination, "data_raw", "chelsa_v2_1", "pet_thornthwaite_res.tif", sep = "/")} {paste(destination, "data_raw", "chelsa_v2_1", "cwd_thornthwaite_res.tif", sep = "/")} \\
+            -co "PREDICTOR=2" -separate -a_nodata {nodat} \\
+            {paste(destination, "data_raw", "chelsa_v2_1", "clim_res.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "chelsa_v2_1", "cwd_res.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "chelsa_v2_1", "ndm_res.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "chelsa_v2_1", "pet_thornthwaite_res.tif", sep = "/")} \\
+            {paste(destination, "data_raw", "chelsa_v2_1", "cwd_thornthwaite_res.tif", sep = "/")} \\
             {paste(destination, "data_raw", "chelsa_v2_1", "ndm_thornthwaite_res.tif", sep = "/")}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
   current <- rast(paste(destination, "data_raw",  "current_chelsa_no_name.tif", sep = "/"))
   names(current) <- c(names(rast(paste(destination, "data_raw", "chelsa_v2_1", "clim_res.tif", sep = "/"))), "cwd_penman", "ndm_penman", paste0("pet_thornthwaite_", 1:12), "cwd_thornthwaite", "ndm_thornthwaite")

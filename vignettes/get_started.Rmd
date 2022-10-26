@@ -16,7 +16,7 @@ Install the development version of **gecevar** from [GitHub](https://github.com/
 
 First thing to do is import **gecevar** and **terra** libraries.
 
-```{r libraries, warning = FALSE, message = FALSE}
+```{r libraries, warning = FALSE, message = FALSE, eval = FALSE}
 library(gecevar)
 library(terra)
 library(here)
@@ -27,7 +27,7 @@ library(here)
 In this example, we take New Caledonia as example. It's an island near Australia and New Zealand. We need to begin to get the EPSG code for New Caledonia. It can be found on [epsg.io](https://epsg.io). Beware to keep the same EPSG code for all functions in the `gecevar` package. 
 
 
-```{r get_extent, eval=FALSE}
+```{r get_extent, eval = FALSE}
 name <- "New Caledonia"
 epsg <- 3163
 all_extent <- transform_shp_country_extent(EPSG = epsg,
@@ -50,7 +50,7 @@ One variable is protected area named WDPA in downloaded file. This variable need
 Make sure that our country name is available in [www.protectedplanet.net](https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA).
 Otherwise leave `country_name = NULL`. 
 
-```{r get_env_var, eval=FALSE}
+```{r get_env_var, eval = FALSE}
 environ_path <- get_env_variables(extent_latlon = extent_latlon,
                                   extent = extent,
                                   EPSG = epsg, 
@@ -58,24 +58,25 @@ environ_path <- get_env_variables(extent_latlon = extent_latlon,
                                   destination = here("vignettes",
                                                      "get_started_files"),
                                   resolution = 1000,
-                                  rm_download = FALSE)
+                                  rm_download = FALSE,
+                                  gisbase = NULL)
 ```
 
 We can look at the variable names in the raster.
 
-```{r names_env_var, eval=FALSE}
+```{r names_env_var, eval = FALSE}
 r_env <- rast(environ_path)
 names(r_env)
 ```
 
 We can plot some data, eg. the elevation.
 
-```{r plot_elev, eval=FALSE}
-plot(r_env$elevation, range=c(0, 2000), main="Elevation (m)",
-     cex.main=2, plg=list(cex=1), pax=list(cex.axis=1))
+```{r plot_elev, eval = FALSE}
+plot(r_env$elevation, range = c(0, 2000), main = "Elevation (m)",
+     cex.main = 2, plg = list(cex = 1), pax = list(cex.axis = 1))
 ```
 
-```{r fig_elev, echo=FALSE, out.width=600, eval=TRUE}
+```{r fig_elev, echo = FALSE, out.width = 600, eval = TRUE}
 knitr::include_graphics("get_started_files/figs/elevation.png")
 ```
 
@@ -97,19 +98,19 @@ climate_path <- get_chelsa_current(extent = extent,
 
 We can look at the variable names in the raster.
 
-```{r names_clim_var, eval=FALSE}
+```{r names_clim_var, eval = FALSE}
 r_clim <- rast(climate_path)
 names(r_clim)
 ```
 
 We can plot some data, eg. the climatic water deficit computed from the Thornthwaite equation.
 
-```{r plot_cwd, eval=FALSE}
-plot(r_clim$cwd_thornthwaite), range=c(0, 500), main="CWD Thornthwaite (m)",
-     cex.main=2, plg=list(cex=1), pax=list(cex.axis=1))
+```{r plot_cwd, eval = FALSE}
+plot(r_clim$cwd_thornthwaite), range = c(0, 500), main = "CWD Thornthwaite (m)",
+     cex.main = 2, plg = list(cex = 1), pax = list(cex.axis = 1))
 ```
 
-```{r fig_cwd, echo=FALSE, out.width=600, eval=TRUE}
+```{r fig_cwd, echo = FALSE, out.width = 600, eval = TRUE}
 knitr::include_graphics("get_started_files/figs/cwd_thornthwaite.png")
 ```
 

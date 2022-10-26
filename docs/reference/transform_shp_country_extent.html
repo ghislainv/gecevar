@@ -61,7 +61,8 @@ Succed to give extent in EPSG reproject and extent with default EPSG also knows 
 <span>  <span class="va">EPSG</span>,</span>
 <span>  country_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  shapefile_path <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  extent_short <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  extent_project <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  extent_latlon <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -79,8 +80,12 @@ Succed to give extent in EPSG reproject and extent with default EPSG also knows 
 <dd><p>character. Path to a .shp file, default is NULL.</p></dd>
 
 
-<dt>extent_short</dt>
+<dt>extent_project</dt>
 <dd><p>int vector. length 4, with this order c(xmin, ymin, xmax, ymax), default is NULL.</p></dd>
+
+
+<dt>extent_latlon</dt>
+<dd><p>int vector. length 4, with this order c(lonmin, latmin, lonmax, latmax), default is NULL.</p></dd>
 
 </dl></div>
     <div class="section level2">

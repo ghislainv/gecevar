@@ -8,7 +8,8 @@ transform_shp_country_extent(
   EPSG,
   country_name = NULL,
   shapefile_path = NULL,
-  extent_short = NULL
+  extent_project = NULL,
+  extent_latlon = NULL
 )
 }
 \arguments{
@@ -18,7 +19,9 @@ transform_shp_country_extent(
 
 \item{shapefile_path}{character. Path to a .shp file, default is NULL.}
 
-\item{extent_short}{int vector. length 4, with this order c(xmin, ymin, xmax, ymax), default is NULL.}
+\item{extent_project}{int vector. length 4, with this order c(xmin, ymin, xmax, ymax), default is NULL.}
+
+\item{extent_latlon}{int vector. length 4, with this order c(lonmin, latmin, lonmax, latmax), default is NULL.}
 }
 \value{
 character vector. with extent of the area in one character, other are latlon coord of area
