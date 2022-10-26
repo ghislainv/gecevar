@@ -1,9 +1,12 @@
-pandoc: 2.19.2
+pandoc: '2.18'
 pkgdown: 2.0.6
 pkgdown_sha: ~
 articles:
-  Learn_more_about_variables: Learn_more_about_variables.html
-  New_Caledonia: New_Caledonia.html
-  Time_example: Time_example.html
-last_built: 2022-10-25T14:42Z
+  get_started: get_started.html
+  specificities: specificities.html
+  variables: variables.html
+last_built: 2022-10-26T06:28Z
+urls:
+  reference: https://ecology.ghislainv.fr/gecevar/reference
+  article: https://ecology.ghislainv.fr/gecevar/articles
 

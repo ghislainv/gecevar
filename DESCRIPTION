@@ -3,11 +3,17 @@ Title: GEtting Climatic and Environmental VARiables from open and free online da
 Version: 0.0.0.9000
 Authors@R: c(
     person("Pierre", "Guillaumont", , "pierre.guillaumont@gmail.com", role = c("aut", "cre")),
-    person("Ghislain", "Vieilledent", , "ghislain.vieilledent@cirad.fr", role = "aut"),
-    person("Cirad", role = c("cph", "fnd"))
+    person("Jeanne", "Clément", , "jeanne.clement16@laposte.net", role = "aut",
+           comment = c(ORCID = "0000-0002-5228-5015")),
+    person("Ghislain", "Vieilledent", , "ghislain.vieilledent@cirad.fr", role = "aut",
+           comment = c(ORCID = "0000-0002-1685-4997")),
+    person("CIRAD", role = c("cph", "fnd"))
   )
-Description: Download and combine environmental and climatic variables in one files. Downloaded files are in .tif format reprojected with wanted projection.
-License: file LICENSE
+Description: Download and combine environmental and climatic variables in one files.
+    Downloaded files are in .tif format reprojected with wanted projection.
+License: GPL-3 | file LICENSE
+URL: https://ecology.ghislainv.fr/gecevar, https://github.com/ghislainv/gecevar
+BugReports: https://github.com/ghislainv/gecevar/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.1

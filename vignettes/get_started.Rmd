@@ -1,15 +1,15 @@
 ---
-title: "New Caledonia"
+title: "Get started with gecevar"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{New Caledonia}
+  %\VignetteIndexEntry{Get started with gecevar}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
 ### Installation
 
-Install the development version of **cegevar** from [Github](https://github.com/ghislainv/gecevar) with
+Install the development version of **gecevar** from [GitHub](https://github.com/ghislainv/gecevar) with
 `devtools::install_github("ghislainv/gecevar")`
 
 ## Import libraries
@@ -19,16 +19,15 @@ First thing to do is import **gecevar** and **terra** libraries.
 ```{r libraries, warning = FALSE, message = FALSE}
 library(gecevar)
 library(terra)
+library(here)
 ```
 
 ## Get extent and latitude/longitude coordinates 
 
-In this example, we take New Caledonia as example. It's French island near to New Zeland and Tonga's islands.
-we need to begin to find EPSG code for New Caledonia. It's can be found in [epsg.io](https://epsg.io).
-Beware to keep the same EPSG for all functions in this package. 
+In this example, we take New Caledonia as example. It's an island near Australia and New Zealand. We need to begin to get the EPSG code for New Caledonia. It can be found on [epsg.io](https://epsg.io). Beware to keep the same EPSG code for all functions in the `gecevar` package. 
 
 
-```{r get_extent, eval = FALSE}
+```{r get_extent, eval=FALSE}
 name <- "New Caledonia"
 epsg <- 3163
 all_extent <- transform_shp_country_extent(EPSG = epsg,
@@ -41,9 +40,9 @@ extent
 extent_latlon
 ```
 
-We got as output a vector size 5. 
-First output is a character with extent of New Caledonia according to EPSG:3163.
-Four next output are extent in latitude and longitude coordinates, (same extent as with EPSG:4326).
+The output is a vector of length 5. 
+First element is a character with extent of New Caledonia according to EPSG:3163.
+The following four elements are extent in latitude and longitude coordinates (EPSG:4326).
 
 ## Download environmental variables in one file
 
@@ -51,35 +50,67 @@ One variable is protected area named WDPA in downloaded file. This variable need
 Make sure that our country name is available in [www.protectedplanet.net](https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA).
 Otherwise leave `country_name = NULL`. 
 
-```{r get_env_var, eval = FALSE}
+```{r get_env_var, eval=FALSE}
 environ_path <- get_env_variables(extent_latlon = extent_latlon,
                                   extent = extent,
                                   EPSG = epsg, 
                                   country_name = "New Caledonia",
-                                  destination = "/home/pierre/Bureau/NC",
+                                  destination = here("vignettes",
+                                                     "get_started_files"),
                                   resolution = 1000,
                                   rm_download = FALSE)
+```
+
+We can look at the variable names in the raster.
+
+```{r names_env_var, eval=FALSE}
 r_env <- rast(environ_path)
 names(r_env)
-plot(r_env$soilgrids)
+```
+
+We can plot some data, eg. the elevation.
+
+```{r plot_elev, eval=FALSE}
+plot(r_env$elevation, range=c(0, 2000), main="Elevation (m)",
+     cex.main=2, plg=list(cex=1), pax=list(cex.axis=1))
+```
+
+```{r fig_elev, echo=FALSE, out.width=600, eval=TRUE}
+knitr::include_graphics("get_started_files/figs/elevation.png")
 ```
 
 ## Download climatic variables in one file
 
-Climatic variables are extract from [chelsa-climat.org](https://chelsa-climate.org/). 
+Climatic variables are extract from [chelsa-climate.org](https://chelsa-climate.org/). 
 
 We get with `get_chelsa_current` function many variables.
 Variables give the average value on the data recovered between 1981 and 2010.
 
 ```{r env_clim, eval = FALSE}
-climat_path <- get_chelsa_current(extent = extent,
-                                      EPSG = epsg,
-                                      destination = "/home/pierre/Bureau/NC",
-                                      resolution = 1000,
-                                      rm_download = FALSE)
-r_clim <- rast(climat_path)
+climate_path <- get_chelsa_current(extent = extent,
+                                  EPSG = epsg,
+                                  destination = here("vignettes",
+                                                     "get_started_files"),
+                                  resolution = 1000,
+                                  rm_download = FALSE)
+```
+
+We can look at the variable names in the raster.
+
+```{r names_clim_var, eval=FALSE}
+r_clim <- rast(climate_path)
 names(r_clim)
-plot(r_clim$cwd_thornthwaithe)
+```
+
+We can plot some data, eg. the climatic water deficit computed from the Thornthwaite equation.
+
+```{r plot_cwd, eval=FALSE}
+plot(r_clim$cwd_thornthwaite), range=c(0, 500), main="CWD Thornthwaite (m)",
+     cex.main=2, plg=list(cex=1), pax=list(cex.axis=1))
+```
+
+```{r fig_cwd, echo=FALSE, out.width=600, eval=TRUE}
+knitr::include_graphics("get_started_files/figs/cwd_thornthwaite.png")
 ```
 
 ## Merge environmental and climatic variables
@@ -96,7 +127,7 @@ Output is a absolute path to gecevar.tif file whom just been created.
 
 ## Download futur climat 
 
-Extracted from [chelsa-climat.org](https://chelsa-climate.org/) the climate data from the five available models, namely, GFDL-ESM4, IPSL-CM6A-LR, MPI-ESM1-2-HR, MRI-ESM2-0 and UKESM1-0-LL.
+Extracted from [chelsa-climate.org](https://chelsa-climate.org/) the climate data from the five available models, namely, GFDL-ESM4, IPSL-CM6A-LR, MPI-ESM1-2-HR, MRI-ESM2-0 and UKESM1-0-LL.
 Compute the average of these models for a SSP choosen. 
 
 ```{r futur, eval = FALSE}

@@ -1,8 +1,8 @@
 ---
-title: "Particularities"
+title: "Specificities"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Particularities}
+  %\VignetteIndexEntry{Specificities}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

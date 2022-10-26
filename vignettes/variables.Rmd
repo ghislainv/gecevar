@@ -1,0 +1,94 @@
+---
+title: "Variables"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Variables}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Learn more about each variables
+
+Each variable is computed using `terra`, `stars` and/or `gdalwarp`. 
+In the following table only others packages or functions are mentioned. 
+
+Solar radiation is calculated on equinox day (20th March).
+
+Protected area are extracted from [protectedplanet.net](https://www.protectedplanet.net/en), enable to extract only countries.
+
+| Name             | Unit                   | Description            | Particular package or function | Source             |
+| ---------------- | :--------------------: | ---------------------- | :----------------------------: | :----------------: |
+| elevation        | m                      | Elevation              | gdalbuildvrt | [srtm.csi.cgiar.org](https://srtm.csi.cgiar.org/srtmdata/) |
+| aspect           | degrees                | Aspect                 | gdaldem slope | [srtm.csi.cgiar.org](https://srtm.csi.cgiar.org/srtmdata/) |
+| roughness        | m                      | Roughness is the largest inter-cell difference of a central pixel and its surrounding cell, as defined in Wilson et al (2007, Marine Geodesy 30:3-35) | gdaldem roughness | [srtm.csi.cgiar.org](https://srtm.csi.cgiar.org/srtmdata/) |
+| slope            | degrees                | slope values are in degrees | gdaldem slope | [srtm.csi.cgiar.org](https://srtm.csi.cgiar.org/srtmdata/) |
+| srad             | $Wh.m^{-2}$            | Solar irradiance : computes direct, diffuse and reflected solar irradiation from elevation, slope, roughness, aspect | rgrass (r.in.gdal, r.out.gdal, r.sun) |  | 
+| SoilType         | category               | Types of soils according to World Reference Base (2006) Soil Groups | gdalbuildvrt gdal_translate | [soilgrids.org](https://soilgrids.org/) |
+| forest           | binary                 | Forest/No forest layer | gdal_translate | [forestatrisk.cirad.fr](https://forestatrisk.cirad.fr/rasters.html) |
+| distanceForest   | m                      | Minimal distance to forest | gdal_proximity | [forestatrisk.cirad.fr](https://forestatrisk.cirad.fr/rasters.html) |
+| distanceSea      | m                      | Minimal distance to sea compute from elevation layer | gdal_proximity | elevation layer | 
+| distanceRoad     | m                      | Minimal distance to any road bigger than `terciary road` define on [openstreetmap.org](https://www.openstreetmap.org) | osmextract ogr2ogr gdal_proximity | [openstreetmap.org](https://www.openstreetmap.org) |
+| distancePlace    | m                      | Minimal distance to cities, town and village | osmextract ogr2ogr gdal_proximity | [openstreetmap.org](https://www.openstreetmap.org) |
+| distancewater    | m                      | Minimal distance to river, lake, or reservoir (except sewage and water storage) | osmextract ogr2ogr gdal_proximity | [openstreetmap.org](https://www.openstreetmap.org) |
+| WDPA             | category               | Protected areas (all type of protection) | httr | [protectedplanet.net](https://www.protectedplanet.net/en) |
+| tas              | °C x 10                | Daily mean air temperature at 2 metres from hourly ERA5 data for each month | | [chelsa-climate.org](https://chelsa-climate.org)
+| tasmin           | °C x 10                | Daily minimum air temperature at 2 metres from hourly ERA5 data for each month | | [chelsa-climate.org](https://chelsa-climate.org)
+| tasmax           | °C x 10                | Daily maximum air temperature at 2 metres from hourly ERA5 data for each month | | [chelsa-climate.org](https://chelsa-climate.org)
+| pr               | $kg.m^{-1}$            | Precipitation amount | | [chelsa-climate.org](https://chelsa-climate.org) |
+| clt              | %                      | Cloud area fraction | | [chelsa-climate.org](https://chelsa-climate.org) |
+| pet_penman       | $kg.m^{-1}$            | Potential evapotranspiration calculated with the Penman-Monteith equation. | | [chelsa-climate.org](https://chelsa-climate.org) |
+| pet_thornthwaite | $kg.m^{-1}$            | Potential evapotranspiration calculated with the Thornthwaite equation. | geosphere | [chelsa-climate.org](https://chelsa-climate.org) |
+| cwd_penman       | $kg.m^{-1}$            | Climatic Water Deficit calculated with pet_penman variable | | [chelsa-climate.org](https://chelsa-climate.org) |
+| cwd_thornthwaite | $kg.m^{-1}$            | Climatic Water Deficit calculated with pet_thornthwaite variable | | [chelsa-climate.org](https://chelsa-climate.org) |
+| ndm_penman       | month                  | Number of Dry Month calculated with cwd_penman variable | | [chelsa-climate.org](https://chelsa-climate.org) |
+| ndm_thornthwaite | month                  | Number of Dry Month calculated with cwd_thornthwaite variable | | [chelsa-climate.org](https://chelsa-climate.org) |
+| bio1             | °C x 10                | mean annual daily mean air temperatures averaged over 1 year | | [chelsa-climate.org](https://chelsa-climate.org) |
+| bio2             | °C x 10                | mean diurnal range of temperatures averaged over 1 year | | [chelsa-climate.org](https://chelsa-climate.org) |
+| bio3             | °C x 10                | ratio of diurnal variation to annual variation in temperatures | | [chelsa-climate.org](https://chelsa-climate.org) |
+| bio4             | °C x 10                | standard deviation of the monthly mean temperatures | | [chelsa-climate.org](https://chelsa-climate.org) |
+| bio5             | °C x 10                | The highest temperature of any monthly daily mean maximum temperature | | [chelsa-climate.org](https://chelsa-climate.org) |
+| bio6             | °C x 10                | The lowest temperature of any monthly daily mean maximum temperature | | [chelsa-climate.org](https://chelsa-climate.org) |
+| bio7             | °C x 10                | Annual range of air temperature : the difference between the Maximum Temperature of Warmest month and the Minimum Temperature of Coldest month | | [chelsa-climate.org](https://chelsa-climate.org) |
+| bio8             | °C x 10                | Mean daily mean air temperatures of the wettest quarter | | [chelsa-climate.org](https://chelsa-climate.org) |
+| bio9             | °C x 10                | Mean daily mean air temperatures of the driest quarter | | [chelsa-climate.org](https://chelsa-climate.org) |
+| bio10            | °C x 10                | Mean daily mean air temperatures of the warmest quarter | | [chelsa-climate.org](https://chelsa-climate.org) |
+| bio11            | °C x 10                | Mean daily mean air temperatures of the coldest quarter | | [chelsa-climate.org](https://chelsa-climate.org) |
+| bio12            | $kg.m^{-2}.year^{-1}$  | Accumulated precipitation amount over 1 year | | [chelsa-climate.org](https://chelsa-climate.org) |
+| bio13            | $kg.m^{-2}.month^{-1}$ | The precipitation of the wettest month. | | [chelsa-climate.org](https://chelsa-climate.org) |
+| bio14            | $kg.m^{-2}.month^{-1}$ | The precipitation of the driest month. | | [chelsa-climate.org](https://chelsa-climate.org) |
+| bio15            | $kg.m^{-2}$            | Precipitation seasonality | | [chelsa-climate.org](https://chelsa-climate.org) |
+| bio16            | $kg.m^{-2}.month^{-1}$ | Mean monthly precipitation amount of the wettest quarter | | [chelsa-climate.org](https://chelsa-climate.org) |
+| bio17            | $kg.m^{-2}.month^{-1}$ | Mean monthly precipitation amount of the driest quarter | | [chelsa-climate.org](https://chelsa-climate.org) |
+| bio18            | $kg.m^{-2}.month^{-1}$ | Mean monthly precipitation amount of the warmest quarter | | [chelsa-climate.org](https://chelsa-climate.org) |
+| bio19            | $kg.m^{-2}.month^{-1}$ | Mean monthly precipitation amount of the coldest quarter  | | [chelsa-climate.org](https://chelsa-climate.org) |
+
+## Potential evapotranspiration : Penman-Monteith and Thornthwaite equation 
+
+#### The Penman-Monteith form of the combination equation is:
+
+$$\lambda ET = \frac{\Delta (R_n - G) + \rho_a c_p \frac{(e_s - e_a)}{r_a}}{\Delta + \gamma (1 + \frac{r_s}{r_a})}  $$
+
+where R_n is the net radiation, G is the soil heat flux, (e_s - e_a) represents the vapour pressure deficit of the air, r_a is the mean air density at constant pressure, c_p is the specific heat of the air, $\Delta$ represents the slope of the saturation vapour pressure temperature relationship, $\gamma$ is the psychrometric constant, and r_s and r_a are the (bulk) surface and aerodynamic resistances. 
+
+#### The Thornthwaite equation is : 
+
+$T_{mean(k)}$ is the mean temperature for month $k$. $L$is the average day length (in hours) of the month $k$.
+
+$$ I = \Sigma^{12}_{i = 1} (\frac{T_{mean(i)}}{5})^{1.514}$$ 
+$$ \alpha = (6.75e-7) I^3 - (7.71e-5) I^2 + (1.792e-2) I + 0.49239 $$
+$$ PET_k = 1.6 \frac{L_k}{12} (\frac{10 T_{mean(k)}}{I})^{\alpha} $$ 
+
+## Water Deficit
+
+#### Climatic water deficit
+
+Climatic Water Deficit (CWD) is the sum of monthly differences between potential evapotranspiration and precipitation. CWD is a positive value. A higher value of CWD indicates a higher deficit in water.
+The minimal monthly value of CWD is set to 0 when there is more precipitation than potential evapotranspiration and thus no water deficit.
+
+$$ cwd = \Sigma^{12}_{i = 1} max(pet_i - pr_i, 0) $$
+
+#### Number of dry month
+
+Number of dry month (NDM) is the annual number of months for which potential evapotranspiration (pet) exceeds precipitation (pr). It's a number between 0 and 12.
+
+$$ ndm = \Sigma^{12}_{i = 1} \unicode{x1D7D9}_{(pet_i - pr_i > 0)}  $$

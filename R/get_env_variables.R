@@ -1,4 +1,4 @@
-get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destination, resolution = 1000, rm_download = FALSE, forest_year = 2010){
+get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destination, resolution = 1000, rm_download = FALSE, forest_year = 2010, gisBase = NULL){
   #' Create multilayer Tiff file with 11 environmental variables
   #'
   #' @description
@@ -8,13 +8,14 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   #' @param extent_latlon int vector. in this order c(lon_min, lat_min, lon_max, lat_max).
   #' @param extent character. First output of `transform_shp_country_extent` function.
   #' @param EPSG int. to consider for this country/area.
-  #' @param country_name character. country name (in english) which be use to collect protected areas. This country must be available in `https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA`.
+  #' @param country_name character. country name (in English) which be use to collect protected areas. This country must be available in `https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA`.
   #' @param destination character. absolute path where to download files like `here()` output.
   #' @param resolution int. in meters, recommended resolution are 250m, 500m, 1km, 2km or 5km, default is 1km. See more in details.
   #' @param rm_download boolean. If TRUE remove download files and folders. Keep only environ.tif in `data_raw` folder, default is FALSE.
-  #' @param forest_year int. Forest at the decade choosen. Must be one of 2000, 2010 or 2020, default is 2010.
-  #' @return character. absolute path to environ.tif file.
-  #' @details `resolution` need to be carefully choosen because if Tiff file is too big, R can crash.
+  #' @param forest_year int. Forest at the decade chosen. Must be one of 2000, 2010 or 2020, default is 2010.
+  #' @param gisBase NULL or character. Parameter `gisBase` for `rgrass::initGRASS()`. The directory path to GRASS binaries and libraries, containing bin and lib subdirectories among others; if NULL, system("grass --config path") is tried.
+  #' @return character. Absolute path to `environ.tif` file.
+  #' @details `resolution` need to be carefully chosen because if .tif file is too large, R can crash.
   #'
   #' @details
   #'
@@ -156,7 +157,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   out_f <- paste(destination, "data_raw", "srtm_v1_4_90m", "temp", "roughness.tif", sep = "/")
   system(glue('gdaldem roughness {in_f} {out_f} -co "COMPRESS=LZW" -co "PREDICTOR=2"'), ignore.stdout = TRUE, ignore.stderr = TRUE)
 
-  # Resolution from resolution/2 to choosen resolution using gdalwarp
+  # Resolution from resolution/2 to chosen resolution using gdalwarp
   # elevation
   out_f <- paste(destination, "data_raw", "srtm_v1_4_90m", "elevation_res.tif", sep = "/")
   system(glue('gdalwarp -r bilinear -tr {resolution} {resolution} -ot Int16 -of GTiff -dstnodata {nodat} \\
@@ -190,13 +191,18 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   ##==============================
 
   ## Initialize GRASS
+  # get gisBase directory
+  if (is.null(gisBase)) {
+    gisBase <- system("grass --config path", intern = TRUE)
+  }
+  # set library path
   setwd(paste(destination, "data_raw", sep = "/"))
-  Sys.setenv(LD_LIBRARY_PATH = paste("/usr/lib/grass80/lib", Sys.getenv("LD_LIBRARY_PATH"), sep = ":"))
+  Sys.setenv(LD_LIBRARY_PATH = paste(file.path(gisBase, "lib"), Sys.getenv("LD_LIBRARY_PATH"), sep = ":"))
   # use a georeferenced raster
   elevation <- paste(destination, "data_raw/srtm_v1_4_90m/temp/elevation.tif", sep = "/")
   system(glue('grass -c {elevation} -e grassdata/environ'), ignore.stdout = TRUE, ignore.stderr = TRUE)
   # connect to grass database
-  initGRASS(gisBase = "/usr/lib/grass80",
+  initGRASS(gisBase = gisBase,
             gisDbase = "grassdata", home = tempdir(),
             location = "environ", mapset = "PERMANENT",
             override = TRUE)
@@ -211,7 +217,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   # Export
   system(glue("r.out.gdal -f --verbose --overwrite input=global_rad createopt='COMPRESS=LZW' nodata={nodat} \\
   			 output={paste(destination, 'data_raw', 'srtm_v1_4_90m', 'temp', 'srad.tif', sep = '/')} type=Int16"), ignore.stdout = TRUE, ignore.stderr = TRUE)
-  # Resolution from 90m x 90m to choosen resolution using gdalwarp
+  # Resolution from 90m x 90m to chosen resolution using gdalwarp
   # srad
   in_f <- paste(destination, "data_raw", "srtm_v1_4_90m", "temp", "srad.tif", sep = "/")
   out_f <- paste(destination, "data_raw", "srtm_v1_4_90m", "srad_res.tif", sep = "/")

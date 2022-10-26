@@ -1,20 +1,26 @@
+url: https://ecology.ghislainv.fr/gecevar
+
 template:
   bootstrap: 5
-  bootswatch: litera
+  bslib:
+    primary: "#0054AD"
+    border-radius: 0.5rem
+    btn-border-radius: 0.25rem
+  #bootswatch: litera
 
 authors:
   Pierre Guillaumont:
-    role : [aut, cre]
+  Jeanne Clément:
+    href: "https://jeanneclement.github.io/"
   Ghislain Vieilledent:
-    role : aut
     href: "https://ecology.ghislainv.fr"
-  Cirad:
+  CIRAD:
     href: "https://www.cirad.fr"
-    html: "<img src='https://www.cirad.fr/var/cirad/storage/images/_aliases/reference/9/1/0/3/3019-11-fre-FR/logo-cirad.png' height='60'>"
+    html: "<img src='https://ecology.ghislainv.fr/images/logos/logo-cirad.svg' alt=Cirad height=24>"
 
 navbar:
   structure:
-    left: [home, intro, reference]
+    left: [intro, articles, reference]
     right: [github]
   components:
     home:
@@ -26,6 +32,9 @@ navbar:
       - text: Code of conduct
         href: articles/Code_of_conduct.html
     intro:
+      text: Get started
+      href: articles/get_started.html
+    articles:
       text: Articles
       href: articles/index.html
     reference:
@@ -34,3 +43,14 @@ navbar:
     github:
       icon: fab fa-github fa-lg
       href: https://github.com/ghislainv/gecevar
+
+articles:
+
+- title: Get started
+  contents:
+  - '`get_started`'
+
+- title: Other vignettes
+  contents:
+  - '`variables`'
+  - '`specificities`'
