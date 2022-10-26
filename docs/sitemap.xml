@@ -7,24 +7,6 @@
     <loc>/LICENSE-text.html</loc>
   </url>
   <url>
-    <loc>/articles/Code_of_conduct.html</loc>
-  </url>
-  <url>
-    <loc>/articles/Contributing.html</loc>
-  </url>
-  <url>
-    <loc>/articles/Learn more about variables.html</loc>
-  </url>
-  <url>
-    <loc>/articles/Learn_more_about_variables.html</loc>
-  </url>
-  <url>
-    <loc>/articles/New_Caledonia.html</loc>
-  </url>
-  <url>
-    <loc>/articles/Time_example.html</loc>
-  </url>
-  <url>
     <loc>/articles/get_started.html</loc>
   </url>
   <url>
@@ -49,13 +31,7 @@
     <loc>/reference/get_chelsa_current.html</loc>
   </url>
   <url>
-    <loc>/reference/get_chelsa_futur.html</loc>
-  </url>
-  <url>
     <loc>/reference/get_chelsa_future.html</loc>
-  </url>
-  <url>
-    <loc>/reference/get_chelsa_variables.html</loc>
   </url>
   <url>
     <loc>/reference/get_env_variables.html</loc>
