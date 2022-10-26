@@ -1,6 +1,5 @@
 template:
   bootstrap: 5
-  bootswatch: litera
 
 authors:
   Pierre Guillaumont:
