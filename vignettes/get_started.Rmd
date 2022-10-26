@@ -124,9 +124,9 @@ merge_path <- merge_files(environ_path = environ_path,
                           destination = "/home/pierre/Bureau/NC")
 ```
 
-Output is a absolute path to gecevar.tif file whom just been created. 
+Output is the absolute path to the `gecevar.tif` file which was created. 
 
-## Download futur climat 
+## Download futur climate
 
 Extracted from [chelsa-climate.org](https://chelsa-climate.org/) the climate data from the five available models, namely, GFDL-ESM4, IPSL-CM6A-LR, MPI-ESM1-2-HR, MRI-ESM2-0 and UKESM1-0-LL.
 Compute the average of these models for a SSP choosen. 
