@@ -5,12 +5,25 @@ authors:
   Pierre Guillaumont:
   Jeanne Clément:
     href: "https://jeanneclement.github.io/"
+  Philippe Birnbaum:
+    href: "https://www.researchgate.net/profile/Philippe-Birnbaum"
+  Thomas Ibanez:
+    href: "https://www.researchgate.net/profile/Thomas-Ibanez"
+  Gaëlle Jaouen:
+    href: "https://www.researchgate.net/profile/Gaelle-Jaouen"
+  Clément Stahl:
+    href: "http://www.ecofog.gf/spip.php?article965"
   Ghislain Vieilledent:
     href: "https://ecology.ghislainv.fr"
-  CIRAD:
+  CEBA:
+    href: "https://www.labex-ceba.fr"
+    html: "<img src='articles/logos/Logo_CEBA_simple.jpg' height=24>"
+  CNRT:
+    href: "https://cnrt.nc"
+    html: "<img src='articles/logos/Logo_CNRT.png' height=24>"
+  Cirad:
     href: "https://www.cirad.fr"
-    html: "<img src='https://ecology.ghislainv.fr/images/logos/logo-cirad.svg' alt=Cirad height=24>"
-
+    html: "<img src='articles/logos/logo-cirad.svg' height=24>"
 navbar:
   structure:
     left: [intro, articles, reference]
