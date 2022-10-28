@@ -31,13 +31,9 @@ In this example, we take New Caledonia as example. It's an island near Australia
 name <- "New Caledonia"
 epsg <- 3163
 all_extent <- transform_shp_country_extent(EPSG = epsg,
-                                           country_name = name,
-                                           shapefile_path = NULL,
-                                           extent_short = NULL)
+                                           country_name = name)
 extent <- all_extent[1]
 extent_latlon <- as.numeric(all_extent[2:5])
-extent
-extent_latlon
 ```
 
 The output is a vector of length 5. 
@@ -59,7 +55,7 @@ environ_path <- get_env_variables(extent_latlon = extent_latlon,
                                                      "get_started_files"),
                                   resolution = 1000,
                                   rm_download = FALSE,
-                                  gisbase = NULL)
+                                  gisBase = NULL)
 ```
 
 We can look at the variable names in the raster.

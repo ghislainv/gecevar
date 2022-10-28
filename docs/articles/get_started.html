@@ -104,13 +104,9 @@ for all functions in the <code>gecevar</code> package.</p>
 <code class="sourceCode R"><span><span class="va">name</span> <span class="op">&lt;-</span> <span class="st">"New Caledonia"</span></span>
 <span><span class="va">epsg</span> <span class="op">&lt;-</span> <span class="fl">3163</span></span>
 <span><span class="va">all_extent</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/transform_shp_country_extent.html">transform_shp_country_extent</a></span><span class="op">(</span>EPSG <span class="op">=</span> <span class="va">epsg</span>,</span>
-<span>                                           country_name <span class="op">=</span> <span class="va">name</span>,</span>
-<span>                                           shapefile_path <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>                                           extent_short <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
+<span>                                           country_name <span class="op">=</span> <span class="va">name</span><span class="op">)</span></span>
 <span><span class="va">extent</span> <span class="op">&lt;-</span> <span class="va">all_extent</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span></span>
-<span><span class="va">extent_latlon</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">all_extent</span><span class="op">[</span><span class="fl">2</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="va">extent</span></span>
-<span><span class="va">extent_latlon</span></span></code></pre></div>
+<span><span class="va">extent_latlon</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">all_extent</span><span class="op">[</span><span class="fl">2</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <p>The output is a vector of length 5. First element is a character with
 extent of New Caledonia according to EPSG:3163. The following four
 elements are extent in latitude and longitude coordinates
@@ -132,7 +128,7 @@ Otherwise leave <code>country_name = NULL</code>.</p>
 <span>                                                     <span class="st">"get_started_files"</span><span class="op">)</span>,</span>
 <span>                                  resolution <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>                                  rm_download <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>                                  gisbase <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+<span>                                  gisBase <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
 <p>We can look at the variable names in the raster.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">r_env</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">environ_path</span><span class="op">)</span></span>

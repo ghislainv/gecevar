@@ -442,7 +442,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
            ignore.stdout = TRUE, ignore.stderr = TRUE)
     environ <- rast(paste(destination, "data_raw", "environ_no_name.tif", sep = "/"))
     names(environ) <- c( "aspect", "elevation", "roughness", "slope", "srad", "soilgrids", "forest", "distanceForest",
-                         "distanceSea", "distanceRoad", "distancePlace", "distancewater", "WDPA", "population")
+                         "dist_sea", "dist_road", "dist_place", "dist_water", "WDPA", "population")
   }else{
     system(glue('gdal_merge.py -ot Int16 -of GTiff -o {paste(destination, "data_raw", "environ_no_name.tif", sep = "/")} -a_nodata {nodat} -separate \\
             -co "COMPRESS=LZW" -co "PREDICTOR=2" \\
@@ -460,7 +460,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
             {paste(destination, "data_raw", "world_pop", paste0(ISO_country_code, "_pop_res.tif"), sep = "/")}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
     environ <- rast(paste(destination, "data_raw", "environ_no_name.tif", sep = "/"))
     names(environ) <- c( "aspect", "elevation", "roughness", "slope", "srad", "soilgrids",
-                         "distanceSea", "distanceRoad", "distancePlace", "distancewater", "WDPA", "population")
+                         "dist_sea", "dist_road", "dist_place", "dist_water", "WDPA", "population")
   }
 
   writeRaster(environ, filename = paste(destination, "data_raw", "environ_nocrop.tif", sep = "/"),
@@ -491,7 +491,4 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   return(paste(destination, "data_raw", "environ.tif", sep = "/"))
 }
 
-
-
-
-
+# End of file
