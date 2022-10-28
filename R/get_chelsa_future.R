@@ -1,4 +1,4 @@
-get_chelsa_future <- function(extent, EPSG, destination, resolution = 1000, phase = "2071-2100", ssp = 585){
+get_chelsa_future <- function(extent, extent_latlon, EPSG, destination, resolution = 1000, phase = "2071-2100", ssp = 585){
   #' Create several multilayer Tiff files with 81 variables from chelsa-climate.org with future climat variables.
   #'
   #' @description
@@ -7,7 +7,8 @@ get_chelsa_future <- function(extent, EPSG, destination, resolution = 1000, phas
   #' Monthly variables are average temperatures, min temperatures, max temperatures, precipitation, potential evapotranspiration with Thornthwaite formula.
   #' Others variables are climatic water deficit with Thornthwaite, number of dry month with Thornthwaite and 19 bio variables (more information in chelsa documentation).
   #'
-  #' @param extent character. First output of `transform_shp_coutry_extend`
+  #' @param extent character. First output of `transform_shp_coutry_extent`.
+  #' @param extent_latlon character. Second output of `transfomr_shp_country_extent`
   #' @param EPSG int. to consider for this country/area.
   #' @param destination character. absolute path where to download files like `here()` output.
   #' @param resolution int. in meters, recommended resolution are 250m, 500m, 1km, 2km or 5km, default is 1km. See more in details.
@@ -163,7 +164,8 @@ get_chelsa_future <- function(extent, EPSG, destination, resolution = 1000, phas
 
     tas <- read_stars(paste(destination, "data_raw", "future_chelsa", paste('climat', phase, model, 'ssp', ssp, sep = '_'), "tas_res.tif", sep = "/"))
     # keep only latitude coordinates
-    lat <- sp::coordinates(spTransform(as_Spatial(st_as_sf(tas)), CRS("+proj=longlat +datum=WGS84")))
+    lat <- seq(extent_latlon[4], extent_latlon[2], length.out = dim(tas)[2])
+    lat <- rep(lat, each = dim(tas)[1])
     tas_matrix <- NULL
     for (month in 1:12) {
       tas_matrix <- cbind(tas_matrix, c(tas[[1]][,, month] / 10))
@@ -174,7 +176,7 @@ get_chelsa_future <- function(extent, EPSG, destination, resolution = 1000, phas
     month_length <- c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
     mid_month_day <- c(15, 43, 74, 104, 135, 165, 196, 227, 257, 288, 318, 349)
     for (i in 1:12){
-      L <- cbind(L, daylength(lat[, 2], doy = mid_month_day[i]))
+      L <- cbind(L, daylength(lat, doy = mid_month_day[i]))
     }
     PET_Thornthwaite <- 16 * (L / 12) * (10 * tas_matrix / I)^alpha
     pet_stars <- tas
@@ -222,19 +224,20 @@ get_chelsa_future <- function(extent, EPSG, destination, resolution = 1000, phas
 
     future <- rast(paste(destination, "data_raw", "future_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"),  "future_chelsa_no_name.tif", sep = "/"))
     names(future) <- c(names(rast(paste(destination, "data_raw", "future_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), "clim_res.tif", sep = "/"))), paste0("pet_thornthwaite_", 1:12), "cwd_thornthwaite", "ndm_thornthwaite")
-    writeRaster(obj = future, filename = paste(destination, "data_raw", "future_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), paste0(paste("climat", phase, model, "ssp", ssp, sep = "_"),".tif"), sep = "/"),
+    writeRaster(future, filename = paste(destination, "data_raw", "future_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), paste0(paste("climat", phase, model, "ssp", ssp, sep = "_"),".tif"), sep = "/"),
                 overwrite = TRUE, datatype = "Int16", gdal = c("COMPRESS=LZW","PREDICTOR=2"), progress = 0)
     rm(future)
     unlink(paste(destination, "data_raw", "future_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), "temp", sep = "/"), recursive = TRUE)
     unlink(list.files(paste(destination, "data_raw", "future_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), sep = "/"), pattern = "res", full.names = TRUE))
-    unlink(paste(destination, "data_raw", "future_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), "future_chelsa.tif", sep = "/"))
+    unlink(paste(destination, "data_raw", "future_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), "future_chelsa_no_name.tif", sep = "/"))
   }
   ## Mean of the five models
-  Average_model <- read_stars(paste(destination, "data_raw", "future_chelsa", paste("climat", phase, "GFDL-ESM4", "ssp", ssp, sep = "_"), paste0(paste("climat", phase, "GFDL-ESM4", "ssp", ssp, sep = "_"),".tif"), sep = "/"))
+
+  Average_model <- st_as_stars(read_stars(paste(destination, "data_raw", "future_chelsa", paste("climat", phase, "GFDL-ESM4", "ssp", ssp, sep = "_"), paste0(paste("climat", phase, "GFDL-ESM4", "ssp", ssp, sep = "_"),".tif"), sep = "/")))
   for (model in c("IPSL-CM6A-LR", "MPI-ESM1-2-HR", "MRI-ESM2-0", "UKESM1-0-LL")){
-    Average_model <- Average_model + read_stars(paste(destination, "data_raw", "future_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), paste0(paste("climat", phase, model, "ssp", ssp, sep = "_"),".tif"), sep = "/"))
+    Average_model[[1]] <- Average_model[[1]] + st_as_stars(read_stars(paste(destination, "data_raw", "future_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), paste0(paste("climat", phase, model, "ssp", ssp, sep = "_"),".tif"), sep = "/")))[[1]]
   }
-  Average_model <- Average_model / 5
-  write_stars(obj = Average_model, dsn = paste(destination, "data_raw", "future_chelsa", paste("climat", phase, "average", "ssp", ssp, sep = "_"), paste0(paste("climat", phase, "average", "ssp", ssp, sep = "_"), ".tif"), sep = "/"),
+  Average_model <- round(Average_model / 5)
+  write_stars(Average_model, dsn = paste(destination, "data_raw", "future_chelsa", paste("climat", phase, "average", "ssp", ssp, sep = "_"), paste0(paste("climat", phase, "average", "ssp", ssp, sep = "_"), ".tif"), sep = "/"),
               options = c("COMPRESS=LZW","PREDICTOR=2"))
 }

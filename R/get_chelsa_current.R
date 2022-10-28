@@ -1,4 +1,4 @@
-get_chelsa_current <- function(extent, EPSG, destination, resolution = 1000, rm_download = FALSE){
+get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolution = 1000, rm_download = FALSE){
   #' Create multilayer Tiff file with 107 variables from chelsa-climate.org
   #'
   #' @description
@@ -7,7 +7,8 @@ get_chelsa_current <- function(extent, EPSG, destination, resolution = 1000, rm_
   #' and total cloud cover.
   #' Others variables are climatic water deficit (with Penman and Thornthwaite), number of dry month (with Penman and Thornthwaite) and 19 bio variables (more information in chelsa documentation).
   #'
-  #' @param extent character. First output of `transform_shp_coutry_extend`
+  #' @param extent character. First output of `transform_shp_coutry_extent`.
+  #' @param extent_latlon character. Second output of `transfomr_shp_country_extent`
   #' @param EPSG int. to consider for this country/area.
   #' @param destination character. absolute path where to download files like `here()` output.
   #' @param resolution int. in meters, recommended resolution are 250m, 500m, 1km, 2km or 5km, default is 1km. See more in details.
