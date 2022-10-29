@@ -405,8 +405,14 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   dir.create(path = paste(destination, "data_raw", "world_pop", "temp", sep = "/"), showWarnings = FALSE)
 
   dest <- paste(destination, "data_raw", "world_pop", "temp", paste0(ISO_country_code, "_pop.tif"), sep = "/")
-  URL <- paste0("https://data.worldpop.org/GIS/Population/Global_2000_2020_Constrained/2020/BSGM/",ISO_country_code, "/",tolower(ISO_country_code),"_ppp_2020_constrained.tif")
-  download.file(URL, destfile = dest, quiet = TRUE)
+  # url depends of the chosen country (different for New Caledonia or Madagascar)
+  URL_maxar_v1 <- paste0("https://data.worldpop.org/GIS/Population/Global_2000_2020_Constrained/2020/maxar_v1/",ISO_country_code, "/",tolower(ISO_country_code),"_ppp_2020_UNadj_constrained.tif")
+  URL_BSGM <- paste0("https://data.worldpop.org/GIS/Population/Global_2000_2020_Constrained/2020/BSGM/",ISO_country_code, "/",tolower(ISO_country_code),"_ppp_2020_UNadj_constrained.tif")
+  if (url.exists(URL_maxar_v1)){
+    download.file(URL_maxar_v1, destfile = dest, quiet = TRUE)
+  }else{
+    download.file(URL_BSGM, destfile = dest, quiet = TRUE)
+  }
   # unit set to pop/km²
   pop <- round(rast(dest) * 100)
   writeRaster(pop, filename = paste(destination, "data_raw", "world_pop", "temp", paste0(ISO_country_code, "_pop_km.tif"), sep = "/"),

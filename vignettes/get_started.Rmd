@@ -7,6 +7,11 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  fig.path = "vignettes/get_started_files/figs/")
+```
+
 ### Installation
 
 Install the development version of **gecevar** from [GitHub](https://github.com/ghislainv/gecevar) with

@@ -6,6 +6,7 @@
 \usage{
 get_chelsa_current(
   extent,
+  extent_latlon,
   EPSG,
   destination,
   resolution = 1000,
@@ -13,7 +14,9 @@ get_chelsa_current(
 )
 }
 \arguments{
-\item{extent}{character. First output of \code{transform_shp_coutry_extend}}
+\item{extent}{character. First output of \code{transform_shp_coutry_extent}.}
+
+\item{extent_latlon}{character. Second output of \code{transfomr_shp_country_extent}}
 
 \item{EPSG}{int. to consider for this country/area.}
 
