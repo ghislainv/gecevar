@@ -8,7 +8,7 @@
 ## license         :GPLv3
 ## ==============================================================================
 
-get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolution = 1000, rm_download = FALSE){
+get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolution = 1000, rm_download = FALSE) {
   #' Create multilayer Tiff file with 107 variables from chelsa-climate.org
   #'
   #' @description
@@ -182,7 +182,7 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolut
   print("Reprojecting rasters and stacking monthly rasters per variable")
   for(var in c("tasmin", "tasmax", "tas", "pr", "bio", "clt", "pet_penman")) {
     ifile <- file.path(destination, "data_raw", "chelsa_v2_1", "temp")
-    files.tif <- list.files(ifile, pattern = paste0(var, "[0-9]"), full.names = TRUE)
+    files.tif <- list.files(ifile, pattern = paste0(var, "[0-9]{2}\\.tif"), full.names = TRUE)
     for (i in 1:length(files.tif)) {
       sourcefile <- files.tif[i]
       destfile <- gsub(".tif", "_res.tif", files.tif[i])
@@ -199,8 +199,7 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolut
       }
     }
     ifile <- file.path(destination, "data_raw", "chelsa_v2_1", "temp")
-    files.tif <- list.files(ifile, pattern = paste0(var, "[0-9]"), full.names = TRUE)
-    files.tif <- files.tif[grep("res", files.tif)]
+    files.tif <- list.files(ifile, pattern = paste0(var, "[0-9]{2}_res\\.tif"), full.names = TRUE)
     r <- read_stars(sort(files.tif), along = "band")
     r <- split(r)
     names(r) <- c(paste0(var, 1:length(names(r))))
@@ -255,7 +254,7 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolut
   }
 
   ifile <- file.path(destination, "data_raw", "chelsa_v2_1", "temp")
-  ndm_files <- list.files(ifile, pattern = "ndm", full.names = TRUE)
+  ndm_files <- list.files(ifile, pattern = "ndm[0-9]{1,2}_res.tif", full.names = TRUE)
   ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "ndm_res.tif")
   system(glue('gdal_calc.py -A {ndm_files[1]} -B {ndm_files[2]} -C {ndm_files[3]} -D {ndm_files[4]}  -E {ndm_files[5]} \\
             -F {ndm_files[6]} -G {ndm_files[7]} -H {ndm_files[8]} -I {ndm_files[9]} -J {ndm_files[10]} -K {ndm_files[11]} \\
@@ -263,7 +262,8 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolut
             --outfile={ofile} --NoDataValue={nodat} \\
             --calc="A+B+C+D+E+F+G+H+I+J+K+L" --overwrite'), ignore.stdout = TRUE, ignore.stderr = TRUE)
 
-  cwd_files <- list.files(file.path(destination, "data_raw", "chelsa_v2_1"), pattern = "cwd", full.names = TRUE)
+  ifile <- file.path(destination, "data_raw", "chelsa_v2_1")
+  cwd_files <- list.files(ifile, pattern = "cwd[0-9]{1,2}_res.tif", full.names = TRUE)
   ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "cwd_res.tif")
   system(glue('gdal_calc.py -A {cwd_files[1]} -B {cwd_files[2]} -C {cwd_files[3]} -D {cwd_files[4]} -E {cwd_files[5]} \\
             -F {cwd_files[6]} -G {cwd_files[7]} -H {cwd_files[8]} -I {cwd_files[9]} -J {cwd_files[10]} -K {cwd_files[11]} \\
