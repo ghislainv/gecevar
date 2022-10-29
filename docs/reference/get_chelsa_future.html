@@ -65,6 +65,7 @@ Others variables are climatic water deficit with Thornthwaite, number of dry mon
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">get_chelsa_future</span><span class="op">(</span></span>
 <span>  <span class="va">extent</span>,</span>
+<span>  <span class="va">extent_latlon</span>,</span>
 <span>  <span class="va">EPSG</span>,</span>
 <span>  <span class="va">destination</span>,</span>
 <span>  resolution <span class="op">=</span> <span class="fl">1000</span>,</span>
@@ -76,7 +77,11 @@ Others variables are climatic water deficit with Thornthwaite, number of dry mon
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>extent</dt>
-<dd><p>character. First output of <code>transform_shp_coutry_extend</code></p></dd>
+<dd><p>character. First output of <code>transform_shp_coutry_extent</code>.</p></dd>
+
+
+<dt>extent_latlon</dt>
+<dd><p>character. Second output of <code>transfomr_shp_country_extent</code></p></dd>
 
 
 <dt>EPSG</dt>
