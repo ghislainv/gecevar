@@ -497,4 +497,4 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   return(paste(destination, "data_raw", "environ.tif", sep = "/"))
 }
 
-# End of file
+## End of file
