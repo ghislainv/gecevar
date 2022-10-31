@@ -16,7 +16,7 @@ get_chelsa_current(
 \arguments{
 \item{extent}{character. First output of \code{transform_shp_coutry_extent}.}
 
-\item{extent_latlon}{character. Second output of \code{transfomr_shp_country_extent}}
+\item{extent_latlon}{character. Second output of \code{transform_shp_country_extent}}
 
 \item{EPSG}{int. to consider for this country/area.}
 
@@ -47,28 +47,28 @@ Unit of each climatic variable :\tabular{ll}{
    Cloud area fraction (clt) \tab \% \cr
    PET Penman \tab kg.m^{-1} \cr
    PET Thornthwaite \tab kg.m^{-1} \cr
-   Climatic Water Deficit (Penman) \tab kg.m^{-1} \cr
-   Climatic Water Deficit (Thornthwaite) \tab kg.m^{-1} \cr
-   Number of dry month (Penman) \tab month \cr
-   Number of dry month (Thornthwaite) \tab month \cr
-   bio 1 \tab °C x 10 \cr
-   bio 2 \tab °C x 10 \cr
-   bio 3 \tab °C x 10 \cr
-   bio 4 \tab °C x 10 \cr
-   bio 5 \tab °C x 10 \cr
-   bio 6 \tab °C x 10 \cr
-   bio 7 \tab °C x 10 \cr
-   bio 8 \tab °C x 10 \cr
-   bio 9 \tab °C x 10 \cr
-   bio 10 \tab °C x 10 \cr
-   bio 11 \tab °C x 10 \cr
-   bio 12 \tab kg.m^{-2}.year^{-1} \cr
-   bio 13 \tab kg.m^{-2}.month^{-1} \cr
-   bio 14 \tab kg.m^{-2}.month^{-1} \cr
-   bio 15 \tab kg.m^{-2} \cr
-   bio 16 \tab kg.m^{-2}.month^{-1} \cr
-   bio 17 \tab kg.m^{-2}.month^{-1} \cr
-   bio 18 \tab kg.m^{-2}.month^{-1} \cr
-   bio 19 \tab kg.m^{-2}.month^{-1} \cr
+   Climatic water deficit (Penman) \tab kg.m^{-1} \cr
+   Climatic dater deficit (Thornthwaite) \tab kg.m^{-1} \cr
+   Number of dry months (Penman) \tab month \cr
+   Number of dry months (Thornthwaite) \tab month \cr
+   bio1 \tab °C x 10 \cr
+   bio2 \tab °C x 10 \cr
+   bio3 \tab °C x 10 \cr
+   bio4 \tab °C x 10 \cr
+   bio5 \tab °C x 10 \cr
+   bio6 \tab °C x 10 \cr
+   bio7 \tab °C x 10 \cr
+   bio8 \tab °C x 10 \cr
+   bio9 \tab °C x 10 \cr
+   bio10 \tab °C x 10 \cr
+   bio11 \tab °C x 10 \cr
+   bio12 \tab kg.m^{-2}.year^{-1} \cr
+   bio13 \tab kg.m^{-2}.month^{-1} \cr
+   bio14 \tab kg.m^{-2}.month^{-1} \cr
+   bio15 \tab kg.m^{-2} \cr
+   bio16 \tab kg.m^{-2}.month^{-1} \cr
+   bio17 \tab kg.m^{-2}.month^{-1} \cr
+   bio18 \tab kg.m^{-2}.month^{-1} \cr
+   bio19 \tab kg.m^{-2}.month^{-1} \cr
 }
 }

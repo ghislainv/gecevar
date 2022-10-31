@@ -280,8 +280,8 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolut
   ## PET with Thornthwaite formula
   tas <- read_stars(file.path(destination, "data_raw", "chelsa_v2_1", "tas_res.tif"))
   # keep only latitude coordinates
-  extent <- st_bbox(tas)
-  e <- ext(extent[1], extent[3], extent[2], extent[4])
+  extent_tas <- st_bbox(tas)
+  e <- ext(extent_tas[1], extent_tas[3], extent_tas[2], extent_tas[4])
   e <- terra::as.polygons(e)
   crs(e) <- paste0("epsg:", EPSG)
   extent_latlon <- st_bbox(terra::project(e, "epsg:4326"))

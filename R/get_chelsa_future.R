@@ -183,11 +183,11 @@ get_chelsa_future <- function(extent, extent_latlon, EPSG, destination, resoluti
     for (i in 1:12){
       pet_stars[[1]][,, i][!is.na(pet_stars[[1]][,, i])] <- PET_Thornthwaite[, i] * (month_length[i] / 30)
     }
-    rm(PET_Thornthwaite, tas_matrix)
+    rm(PET_Thornthwaite, tas_matrix, alpha, I, L, lat)
     pet_stars <- split(pet_stars)
     names(pet_stars) <- paste0("pet_thornthwaite", 1:12)
     write_stars(merge(pet_stars) , dsn = paste(destination, "data_raw", "future_chelsa", paste('climat', phase, model, 'ssp', ssp, sep = '_'), "pet_thornthwaite_res.tif", sep = "/"),
-                options = c("COMPRESS=LZW","PREDICTOR=2"))
+                options = c("COMPRESS=LZW","PREDICTOR=2"), type = "Int16")
 
     ## CWD with Thornthwaite PET
 
@@ -202,7 +202,7 @@ get_chelsa_future <- function(extent, extent_latlon, EPSG, destination, resoluti
     names(cwd_annual) <- "cwd_thornthwaite"
 
     write_stars(cwd_annual, dsn = paste(destination, "data_raw", "future_chelsa", paste('climat', phase, model, 'ssp', ssp, sep = '_'), "cwd_thornthwaite_res.tif", sep = "/"),
-                options = c("COMPRESS=LZW","PREDICTOR=2"))
+                options = c("COMPRESS=LZW","PREDICTOR=2"), type = "Int16")
     rm(cwd_annual)
 
     ## NDM with Thornthwaite
@@ -212,7 +212,7 @@ get_chelsa_future <- function(extent, extent_latlon, EPSG, destination, resoluti
     rm(cwd_thornthwaite)
     names(ndm_stars) <- "ndm_thornthwaite"
     write_stars(ndm_stars , dsn = paste(destination, "data_raw", "future_chelsa", paste('climat', phase, model, 'ssp', ssp, sep = '_'), "ndm_thornthwaite_res.tif", sep = "/"),
-                options = c("COMPRESS=LZW","PREDICTOR=2"))
+                options = c("COMPRESS=LZW","PREDICTOR=2"), type = "Int16")
     rm(ndm_stars)
 
     system(glue('gdal_merge.py -o {paste(destination, "data_raw", "future_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), "future_chelsa_no_name.tif", sep = "/")} -of GTiff -ot Int16 -co "COMPRESS=LZW" \\
@@ -233,11 +233,10 @@ get_chelsa_future <- function(extent, extent_latlon, EPSG, destination, resoluti
   }
   ## Mean of the five models
 
-  Average_model <- st_as_stars(read_stars(paste(destination, "data_raw", "future_chelsa", paste("climat", phase, "GFDL-ESM4", "ssp", ssp, sep = "_"), paste0(paste("climat", phase, "GFDL-ESM4", "ssp", ssp, sep = "_"),".tif"), sep = "/")))
-  for (model in c("IPSL-CM6A-LR", "MPI-ESM1-2-HR", "MRI-ESM2-0", "UKESM1-0-LL")){
-    Average_model[[1]] <- Average_model[[1]] + st_as_stars(read_stars(paste(destination, "data_raw", "future_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), paste0(paste("climat", phase, model, "ssp", ssp, sep = "_"),".tif"), sep = "/")))[[1]]
-  }
+  model <- c("GFDL-ESM4", "IPSL-CM6A-LR", "MPI-ESM1-2-HR", "MRI-ESM2-0", "UKESM1-0-LL")
+  model_files <- paste(destination, "data_raw", "future_chelsa", paste("climat", phase, model, "ssp", ssp, sep = "_"), paste0(paste("climat", phase, model, "ssp", ssp, sep = "_"),".tif"), sep = "/")
+  Average_model <- rast(model_files[1]) + rast(model_files[2]) + rast(model_files[3]) + rast(model_files[4]) + rast(model_files[5])
   Average_model <- round(Average_model / 5)
-  write_stars(Average_model, dsn = paste(destination, "data_raw", "future_chelsa", paste("climat", phase, "average", "ssp", ssp, sep = "_"), paste0(paste("climat", phase, "average", "ssp", ssp, sep = "_"), ".tif"), sep = "/"),
-              options = c("COMPRESS=LZW","PREDICTOR=2"))
+  writeRaster(Average_model, filename = paste(destination, "data_raw", "future_chelsa", paste("climat", phase, "average", "ssp", ssp, sep = "_"), paste0(paste("climat", phase, "average", "ssp", ssp, sep = "_"), ".tif"), sep = "/"),
+             datatype = "Int16", gdal = c("COMPRESS=LZW","PREDICTOR=2"), progress = 0)
 }
