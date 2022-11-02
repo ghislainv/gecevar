@@ -200,14 +200,11 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolut
     }
     ifile <- file.path(destination, "data_raw", "chelsa_v2_1", "temp")
     files.tif <- list.files(ifile, pattern = paste0(var, "[0-9]{2}_res\\.tif"), full.names = TRUE)
-    r <- read_stars(sort(files.tif), along = "band")
-    r <- split(r)
-    names(r) <- c(paste0(var, 1:length(names(r))))
-    r <- merge(r)
-    ofile <- file.path(destination, "data_raw", "chelsa_v2_1",
-                       paste0(var, "_res.tif"))
-    write_stars(obj = r, options = c("COMPRESS=LZW", "PREDICTOR=2"),
-                type = "Int16", dsn = ofile)
+    r <- rast(sort(files.tif))
+    r <- stats::setNames(r, paste0(var, 1:length(files.tif)))
+    ofile <- file.path(destination, "data_raw", "chelsa_v2_1", paste0(var, "_res.tif"))
+    writeRaster(r, gdal = c("COMPRESS=LZW","PREDICTOR=2"), progress = 0, overwrite = TRUE,
+                datatype = "INT2S", filename = ofile)
   }
 
   ## ==============================
@@ -307,7 +304,7 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolut
   rm(PET_Thornthwaite, tas_matrix, lat, I, L)
   ## Set attribute name and dimension values
   pet_stars <- pet_stars |>
-    setNames("pet_thornthwaite_res.tif") |>
+    stats::setNames("pet_thornthwaite_res.tif") |>
     st_set_dimensions(3, values = paste0("pet_thornthwaite", 1:12))
   ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "pet_thornthwaite_res.tif")
   write_stars(pet_stars, dsn = ofile,
@@ -320,10 +317,10 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolut
   cwd_thornthwaite[[1]] <- pmax(pet_stars[[1]] - pr[[1]], 0)
   ## Set attribute name and dimension values
   cwd_thornthwaite <- cwd_thornthwaite |>
-    setNames("cwd_thornthwaite_res.tif") |>
+    stats::setNames("cwd_thornthwaite_res.tif") |>
     st_set_dimensions(3, values = paste0("cwd_thornthwaite", 1:12))
   cwd_annual <- split(tas)[1,,]
-  cwd_annual[[1]] <- rowSums(merge(cwd_thornthwaite)[[1]], dims = 2)
+  cwd_annual[[1]] <- rowSums(cwd_thornthwaite[[1]], dims = 2)
   names(cwd_annual) <- "cwd_thornthwaite"
   ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "cwd_thornthwaite_res.tif")
   write_stars(cwd_annual, dsn = ofile,
@@ -332,7 +329,7 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolut
 
   ## NDM with Thornthwaite
   ndm_stars <- split(tas)[1,,]
-  ndm_stars[[1]] <- rowSums(merge(cwd_thornthwaite)[[1]] > 0, dims = 2)
+  ndm_stars[[1]] <- rowSums(cwd_thornthwaite[[1]] > 0, dims = 2)
   rm(cwd_thornthwaite)
   names(ndm_stars) <- "ndm_thornthwaite"
   ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "ndm_thornthwaite_res.tif")
@@ -346,14 +343,16 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolut
 
   print("Creating final raster stack")
   ofile <- file.path(destination, "data_raw", "current_chelsa_no_name.tif")
+  clim_file <- file.path(destination, "data_raw", "chelsa_v2_1", "clim_res.tif")
+  cwd_file <- file.path(destination, "data_raw", "chelsa_v2_1", "cwd_res.tif")
+  ndm_file <- file.path(destination, "data_raw", "chelsa_v2_1", "ndm_res.tif")
+  pet_t_file <- file.path(destination, "data_raw", "chelsa_v2_1", "pet_thornthwaite_res.tif")
+  cwd_t_file <- file.path(destination, "data_raw", "chelsa_v2_1", "cwd_thornthwaite_res.tif")
+  ndm_t_file <- file.path(destination, "data_raw", "chelsa_v2_1", "ndm_thornthwaite_res.tif")
   system(glue('gdal_merge.py -o {ofile} -of GTiff -ot Int16 -co "COMPRESS=LZW" \\
             -co "PREDICTOR=2" -separate -a_nodata {nodat} \\
-            {file.path(destination, "data_raw", "chelsa_v2_1", "clim_res.tif")} \\
-            {file.path(destination, "data_raw", "chelsa_v2_1", "cwd_res.tif")} \\
-            {file.path(destination, "data_raw", "chelsa_v2_1", "ndm_res.tif")} \\
-            {file.path(destination, "data_raw", "chelsa_v2_1", "pet_thornthwaite_res.tif")} \\
-            {file.path(destination, "data_raw", "chelsa_v2_1", "cwd_thornthwaite_res.tif")} \\
-            {file.path(destination, "data_raw", "chelsa_v2_1", "ndm_thornthwaite_res.tif")}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
+            {clim_file} {cwd_file} {ndm_file} {pet_t_file} {cwd_t_file} {ndm_t_file}'),
+         ignore.stdout = TRUE, ignore.stderr = TRUE)
   current <- rast(file.path(destination, "data_raw",  "current_chelsa_no_name.tif"))
   clim_res_file <- file.path(destination, "data_raw", "chelsa_v2_1", "clim_res.tif")
   names(current) <- c(names(rast(clim_res_file)), "cwd_penman", "ndm_penman", paste0("pet_thornthwaite_", 1:12), "cwd_thornthwaite", "ndm_thornthwaite")

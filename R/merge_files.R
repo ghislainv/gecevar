@@ -21,11 +21,12 @@ merge_files <- function(environ_path, climate_path, destination){
   #' @export
 
   nodat = -32768
-  system(glue('gdal_merge.py -ot Int16 -of GTiff -o {paste(destination, "gecevar_noname.tif", sep = "/")} -a_nodata {nodat} -separate \\
-            -co "COMPRESS=LZW" -co "PREDICTOR=2" {environ_path} {climat_path}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
+  destfile <- paste(destination, "gecevar_noname.tif", sep = "/")
+  system(glue('gdal_merge.py -ot Int16 -of GTiff -o {destfile} -a_nodata {nodat} -separate \\
+            -co "COMPRESS=LZW" -co "PREDICTOR=2" {environ_path} {climate_path}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
   all_var <- rast(file.path(destination,  "gecevar_noname.tif"))
   names(all_var) <-  c(names(rast(environ_path)), names(rast(climate_path)))
-  writeRaster(x = all_var, filename = file.path(destination, "gecevar.tif"), overwrite = TRUE)
+  writeRaster(x = all_var, filename = file.path(destination, "gecevar.tif"), overwrite = TRUE, datatype = "INT2S")
 
   unique_values <- unique(values(rast(file.path(destination, "gecevar.tif"))[[6]]))
   create_xml_legend(unique_values = unique_values, destination = destination, name_file = "gecevar")

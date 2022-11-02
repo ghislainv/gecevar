@@ -4,17 +4,17 @@
 \alias{merge_files}
 \title{Create a multilayer Tiff file with environ & climat variables.}
 \usage{
-merge_files(environ_path, climat_path, destination)
+merge_files(environ_path, climate_path, destination)
 }
 \arguments{
-\item{environ_path}{character. absolute path to environ.tif file, output of \code{get_env_variables}.}
+\item{environ_path}{character. Absolute path to \code{environ.tif} file, output of \code{get_env_variables}.}
 
-\item{climat_path}{character. absolute path to current_chelsa.tif.tif file, output of \code{get_chelsa_variables}}
+\item{climate_path}{character. Absolute path to \code{current_chelsa.tif} file, output of \code{get_chelsa_variables}.}
 
-\item{destination}{character. absolute path where to download files like \code{here()} output.}
+\item{destination}{character. Absolute path for the output directory.}
 }
 \value{
-character. absolute path to gecevar.tif.
+character. Absolute path to \code{gecevar.tif}.
 }
 \description{
 Use output of \code{get_env_variables} and \code{get_chelsa_current} to create an unique file with more than 100 variables.
