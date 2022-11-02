@@ -6,9 +6,9 @@ merge_files <- function(environ_path, climate_path, destination){
   #' Can be use with files created by `get_chelsa_futur`.
   #'
   #' @param environ_path character. Absolute path to `environ.tif` file, output of `get_env_variables`.
-  #' @param climate_path  character. Absolute path to `current_chelsa.tif` file, output of `get_chelsa_variables`
+  #' @param climate_path  character. Absolute path to `current_chelsa.tif` file, output of `get_chelsa_variables`.
   #' @param destination character. Absolute path for the output directory.
-  #' @return character. Absolute path to gecevar.tif.
+  #' @return character. Absolute path to `gecevar.tif`.
   #'
   #' @details
   #'
