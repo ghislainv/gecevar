@@ -305,20 +305,23 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolut
     pet_stars[[1]][,, i][!is.na(pet_stars[[1]][,, i])] <- PET_Thornthwaite[, i] * (month_length[i] / 30)
   }
   rm(PET_Thornthwaite, tas_matrix, lat, I, L)
-  pet_stars <- split(pet_stars)
-  names(pet_stars) <- paste0("pet_thornthwaite", 1:12)
+  ## Set attribute name and dimension values
+  pet_stars <- pet_stars |>
+    setNames("pet_thornthwaite_res.tif") |>
+    st_set_dimensions(3, values = paste0("pet_thornthwaite", 1:12))
   ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "pet_thornthwaite_res.tif")
-  write_stars(merge(pet_stars) , dsn = ofile,
+  write_stars(pet_stars, dsn = ofile,
               options = c("COMPRESS=LZW","PREDICTOR=2"), type = "Int16")
 
   ## CWD with Thornthwaite PET
   ifile <- file.path(destination, "data_raw", "chelsa_v2_1", "pr_res.tif")
   pr <- read_stars(ifile)
-  cwd_thornthwaite <- merge(pet_stars) - pr
-  rm(pet_stars)
-  cwd_thornthwaite[[1]] <- pmax(cwd_thornthwaite[[1]], 0)
-  cwd_thornthwaite <- split(cwd_thornthwaite)
-  names(cwd_thornthwaite) <- "cwd_thornthwaite"
+  cwd_thornthwaite <- pet_stars
+  cwd_thornthwaite[[1]] <- pmax(pet_stars[[1]] - pr[[1]], 0)
+  ## Set attribute name and dimension values
+  cwd_thornthwaite <- cwd_thornthwaite |>
+    setNames("cwd_thornthwaite_res.tif") |>
+    st_set_dimensions(3, values = paste0("cwd_thornthwaite", 1:12))
   cwd_annual <- split(tas)[1,,]
   cwd_annual[[1]] <- rowSums(merge(cwd_thornthwaite)[[1]], dims = 2)
   names(cwd_annual) <- "cwd_thornthwaite"
