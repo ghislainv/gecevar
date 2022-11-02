@@ -17,13 +17,13 @@ authors:
     href: "https://ecology.ghislainv.fr"
   CEBA:
     href: "https://www.labex-ceba.fr"
-    html: "<img src='articles/logos/Logo_CEBA_simple.jpg' height=24>"
+    html: "<img src='https://www.labex-ceba.fr/wp-content/uploads/2022/04/cropped-logo-ceba-anglais-avec-mention-Labex-1.jpg' height=24>"
   CNRT:
     href: "https://cnrt.nc"
-    html: "<img src='articles/logos/Logo_CNRT.png' height=24>"
+    html: "<img src='https://cnrt.nc/wp-content/uploads/2016/01/logoCNRT.png' height=24>"
   Cirad:
     href: "https://www.cirad.fr"
-    html: "<img src='articles/logos/logo-cirad.svg' height=24>"
+    html: "<img src='https://www.cirad.fr/var/cirad/storage/images/_aliases/reference/9/1/0/3/3019-11-fre-FR/logo-cirad.png' height=35>"
 navbar:
   structure:
     left: [intro, articles, reference]
