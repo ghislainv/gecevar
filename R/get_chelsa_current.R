@@ -358,7 +358,7 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolut
   clim_res_file <- file.path(destination, "data_raw", "chelsa_v2_1", "clim_res.tif")
   names(current) <- c(names(rast(clim_res_file)), "cwd_penman", "ndm_penman", paste0("pet_thornthwaite_", 1:12), "cwd_thornthwaite", "ndm_thornthwaite")
   ofile <- file.path(destination, "data_raw", "current_chelsa.tif")
-  writeRaster(current, datatype = "Int16", filename = ofile,
+  writeRaster(current, datatype = "INT2S", filename = ofile,
               overwrite = TRUE, gdal = c("COMPRESS=LZW","PREDICTOR=2"), progress = 0)
   rm(current)
   cat("File ", ofile, " has been created\n")
