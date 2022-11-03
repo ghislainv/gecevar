@@ -72,11 +72,11 @@ where R_n is the net radiation, G is the soil heat flux, (e_s - e_a) represents 
 
 #### Thornthwaite formula
 
-$T_{mean(k)}$ is the mean temperature for month $k$. $L$is the average day length (in hours) of the month $k$.
+$PET_k$ is the estimated potential evapotranspiration (in mm/month) for month $k$. $T_k$ is the average daily temperature (in degrees Celsius) for month $k$. $L_k$ is the average day length (in hours) of the month $k$. $N_k$ is the number of days for month $k$. $I$ is a heat index which depends on the 12 monthly mean temperatures.
 
-$$ I = \Sigma^{12}_{i = 1} (\frac{T_{mean(i)}}{5})^{1.514}$$ 
+$$ I = \Sigma^{12}_{i = 1} (\frac{T_i}{5})^{1.514}$$ 
 $$ \alpha = (6.75e-7) I^3 - (7.71e-5) I^2 + (1.792e-2) I + 0.49239 $$
-$$ PET_k = 1.6 \frac{L_k}{12} (\frac{10 T_{mean(k)}}{I})^{\alpha} $$ 
+$$ PET_k = 16 \frac{L_k}{12} \frac{N_k}{30} \left(\frac{10 T_k}{I}\right)^{\alpha} $$
 
 ## Water Deficit
 
