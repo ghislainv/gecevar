@@ -27,7 +27,7 @@ Authors@R: c(
   person("Cirad", role=c("cph","fnd")))
 Description: Download and combine environmental and climatic variables in one files.
     Downloaded files are in .tif format reprojected with wanted projection.
-License: GPL-3 | file LICENSE
+License: GPL (>= 3)
 URL: https://ecology.ghislainv.fr/gecevar, https://github.com/ghislainv/gecevar
 BugReports: https://github.com/ghislainv/gecevar/issues
 Encoding: UTF-8

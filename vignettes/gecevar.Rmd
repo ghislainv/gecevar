@@ -1,16 +1,15 @@
 ---
 title: "Get started with gecevar"
 output: rmarkdown::html_vignette
+resource_files:
+  - logos/Logo_CEBA_simple.jpg
+  - logos/logo-cirad.svg
+  - logos/Logo_CNRT.png
 vignette: >
   %\VignetteIndexEntry{Get started with gecevar}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
-
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  fig.path = "vignettes/get_started_files/figs/")
-```
 
 ### Installation
 

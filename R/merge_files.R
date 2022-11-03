@@ -1,4 +1,4 @@
-merge_files <- function(environ_path, climate_path, destination){
+merge_files <- function(environ_path, climate_path, destination) {
   #' Create a multilayer Tiff file with environ & climat variables.
   #'
   #' @description
@@ -21,15 +21,19 @@ merge_files <- function(environ_path, climate_path, destination){
   #' @export
 
   nodat = -32768
-  destfile <- paste(destination, "gecevar_noname.tif", sep = "/")
-  system(glue('gdal_merge.py -ot Int16 -of GTiff -o {destfile} -a_nodata {nodat} -separate \\
+  ofile_noname <- file.path(destination, "gecevar_noname.tif")
+  system(glue('gdal_merge.py -ot Int16 -of GTiff -o {ofile_noname} -a_nodata {nodat} -separate \\
             -co "COMPRESS=LZW" -co "PREDICTOR=2" {environ_path} {climate_path}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
-  all_var <- rast(file.path(destination,  "gecevar_noname.tif"))
+  all_var <- rast(ofile_noname)
   names(all_var) <-  c(names(rast(environ_path)), names(rast(climate_path)))
-  writeRaster(x = all_var, filename = file.path(destination, "gecevar.tif"), overwrite = TRUE, datatype = "INT2S")
 
-  unique_values <- unique(values(rast(file.path(destination, "gecevar.tif"))[[6]]))
+  ofile <- file.path(destination, "gecevar.tif")
+  writeRaster(x = all_var, filename = ofile, overwrite = TRUE, datatype = "INT2S")
+
+  unique_values <- unique(values(rast(ofile)[[6]]))
   create_xml_legend(unique_values = unique_values, destination = destination, name_file = "gecevar")
-  unlink(file.path(destination, "gecevar_noname.tif"))
+  unlink(ofile_noname)
 
-  }
+}
+
+## End of file
