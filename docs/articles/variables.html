@@ -441,14 +441,15 @@ r_s and r_a are the (bulk) surface and aerodynamic resistances.</p>
 <div class="section level4">
 <h4 id="thornthwaite-formula">Thornthwaite formula<a class="anchor" aria-label="anchor" href="#thornthwaite-formula"></a>
 </h4>
-<p><span class="math inline">\(T_{mean(k)}\)</span> is the mean
-temperature for month <span class="math inline">\(k\)</span>. <span class="math inline">\(L\)</span>is the average day length (in hours) of
-the month <span class="math inline">\(k\)</span>.</p>
+<p><span class="math inline">\(PET_k\)</span> is the estimated potential
+evapotranspiration (in mm/month) for month <span class="math inline">\(k\)</span>. <span class="math inline">\(T_k\)</span> is the average daily temperature (in
+degrees Celsius) for month <span class="math inline">\(k\)</span>. <span class="math inline">\(L_k\)</span> is the average day length (in hours)
+of the month <span class="math inline">\(k\)</span>. <span class="math inline">\(N_k\)</span> is the number of days for month <span class="math inline">\(k\)</span>. <span class="math inline">\(I\)</span>
+is a heat index which depends on the 12 monthly mean temperatures.</p>
 <p><span class="math display">\[ I = \Sigma^{12}_{i = 1}
-(\frac{T_{mean(i)}}{5})^{1.514}\]</span> <span class="math display">\[
-\alpha = (6.75e-7) I^3 - (7.71e-5) I^2 + (1.792e-2) I + 0.49239
-\]</span> <span class="math display">\[ PET_k = 1.6 \frac{L_k}{12}
-(\frac{10 T_{mean(k)}}{I})^{\alpha} \]</span></p>
+(\frac{T_i}{5})^{1.514}\]</span> <span class="math display">\[ \alpha =
+(6.75e-7) I^3 - (7.71e-5) I^2 + (1.792e-2) I + 0.49239 \]</span> <span class="math display">\[ PET_k = 16 \frac{L_k}{12} \frac{N_k}{30}
+\left(\frac{10 T_k}{I}\right)^{\alpha} \]</span></p>
 </div>
 </div>
 <div class="section level2">
