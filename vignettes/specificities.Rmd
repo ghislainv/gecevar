@@ -21,7 +21,7 @@ For all area, resolution is set to 1km. Others parameters don't change computing
 
 | Area          | transform_shp_country_extent | get_env_variable | get_chelsa_current | merge_files | get_chelsa_future |
 | :-----------: | :--------------------------: | :--------------: | :----------------: | :---------: | :---------------: |
-| Madagascar    | 2min                         | 15min            | 34min              | 6min        | 1h15min           |
+| Madagascar    | 2min                         | 13min            | 25min              | 6min        | 1h15min           |
 | New Caledonia | 2min                         | 5min             | 9min               | 8min        | 47min             |
 | French Guiana | 2min                         | 3min             | 6min               | 2min        | 25min             |
 

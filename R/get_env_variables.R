@@ -128,7 +128,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
     options(warn = -1)
     dst <- paste0(file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "srtm_"), i, ".zip")
     url.tile <- paste0("https://srtm.csi.cgiar.org/wp-content/uploads/files/srtm_5x5/TIFF/srtm_", i, ".zip")
-    download.file(url = url.tile, destfile = dst, method = "wget", quiet = TRUE)
+    download.file(url = url.tile, destfile = dst, quiet = TRUE)
     unzip(dst, exdir = file.path(destination, "data_raw", "srtm_v1_4_90m", "temp"), overwrite = TRUE)
   }
 
