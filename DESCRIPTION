@@ -1,6 +1,6 @@
 Package: gecevar
 Title: GEtting Climatic and Environmental VARiables from open and free online datasets for a specific region
-Version: 0.0.0.9000
+Version: 0.0.1
 Authors@R: c(
   person("Pierre", "Guillaumont", role=c("aut", "cre"),
          email="pierre.guillaumont@gmail.com"),
