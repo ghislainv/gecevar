@@ -299,7 +299,7 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolut
   PET_Thornthwaite <- 16 * (L / 12) * (10 * tas_matrix / I)^alpha
   pet_stars <- tas
   for (i in 1:12){
-    pet_stars[[1]][,, i][!is.na(pet_stars[[1]][,, i])] <- PET_Thornthwaite[, i] * (month_length[i] / 30)
+    pet_stars[[1]][,, i] <- PET_Thornthwaite[, i] * (month_length[i] / 30)
   }
   rm(PET_Thornthwaite, tas_matrix, lat, I, L)
   ## Set attribute name and dimension values
