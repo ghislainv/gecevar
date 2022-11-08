@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# `gecevar` R Package <img src="https://ecology.ghislainv.fr/logo.svg" align="right" alt="logo-gecevar" width="120" />
+# `gecevar` R Package <img src="https://ecology.ghislainv.fr/gecevar/logo.svg" align="right" alt="logo-gecevar" width="120" />
 
 `gecevar` provides a set of climatic and environmental data for a given
 area of interest (eg. country scale) that can be used for ecological
