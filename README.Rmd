@@ -4,7 +4,15 @@ output: github_document
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# `gecevar` R Package 
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/"
+)
+```
+
+# `gecevar` R Package <img src="man/figures/logo.svg" align="right" alt="logo-gecevar" width="120" />
 
 `gecevar` provides a set of climatic and environmental data for a given area of interest (eg. country scale) that can be used for ecological analyses. Data come from a variety of sources (eg. Chelsa, OpenStreetMap, TropicalMoistForest, SRTMv4.1, SoilGrids). Climatic and environmental data are available as multiband raster files at a resolution and in the coordinate reference system provided by the user.
 
