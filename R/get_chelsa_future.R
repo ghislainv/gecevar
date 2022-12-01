@@ -24,9 +24,9 @@ get_chelsa_future <- function(extent, extent_latlon, EPSG, destination, resoluti
   #' | Temperature average (tas)             | °C x 10              |
   #' | Temperature min (tasmin)              | °C x 10              |
   #' | Temperature max (tasmax)              | °C x 10              |
-  #' | Precipitation                         | kg.m^{-1}            |
-  #' | PET Thornthwaite                      | kg.m^{-1}            |
-  #' | Climatic Water Deficit (Thornthwaite) | kg.m^{-1}            |
+  #' | Precipitation                         | kg.m^{-2}            |
+  #' | PET Thornthwaite                      | kg.m^{-2}            |
+  #' | Climatic Water Deficit (Thornthwaite) | kg.m^{-2}            |
   #' | Number of dry month (Thornthwaite)    | month                |
   #' | bio 1                                 | °C x 10              |
   #' | bio 2                                 | °C x 10              |

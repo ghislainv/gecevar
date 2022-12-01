@@ -54,8 +54,7 @@ Imports:
     stats,
     stringr,
     terra,
-    utils,
-    wdpar
+    utils
 Depends: 
     R (>= 2.10)
 LazyData: true

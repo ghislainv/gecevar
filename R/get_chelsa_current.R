@@ -34,12 +34,12 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolut
   #' | Temperature average (tas)             | °C x 10              |
   #' | Temperature min (tasmin)              | °C x 10              |
   #' | Temperature max (tasmax)              | °C x 10              |
-  #' | Precipitation                         | kg.m^{-1}            |
+  #' | Precipitation                         | kg.m^{-2}            |
   #' | Cloud area fraction (clt)             | %                    |
-  #' | PET Penman                            | kg.m^{-1}            |
-  #' | PET Thornthwaite                      | kg.m^{-1}            |
-  #' | Climatic water deficit (Penman)       | kg.m^{-1}            |
-  #' | Climatic dater deficit (Thornthwaite) | kg.m^{-1}            |
+  #' | PET Penman                            | kg.m^{-2}            |
+  #' | PET Thornthwaite                      | kg.m^{-2}            |
+  #' | Climatic water deficit (Penman)       | kg.m^{-2}            |
+  #' | Climatic dater deficit (Thornthwaite) | kg.m^{-2}            |
   #' | Number of dry months (Penman)         | month                |
   #' | Number of dry months (Thornthwaite)   | month                |
   #' | bio1                                  | °C x 10              |

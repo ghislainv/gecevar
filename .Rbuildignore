@@ -5,3 +5,5 @@
 ^pkgdown$
 ^\.github$
 ^LICENSE\.md$
+^README\.Rmd$
+^logo$
