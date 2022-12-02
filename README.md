@@ -3,6 +3,13 @@
 
 # `gecevar` R Package <img src="https://ecology.ghislainv.fr/gecevar/logo.svg" align="right" alt="logo-gecevar" width="120" />
 
+[![R-CMD-check](https://github.com/ghislainv/gecevar/workflows/R-CMD-check/badge.svg)](https://github.com/ghislainv/gecevar/actions)
+[![Codecov test
+coverage](https://codecov.io/gh/ghislainv/gecevar/branch/main/graph/badge.svg)](https://app.codecov.io/gh/ghislainv/gecevar?branch=main)
+<!-- [![CRAN Status](https://www.r-pkg.org/badges/version/gecevar)](https://cran.r-project.org/package=gecevar) -->
+<!-- [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3253460.svg)](https://doi.org/10.5281/zenodo.3253460) -->
+<!-- [![Downloads](https://cranlogs.r-pkg.org/badges/gecevar)](https://cran.r-project.org/package=gecevar) -->
+
 `gecevar` provides a set of climatic and environmental data for a given
 area of interest (eg. country scale) that can be used for ecological
 analyses. Data come from a variety of sources (eg. Chelsa,

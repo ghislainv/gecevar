@@ -7,3 +7,4 @@
 ^LICENSE\.md$
 ^README\.Rmd$
 ^logo$
+^codecov\.yml$

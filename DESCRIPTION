@@ -32,8 +32,9 @@ URL: https://ecology.ghislainv.fr/gecevar, https://github.com/ghislainv/gecevar
 BugReports: https://github.com/ghislainv/gecevar/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.2
 Suggests: 
+    covr,
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)
@@ -57,5 +58,4 @@ Imports:
     utils
 Depends: 
     R (>= 2.10)
-LazyData: true
 Config/testthat/edition: 3
