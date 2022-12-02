@@ -43,12 +43,12 @@ Unit of each climatic variable :\tabular{ll}{
    Temperature average (tas) \tab °C x 10 \cr
    Temperature min (tasmin) \tab °C x 10 \cr
    Temperature max (tasmax) \tab °C x 10 \cr
-   Precipitation \tab kg.m^{-1} \cr
+   Precipitation \tab kg.m^{-2} \cr
    Cloud area fraction (clt) \tab \% \cr
-   PET Penman \tab kg.m^{-1} \cr
-   PET Thornthwaite \tab kg.m^{-1} \cr
-   Climatic water deficit (Penman) \tab kg.m^{-1} \cr
-   Climatic dater deficit (Thornthwaite) \tab kg.m^{-1} \cr
+   PET Penman \tab kg.m^{-2} \cr
+   PET Thornthwaite \tab kg.m^{-2} \cr
+   Climatic water deficit (Penman) \tab kg.m^{-2} \cr
+   Climatic dater deficit (Thornthwaite) \tab kg.m^{-2} \cr
    Number of dry months (Penman) \tab month \cr
    Number of dry months (Thornthwaite) \tab month \cr
    bio1 \tab °C x 10 \cr

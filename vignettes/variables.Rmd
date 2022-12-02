@@ -34,12 +34,12 @@ Protected area are extracted from [protectedplanet.net](https://www.protectedpla
 | tas              | °C x 10                | Daily mean air temperature at 2 metres from hourly ERA5 data for each month | | [chelsa-climate.org](https://chelsa-climate.org)
 | tasmin           | °C x 10                | Daily minimum air temperature at 2 metres from hourly ERA5 data for each month | | [chelsa-climate.org](https://chelsa-climate.org)
 | tasmax           | °C x 10                | Daily maximum air temperature at 2 metres from hourly ERA5 data for each month | | [chelsa-climate.org](https://chelsa-climate.org)
-| pr               | $kg.m^{-1}$            | Precipitation amount | | [chelsa-climate.org](https://chelsa-climate.org) |
+| pr               | $kg.m^{-2}$            | Precipitation amount | | [chelsa-climate.org](https://chelsa-climate.org) |
 | clt              | %                      | Cloud area fraction | | [chelsa-climate.org](https://chelsa-climate.org) |
-| pet_penman       | $kg.m^{-1}$            | Potential evapotranspiration calculated with the Penman-Monteith equation. | | [chelsa-climate.org](https://chelsa-climate.org) |
-| pet_thornthwaite | $kg.m^{-1}$            | Potential evapotranspiration calculated with the Thornthwaite equation. | geosphere | [chelsa-climate.org](https://chelsa-climate.org) |
-| cwd_penman       | $kg.m^{-1}$            | Climatic Water Deficit calculated with pet_penman variable | | [chelsa-climate.org](https://chelsa-climate.org) |
-| cwd_thornthwaite | $kg.m^{-1}$            | Climatic Water Deficit calculated with pet_thornthwaite variable | | [chelsa-climate.org](https://chelsa-climate.org) |
+| pet_penman       | $kg.m^{-2}$            | Potential evapotranspiration calculated with the Penman-Monteith equation. | | [chelsa-climate.org](https://chelsa-climate.org) |
+| pet_thornthwaite | $kg.m^{-2}$            | Potential evapotranspiration calculated with the Thornthwaite equation. | geosphere | [chelsa-climate.org](https://chelsa-climate.org) |
+| cwd_penman       | $kg.m^{-2}$            | Climatic Water Deficit calculated with pet_penman variable | | [chelsa-climate.org](https://chelsa-climate.org) |
+| cwd_thornthwaite | $kg.m^{-2}$            | Climatic Water Deficit calculated with pet_thornthwaite variable | | [chelsa-climate.org](https://chelsa-climate.org) |
 | ndm_penman       | month                  | Number of Dry Month calculated with cwd_penman variable | | [chelsa-climate.org](https://chelsa-climate.org) |
 | ndm_thornthwaite | month                  | Number of Dry Month calculated with cwd_thornthwaite variable | | [chelsa-climate.org](https://chelsa-climate.org) |
 | bio1             | °C x 10                | mean annual daily mean air temperatures averaged over 1 year | | [chelsa-climate.org](https://chelsa-climate.org) |

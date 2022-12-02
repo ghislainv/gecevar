@@ -43,9 +43,9 @@ Unit of each climatic variable :\tabular{ll}{
    Temperature average (tas) \tab °C x 10 \cr
    Temperature min (tasmin) \tab °C x 10 \cr
    Temperature max (tasmax) \tab °C x 10 \cr
-   Precipitation \tab kg.m^{-1} \cr
-   PET Thornthwaite \tab kg.m^{-1} \cr
-   Climatic Water Deficit (Thornthwaite) \tab kg.m^{-1} \cr
+   Precipitation \tab kg.m^{-2} \cr
+   PET Thornthwaite \tab kg.m^{-2} \cr
+   Climatic Water Deficit (Thornthwaite) \tab kg.m^{-2} \cr
    Number of dry month (Thornthwaite) \tab month \cr
    bio 1 \tab °C x 10 \cr
    bio 2 \tab °C x 10 \cr
