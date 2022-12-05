@@ -47,12 +47,7 @@ jobs:
 
       - uses: r-lib/actions/setup-pandoc@v2
 
-      - name: Install latex packages on Linux
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get -y upgrade
-          sudo apt-get install texlive-latex-base texlive-fonts-recommended texlive-fonts-extra
+      - uses: r-lib/actions/setup-tinytex@v2
 
       - name: Query dependencies
         run: |
