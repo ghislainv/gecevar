@@ -2,8 +2,8 @@ transform_shp_country_extent <- function(EPSG, country_name = NULL, shapefile_pa
   #' Create extent & extent in latitude and longitude
   #'
   #' @description
-  #' With a country name, a shapefile or a extent and an EPSG value.
-  #' Succed to give extent in EPSG reproject and extent with default EPSG also knows as latitude and longitude coordinates.
+  #' With a country name, a shapefile or an extent and an EPSG value,
+  #' give the extent corresponding to the coordinates system (EPSG) specified and the extent with default EPSG also known as latitude and longitude coordinates.
   #'
   #' @param country_name character. English country name, default is NULL.
   #' @param shapefile_path character. Path to a .shp file, default is NULL.
@@ -58,7 +58,7 @@ transform_shp_country_extent <- function(EPSG, country_name = NULL, shapefile_pa
     latmin <- floor(min(coord[,2]))
     latmax <- ceiling(max(coord[,2]))
     extent_final_latlon <- c(lonmin = lonmin, lonmax = lonmax, latmin = latmin, latmax = latmax)
-    extent_final_latlon <- as.polygons(ext(extent_final_latlon))
+    extent_final_latlon <- terra::as.polygons(terra::ext(extent_final_latlon))
     crs(extent_final_latlon) <- paste0("epsg:", EPSG)
     extent_final_latlon <- st_bbox(project(extent_final_latlon, "epsg:4326"))
     extent_final_latlon <- c(floor(extent_final_latlon[1]), floor(extent_final_latlon[2]), ceiling(extent_final_latlon[3]), ceiling(extent_final_latlon[4]))
@@ -77,7 +77,8 @@ transform_shp_country_extent <- function(EPSG, country_name = NULL, shapefile_pa
     e <- as.polygons(e)
     crs(e) <- "epsg:4326"
     extent_final_latlon <- st_bbox(project(e, paste0("epsg:", EPSG)))
-    extent_final_latlon <- c(floor(extent_final_latlon[1]), floor(extent_final_latlon[2]), ceiling(extent_final_latlon[3]), ceiling(extent_final_latlon[4]))
+    extent_final_latlon <- c(lonmin.xmin=floor(extent_final_latlon[1]), latmin.ymin=floor(extent_final_latlon[2]),
+                             lonmax.xmax=ceiling(extent_final_latlon[3]), latmax.ymax=ceiling(extent_final_latlon[4]))
 
   }
   extent <- paste(extent[1], extent[2], extent[3], extent[4], sep = " ")

@@ -27,6 +27,6 @@ transform_shp_country_extent(
 character vector. with extent of the area in one character, other are latlon coord of area
 }
 \description{
-With a country name, a shapefile or a extent and an EPSG value.
-Succed to give extent in EPSG reproject and extent with default EPSG also knows as latitude and longitude coordinates.
+With a country name, a shapefile or an extent and an EPSG value,
+give the extent corresponding to the coordinates system (EPSG) specified and the extent with default EPSG also known as latitude and longitude coordinates.
 }
