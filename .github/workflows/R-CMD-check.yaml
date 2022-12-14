@@ -49,11 +49,8 @@ jobs:
 
       - uses: r-lib/actions/setup-tinytex@v2
 
-      - name: Install grass and sf
+      - name: Install sf
         run: |
-          sudo apt-get update
-          sudo apt-get -y upgrade
-          sudo apt-get install grass grass-doc
           sudo Rscript -e "install.packages('sf',repos='http://cran.us.r-project.org')"
 
       - name: Query dependencies
