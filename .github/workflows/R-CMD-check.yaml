@@ -49,9 +49,12 @@ jobs:
 
       - uses: r-lib/actions/setup-tinytex@v2
 
-      - name: Install grass
+      - name: Install grass and sf
         run: |
+          sudo apt-get update
+          sudo apt-get -y upgrade
           sudo apt-get install grass grass-doc
+          sudo Rscript -e "install.packages('sf',repos='http://cran.us.r-project.org')"
 
       - name: Query dependencies
         run: |
@@ -80,7 +83,6 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo Rscript -e "install.packages('sf',repos='http://cran.us.r-project.org')"
           remotes::install_deps(dependencies = TRUE)
           remotes::install_version("rcmdcheck", version="1.3.3")
         shell: Rscript {0}
