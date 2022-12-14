@@ -28,7 +28,7 @@ transform_shp_country_extent <- function(EPSG, country_name = NULL, shapefile_pa
     ISO_country_code <- countryname(country_name, destination = "iso3c")
     URL <- paste0("https://geodata.ucdavis.edu/gadm/gadm3.6/gpkg/gadm36_", ISO_country_code, "_gpkg.zip")
     tempZip <- tempfile()
-    download.file(URL, quiet = TRUE, destfile = tempZip, method="auto")
+    download.file(URL, quiet = TRUE, destfile = tempZip)
     # Unzip
     unzip(tempZip, exdir = paste(getwd(), "gaul", sep = "/"), overwrite = TRUE)
     # Read vector (level 0 for country borders)
