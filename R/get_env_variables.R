@@ -1,4 +1,6 @@
-get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destination, resolution = 1000, rm_download = FALSE, forest_year = 2010, gisBase = NULL){
+get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destination,
+                              resolution = 1000, rm_download = FALSE, forest_year = 2010,
+                              gisBase = NULL){
   #' Create multilayer Tiff file with 11 environmental variables
   #'
   #' @description
@@ -62,8 +64,9 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   nodat <- -32768
   proj.s <- "EPSG:4326"
   proj.t <- paste0("EPSG:", EPSG)
-  ISO_country_code <- countryname(country_name, destination = "iso3c")
+  ISO_country_code <- countrycode::countryname(country_name, destination = "iso3c")
   extent_num <- as.numeric(strsplit(extent, split = " ")[[1]])
+  options(download.file.method="auto")
 
   ##==============================
   ##
@@ -115,8 +118,8 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   dir.create(file.path(destination, "data_raw", "srtm_v1_4_90m", "temp"), showWarnings = FALSE)
   tiles_srtm <- c(floor(extent_latlon[1] / 5) * 5, ceiling(extent_latlon[2] / 5) * 5,
                   floor(extent_latlon[3] / 5) * 5, ceiling(extent_latlon[4] / 5) * 5)
-  lat <- str_pad(seq(tiles_srtm[1], tiles_srtm[3], 5) / 5 + 37, width = 2, pad = "0")
-  lon <- str_pad(-seq(tiles_srtm[2], tiles_srtm[4], 5) / 5 + 13, width = 2, pad = "0")
+  lat <- stringr::str_pad(seq(tiles_srtm[1], tiles_srtm[3], 5) / 5 + 37, width = 2, pad = "0")
+  lon <- stringr::str_pad(-seq(tiles_srtm[2], tiles_srtm[4], 5) / 5 + 13, width = 2, pad = "0")
   tiles <- NULL
   for (i in lon)
   {
@@ -124,11 +127,11 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   }
 
   for (i in tiles) {
-    options(download.file.method="curl", download.file.extra="-k")
     options(warn = -1)
     dst <- paste0(file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "srtm_"), i, ".zip")
     url.tile <- paste0("https://srtm.csi.cgiar.org/wp-content/uploads/files/srtm_5x5/TIFF/srtm_", i, ".zip")
-    download.file(url = url.tile, destfile = dst, quiet = TRUE)
+    download.file(url = url.tile, destfile = dst, quiet = TRUE,
+                  method="curl", extra="-k")
     unzip(dst, exdir = file.path(destination, "data_raw", "srtm_v1_4_90m", "temp"), overwrite = TRUE)
   }
 
@@ -196,6 +199,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
     gisBase <- system("grass --config path", intern = TRUE)
   }
   # set library path
+  wd <- getwd()
   setwd(file.path(destination, "data_raw"))
   Sys.setenv(LD_LIBRARY_PATH = paste(file.path(gisBase, "lib"), Sys.getenv("LD_LIBRARY_PATH"), sep = ":"))
   # use a georeferenced raster
@@ -306,18 +310,22 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   ##
   ## WDPA : World Database Protected Areas
   ## International Union for Conservation of Nature
-  ## UNEP-WCMC (2022). Protected Area Profile for New Caledonia from the World Database of Protected Areas, May 2022.
+  ## UNEP-WCMC (2022). Protected Area Profile from the World Database of Protected Areas, May 2022.
   ## Available at: www.protectedplanet.net
   ##
   ##=========================
 
   dir.create(file.path(destination, "data_raw", "WDPA"), showWarnings = FALSE)
   dir.create(file.path(destination, "data_raw", "WDPA", "temp"), showWarnings = FALSE)
-  date <- str_remove(str_to_title(format(Sys.Date(), format = "%b%Y")), "\\.")
+  # Date in english
+  Sys.setlocale("LC_TIME", "C")
+  date <- stringr::str_remove(stringr::str_to_title(format(Sys.Date(), format = "%b%Y")), "\\.")
+  Sys.setlocale("LC_TIME", "")
   POST(url = "https://www.protectedplanet.net/downloads", encode = "json", body = list("domain" = "general", "format" = "gdb", "token" = ISO_country_code))
-  wait_until(url.exists(paste0("https://d1gam3xoknrgr2.cloudfront.net/current/WDPA_WDOECM_", date, "_Public_", ISO_country_code, ".zip")), timeout = 60)
+  retry::wait_until(url.exists(paste0("https://d1gam3xoknrgr2.cloudfront.net/current/WDPA_WDOECM_", date, "_Public_", ISO_country_code, ".zip")), timeout = 60)
   download.file(paste0("https://d1gam3xoknrgr2.cloudfront.net/current/WDPA_WDOECM_", date, "_Public_", ISO_country_code, ".zip"),
-                destfile = file.path(destination, "data_raw", "WDPA","temp", paste0("WDPA_WDOECM_", date,"_Public_", ISO_country_code, ".zip")), method = 'auto', mode = "wb", quiet = TRUE)
+                destfile = file.path(destination, "data_raw", "WDPA","temp", paste0("WDPA_WDOECM_", date,"_Public_", ISO_country_code, ".zip")),
+                method = 'auto', mode = "wb", quiet = TRUE)
   unzip(file.path(destination, "data_raw", "WDPA","temp", paste0("WDPA_WDOECM_", date,"_Public_", ISO_country_code, ".zip")),
         exdir = file.path(destination, 'data_raw', 'WDPA', 'temp'))
   WDPA <- vect(file.path(destination, "data_raw", "WDPA", "temp", paste0("WDPA_WDOECM_", date, "_Public_", ISO_country_code, ".gdb/")), layer = paste0("WDPA_WDOECM_poly_", date, "_", ISO_country_code))
@@ -501,10 +509,9 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
     unlink(file.path(destination, "data_raw", "forestatrisk"), recursive = TRUE)
     unlink(file.path(destination, "data_raw", "distForest"), recursive = TRUE)
     unlink(file.path(destination, "data_raw", "world_pop"), recursive = TRUE)
-
   }
-
-
+  # Restore original working directory
+  setwd(wd)
   return(file.path(destination, "data_raw", "environ.tif"))
 }
 
