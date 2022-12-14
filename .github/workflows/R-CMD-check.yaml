@@ -49,6 +49,10 @@ jobs:
 
       - uses: r-lib/actions/setup-tinytex@v2
 
+      - name: Install grass
+        run: |
+          sudo apt-get install grass grass-doc
+
       - name: Query dependencies
         run: |
           install.packages('remotes')
