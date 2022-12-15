@@ -51,7 +51,7 @@ jobs:
 
       - name: Install sf
         run: |
-          sudo Rscript -e "install.packages('sf',repos='http://cran.us.r-project.org')"
+          sudo Rscript -e "install.packages('proj4',repos='http://cran.us.r-project.org')"
 
       - name: Query dependencies
         run: |
