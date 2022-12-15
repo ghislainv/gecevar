@@ -52,6 +52,7 @@ jobs:
       - name: Install proj4
         run: |
           sudo Rscript -e "install.packages('proj4',repos='http://cran.us.r-project.org')"
+          sudo apt install -y libproj-dev
 
       - name: Query dependencies
         run: |
