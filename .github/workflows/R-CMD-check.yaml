@@ -51,6 +51,8 @@ jobs:
 
       - name: Install libproj-dev
         run: |
+          sudo apt-get update
+          sudo apt-get -y upgrade
           sudo apt install -y libproj-dev
 
       - name: Query dependencies
@@ -75,8 +77,8 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ env.R_LIBS_USER }}
-          key: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-3-${{ hashFiles('.github/depends.Rds') }}
-          restore-keys: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-3-
+          key: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-2-${{ hashFiles('.github/depends.Rds') }}
+          restore-keys: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-2-
 
       - name: Install dependencies
         run: |
