@@ -49,9 +49,8 @@ jobs:
 
       - uses: r-lib/actions/setup-tinytex@v2
 
-      - name: Install proj4
+      - name: Install libproj-dev
         run: |
-          sudo Rscript -e "install.packages('proj4',repos='http://cran.us.r-project.org')"
           sudo apt install -y libproj-dev
 
       - name: Query dependencies
