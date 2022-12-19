@@ -36,4 +36,4 @@ test_that("get_env_variables works", {
   expect_equal(trunc(ext/1000), trunc(c(ext_out$xmin, ext_out$ymin, ext_out$xmax, ext_out$ymax)/1000))
 })
 
-unlink(file.path(env_path))
+unlink(file.path(environ_path))
