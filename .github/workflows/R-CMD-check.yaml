@@ -56,7 +56,8 @@ jobs:
           sudo apt-get -y upgrade
           sudo apt remove libudunits2-dev libgdal-dev libgeos-dev libproj-dev
           sudo apt install libudunits2-dev libgdal-dev libgeos-dev libproj-dev libfontconfig1-dev
-          sudo apt install  r-cran-sf
+          sudo Rscript -e "install.packages('sf', type='source', repos='http://cran.us.r-project.org')"
+
 
       - name: Query dependencies
         run: |
@@ -94,6 +95,7 @@ jobs:
           options(width = 100)
           pkgs <- installed.packages()[, "Package"]
           sessioninfo::session_info(pkgs, include_base = TRUE)
+          library(sf)
         shell: Rscript {0}
 
       - name: Check
