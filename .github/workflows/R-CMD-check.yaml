@@ -49,6 +49,15 @@ jobs:
 
       - uses: r-lib/actions/setup-tinytex@v2
 
+      - name: Install sf
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get -y upgrade
+          sudo apt remove libudunits2-dev libgdal-dev libgeos-dev libproj-dev
+          sudo apt install libudunits2-dev libgdal-dev libgeos-dev libproj-dev libfontconfig1-dev
+          sudo apt install  r-cran-sf
+
       - name: Query dependencies
         run: |
           install.packages('remotes')
