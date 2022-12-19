@@ -236,9 +236,9 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   ##===========================
 
   forest = FALSE
-  continent_name <-countrycode(sourcevar = country_name,
-                               origin = "country.name",
-                               destination = "continent")
+  continent_name <- countrycode::countrycode(sourcevar = country_name,
+                                             origin = "country.name",
+                                             destination = "continent")
   if (continent_name == "Oceania"){
     continent_name = "Asia"
   }
@@ -254,7 +254,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
     system(glue("gdalwarp -overwrite -t_srs {proj.t} -r bilinear -tr {resolution} {resolution} -te {extent} -ot Int16 -of GTiff \\
         {sourcefile} {destfile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
     unlink(file.path(destination, "data_raw", "forestatrisk", "forest_nocrop.tif"))
-    forest_stars <- read_stars(destfile)
+    forest_stars <- stars::read_stars(destfile)
     if (forest_year == 2000){
       # 1 is deforestation during 2000-2010
       forest_stars[[1]] <- forest_stars[[1]] >= 1
@@ -267,7 +267,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
         forest_stars[[1]] <- forest_stars[[1]] == 3
       }
     }
-    write_stars(forest_stars, dsn = destfile, update = TRUE, type = "Int16", options = c("COMPRESS=LZW", "PREDICTOR=2"))
+    stars::write_stars(forest_stars, dsn = destfile, update = TRUE, type = "Int16", options = c("COMPRESS=LZW", "PREDICTOR=2"))
     forest <- TRUE
   }else{
     print("Forest layer is not available for your country")
@@ -294,17 +294,17 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   ##===========================
 
   dir.create(file.path(destination, "data_raw", "distSea"), showWarnings = FALSE)
-  seaBool <- read_stars(file.path(destination, "data_raw", "srtm_v1_4_90m", "srad_res.tif")) == nodat
-  write_stars(seaBool, options = c("COMPRESS=LZW", "PREDICTOR=2"), NA_value = nodat,
-              dsn = file.path(destination, "data_raw", "distSea", "Sea_resBool.tif"))
+  seaBool <- stars::read_stars(file.path(destination, "data_raw", "srtm_v1_4_90m", "srad_res.tif")) == nodat
+  stars::write_stars(seaBool, options = c("COMPRESS=LZW", "PREDICTOR=2"), NA_value = nodat,
+                     dsn = file.path(destination, "data_raw", "distSea", "Sea_resBool.tif"))
   sourcefile <- file.path(destination, "data_raw", "distSea", "Sea_resBool.tif")
   destfile <- file.path(destination, "data_raw", "distSea", "distSea.tif")
   system(glue("gdal_proximity.py -ot Int16 -of GTiff -nodata {nodat} \\
         -values {nodat} -distunits GEO -use_input_nodata NO {sourcefile} {destfile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
-  distSea <- read_stars(file.path(destination, "data_raw", "distSea", "distSea.tif"))
+  distSea <- stars::read_stars(file.path(destination, "data_raw", "distSea", "distSea.tif"))
   distSea[[1]][distSea[[1]] == 0] <- NA
-  write_stars(distSea, file.path(destination, "data_raw", "distSea", "distSea.tif"), NA_value = nodat,
-              options = c("COMPRESS=LZW", "PREDICTOR=2"))
+  stars::write_stars(distSea, file.path(destination, "data_raw", "distSea", "distSea.tif"), NA_value = nodat,
+                     options = c("COMPRESS=LZW", "PREDICTOR=2"))
 
   ##=========================
   ##
@@ -321,7 +321,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   Sys.setlocale("LC_TIME", "C")
   date <- stringr::str_remove(stringr::str_to_title(format(Sys.Date(), format = "%b%Y")), "\\.")
   Sys.setlocale("LC_TIME", "")
-  POST(url = "https://www.protectedplanet.net/downloads", encode = "json", body = list("domain" = "general", "format" = "gdb", "token" = ISO_country_code))
+  httr::POST(url = "https://www.protectedplanet.net/downloads", encode = "json", body = list("domain" = "general", "format" = "gdb", "token" = ISO_country_code))
   retry::wait_until(url.exists(paste0("https://d1gam3xoknrgr2.cloudfront.net/current/WDPA_WDOECM_", date, "_Public_", ISO_country_code, ".zip")), timeout = 60)
   download.file(paste0("https://d1gam3xoknrgr2.cloudfront.net/current/WDPA_WDOECM_", date, "_Public_", ISO_country_code, ".zip"),
                 destfile = file.path(destination, "data_raw", "WDPA","temp", paste0("WDPA_WDOECM_", date,"_Public_", ISO_country_code, ".zip")),
@@ -329,12 +329,12 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   unzip(file.path(destination, "data_raw", "WDPA","temp", paste0("WDPA_WDOECM_", date,"_Public_", ISO_country_code, ".zip")),
         exdir = file.path(destination, 'data_raw', 'WDPA', 'temp'))
   WDPA <- vect(file.path(destination, "data_raw", "WDPA", "temp", paste0("WDPA_WDOECM_", date, "_Public_", ISO_country_code, ".gdb/")), layer = paste0("WDPA_WDOECM_poly_", date, "_", ISO_country_code))
-  WDPA <- st_as_sf(WDPA)[3]
-  WDPA <- st_transform(WDPA, EPSG)
-  WDPA <- st_rasterize(WDPA, dx = resolution, dy = resolution)
+  WDPA <- sf::st_as_sf(WDPA)[3]
+  WDPA <- sf::st_transform(WDPA, EPSG)
+  WDPA <- stars::st_rasterize(WDPA, dx = resolution, dy = resolution)
   WDPA[[1]] <- WDPA[[1]] != 0
-  write_stars(WDPA, options = c("COMPRESS=LZW", "PREDICTOR=2"), NA_value = nodat,
-              dsn = file.path(destination, "data_raw", "WDPA", "WDPA_resBool.tif"))
+  stars::write_stars(WDPA, options = c("COMPRESS=LZW", "PREDICTOR=2"), NA_value = nodat,
+                     dsn = file.path(destination, "data_raw", "WDPA", "WDPA_resBool.tif"))
 
   ##=========================
   ##
@@ -344,14 +344,13 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
 
   dir.create(file.path(destination, "data_raw", "OSM"), showWarnings = FALSE)
   dir.create(file.path(destination, "data_raw", "OSM", "temp"), showWarnings = FALSE)
-  osm_country <- oe_match(country_name, quiet = TRUE)
-  oe_download(
-    file_url = osm_country$url,
-    file_size = osm_country$file_size,
-    force_download = TRUE,
-    max_file_size = osm_country$file_size + 1,
-    download_directory = file.path(destination, "data_raw", "OSM", "temp"),
-    quiet = TRUE)
+  osm_country <- osmextract::oe_match(country_name, quiet = TRUE)
+  osmextract::oe_download(file_url = osm_country$url,
+                          file_size = osm_country$file_size,
+                          force_download = TRUE,
+                          max_file_size = osm_country$file_size + 1,
+                          download_directory = file.path(destination, "data_raw", "OSM", "temp"),
+                          quiet = TRUE)
 
   download_file <- list.files(file.path(destination, "data_raw", "OSM", "temp"), pattern = "osm.pbf", full.names = TRUE)
   type_object <- c("lines", "points", "lines", "multipolygons", "multipolygons")
@@ -389,18 +388,18 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   file.remove(list.files(file.path(destination, "data_raw", "OSM"), pattern = "distance.tif", full.names = TRUE)) # delete temporary files
   water <- paste("lake", "reservoir", "river", sep = "|")
   watering_place <- list.files(file.path(destination, "data_raw","OSM"), pattern = water, full.names = TRUE)
-  dim_matrix <- dim(read_stars(watering_place[1])[[1]])[1]
-  watering_place.tif <- read_stars(watering_place[1])
-  watering_place.tif[[1]] <- pmin(read_stars(watering_place[1])[[1]],
-                                  read_stars(watering_place[2])[[1]],
-                                  read_stars(watering_place[3])[[1]])
-  write_stars(watering_place.tif, file.path(destination, "data_raw", "OSM", "wateringplacedistance_res.tif"))
+  dim_matrix <- dim(stars::read_stars(watering_place[1])[[1]])[1]
+  watering_place.tif <- stars::read_stars(watering_place[1])
+  watering_place.tif[[1]] <- pmin(stars::read_stars(watering_place[1])[[1]],
+                                  stars::read_stars(watering_place[2])[[1]],
+                                  stars::read_stars(watering_place[3])[[1]])
+  stars::write_stars(watering_place.tif, file.path(destination, "data_raw", "OSM", "wateringplacedistance_res.tif"))
   file.remove(list.files(file.path(destination, "data_raw","OSM"), pattern = water, full.names = TRUE))
 
   for (j in list.files(path = file.path(destination, "data_raw","OSM"), pattern = ".tif", full.names = TRUE))
   {
-    osm_dist <- st_crop(read_stars(j), st_as_sf(seaBool))
-    write_stars(osm_dist, j, options = c("COMPRESS=LZW","PREDICTOR=2"))
+    osm_dist <- sf::st_crop(stars::read_stars(j), sf::st_as_sf(seaBool))
+    stars::write_stars(osm_dist, j, options = c("COMPRESS=LZW","PREDICTOR=2"))
   }
 
   ##===================
@@ -423,7 +422,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   }
   # unit set to pop/km²
   pop <- round(rast(dest) * 100)
-  writeRaster(pop, filename = file.path(destination, "data_raw", "world_pop", "temp", paste0(ISO_country_code, "_pop_km.tif")),
+  terra::writeRaster(pop, filename = file.path(destination, "data_raw", "world_pop", "temp", paste0(ISO_country_code, "_pop_km.tif")),
               gdal = c("COMPRESS=LZW","PREDICTOR=2"), progress = 0, overwrite = TRUE, datatype = "INT2S")
   sourcefile <- file.path(destination, "data_raw", "world_pop", "temp", paste0(ISO_country_code, "_pop_km.tif"))
   destfile <- file.path(destination, "data_raw", "world_pop", paste0(ISO_country_code, "_pop_res.tif"))
@@ -458,7 +457,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
             {srad_file} {soilgrid_file} {forest_file} {distforest_file} \\
             {distSea_file} {distroad_file} {distplace_file} {distwater_file} \\
             {wdpa_file} {pop_file}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
-    environ <- rast(file.path(destination, "data_raw", "environ_no_name.tif"))
+    environ <- terra::rast(file.path(destination, "data_raw", "environ_no_name.tif"))
     names(environ) <- c( "aspect", "elevation", "roughness", "slope", "srad", "soilgrids", "forest", "distanceForest",
                          "dist_sea", "dist_road", "dist_place", "dist_water", "WDPA", "population")
   }else{
@@ -481,12 +480,12 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
             {srad_file} {soilgrid_file} {distSea_file} {distroad_file} \\
             {distplace_file} {distwater_file} {wdpa_file} {pop_file}'),
            ignore.stdout = TRUE, ignore.stderr = TRUE)
-    environ <- rast(file.path(destination, "data_raw", "environ_no_name.tif"))
+    environ <- terra::rast(file.path(destination, "data_raw", "environ_no_name.tif"))
     names(environ) <- c( "aspect", "elevation", "roughness", "slope", "srad", "soilgrids",
                          "dist_sea", "dist_road", "dist_place", "dist_water", "WDPA", "population")
   }
 
-  writeRaster(environ, filename = file.path(destination, "data_raw", "environ_nocrop.tif"),
+  terra::writeRaster(environ, filename = file.path(destination, "data_raw", "environ_nocrop.tif"),
               gdal = c("COMPRESS=LZW","PREDICTOR=2"), progress = 0, overwrite = TRUE, datatype = "INT2S")
   sourcefile <- file.path(destination, 'data_raw', 'environ_nocrop.tif')
   destfile <- file.path(destination, 'data_raw', 'environ.tif')

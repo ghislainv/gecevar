@@ -49,13 +49,13 @@ Imports:
     retry,
     rgrass,
     rjson,
-    sf,
-    sp,
     stars,
     stats,
     stringr,
     terra,
-    utils
+    utils,
+    sp,
+    sf
 Depends: 
     R (>= 2.10)
 Config/testthat/edition: 3
