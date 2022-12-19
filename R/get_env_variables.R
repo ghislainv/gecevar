@@ -206,7 +206,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   elevation <- file.path(destination, "data_raw/srtm_v1_4_90m/temp/elevation.tif")
   system(glue('grass -c {elevation} -e grassdata/environ'), ignore.stdout = TRUE, ignore.stderr = TRUE)
   # connect to grass database
-  initGRASS(gisBase = gisBase,
+  rgrass::initGRASS(gisBase = gisBase,
             gisDbase = "grassdata", home = tempdir(),
             location = "environ", mapset = "PERMANENT",
             override = TRUE)
@@ -243,7 +243,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
     continent_name = "Asia"
   }
   continent_short <- substr(toupper(continent_name), 1, 3)
-  if (url.exists(paste0("https://forestatrisk.cirad.fr/tropics/tif/fcc_123_", continent_short, "_aea.tif"))){
+  if (RCurl::url.exists(paste0("https://forestatrisk.cirad.fr/tropics/tif/fcc_123_", continent_short, "_aea.tif"))){
     dir.create(file.path(destination, "data_raw", "forestatrisk"), showWarnings = FALSE)
     url_far <- paste0("https://forestatrisk.cirad.fr/tropics/tif/fcc_123_", continent_short, "_aea.tif")
     destfile <- file.path(destination, "data_raw", "forestatrisk", "forest_nocrop.tif")
@@ -322,13 +322,13 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   date <- stringr::str_remove(stringr::str_to_title(format(Sys.Date(), format = "%b%Y")), "\\.")
   Sys.setlocale("LC_TIME", "")
   httr::POST(url = "https://www.protectedplanet.net/downloads", encode = "json", body = list("domain" = "general", "format" = "gdb", "token" = ISO_country_code))
-  retry::wait_until(url.exists(paste0("https://d1gam3xoknrgr2.cloudfront.net/current/WDPA_WDOECM_", date, "_Public_", ISO_country_code, ".zip")), timeout = 60)
+  retry::wait_until(RCurl::url.exists(paste0("https://d1gam3xoknrgr2.cloudfront.net/current/WDPA_WDOECM_", date, "_Public_", ISO_country_code, ".zip")), timeout = 60)
   download.file(paste0("https://d1gam3xoknrgr2.cloudfront.net/current/WDPA_WDOECM_", date, "_Public_", ISO_country_code, ".zip"),
                 destfile = file.path(destination, "data_raw", "WDPA","temp", paste0("WDPA_WDOECM_", date,"_Public_", ISO_country_code, ".zip")),
                 method = 'auto', mode = "wb", quiet = TRUE)
   unzip(file.path(destination, "data_raw", "WDPA","temp", paste0("WDPA_WDOECM_", date,"_Public_", ISO_country_code, ".zip")),
         exdir = file.path(destination, 'data_raw', 'WDPA', 'temp'))
-  WDPA <- vect(file.path(destination, "data_raw", "WDPA", "temp", paste0("WDPA_WDOECM_", date, "_Public_", ISO_country_code, ".gdb/")), layer = paste0("WDPA_WDOECM_poly_", date, "_", ISO_country_code))
+  WDPA <- terra::vect(file.path(destination, "data_raw", "WDPA", "temp", paste0("WDPA_WDOECM_", date, "_Public_", ISO_country_code, ".gdb/")), layer = paste0("WDPA_WDOECM_poly_", date, "_", ISO_country_code))
   WDPA <- sf::st_as_sf(WDPA)[3]
   WDPA <- sf::st_transform(WDPA, EPSG)
   WDPA <- stars::st_rasterize(WDPA, dx = resolution, dy = resolution)
@@ -389,11 +389,11 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   water <- paste("lake", "reservoir", "river", sep = "|")
   watering_place <- list.files(file.path(destination, "data_raw","OSM"), pattern = water, full.names = TRUE)
   dim_matrix <- dim(stars::read_stars(watering_place[1])[[1]])[1]
-  watering_place.tif <- stars::read_stars(watering_place[1])
-  watering_place.tif[[1]] <- pmin(stars::read_stars(watering_place[1])[[1]],
+  watering_place_dist.tif <- stars::read_stars(watering_place[1])
+  watering_place_dist.tif[[1]] <- pmin(stars::read_stars(watering_place[1])[[1]],
                                   stars::read_stars(watering_place[2])[[1]],
                                   stars::read_stars(watering_place[3])[[1]])
-  stars::write_stars(watering_place.tif, file.path(destination, "data_raw", "OSM", "wateringplacedistance_res.tif"))
+  stars::write_stars(watering_place_dist.tif, file.path(destination, "data_raw", "OSM", "wateringplacedistance_res.tif"))
   file.remove(list.files(file.path(destination, "data_raw","OSM"), pattern = water, full.names = TRUE))
 
   for (j in list.files(path = file.path(destination, "data_raw","OSM"), pattern = ".tif", full.names = TRUE))
@@ -415,7 +415,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   # url depends of the chosen country (different for New Caledonia or Madagascar)
   URL_maxar_v1 <- paste0("https://data.worldpop.org/GIS/Population/Global_2000_2020_Constrained/2020/maxar_v1/",ISO_country_code, "/",tolower(ISO_country_code),"_ppp_2020_UNadj_constrained.tif")
   URL_BSGM <- paste0("https://data.worldpop.org/GIS/Population/Global_2000_2020_Constrained/2020/BSGM/",ISO_country_code, "/",tolower(ISO_country_code),"_ppp_2020_UNadj_constrained.tif")
-  if (url.exists(URL_maxar_v1)){
+  if (RCurl::url.exists(URL_maxar_v1)){
     download.file(URL_maxar_v1, destfile = dest, quiet = TRUE)
   }else{
     download.file(URL_BSGM, destfile = dest, quiet = TRUE)
