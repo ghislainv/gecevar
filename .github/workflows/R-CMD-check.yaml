@@ -65,6 +65,12 @@ jobs:
             eval sudo $cmd
           done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "20.04"))')
 
+      - name: Install grass
+        run: |
+          sudo apt-get update
+          sudo apt-get -y upgrade
+          sudo apt-get install grass grass-doc
+
       - name: Install sf, stars, terra and stringi
         if: runner.os == 'Linux'
         run: |
