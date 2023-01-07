@@ -390,7 +390,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   watering_place <- list.files(file.path(destination, "data_raw","OSM"),
                                pattern = water, full.names = TRUE)
   dim_matrix <- dim(stars::read_stars(watering_place[1])[[1]])[1]
-  watering_place_dist.tif <- stars::read_stars(watering_place[1], normalize_path=FALSE)
+  watering_place_dist.tif <- stars::read_stars(watering_place[1])
   watering_place_dist.tif[[1]] <- pmin(stars::read_stars(watering_place[1])[[1]],
                                        stars::read_stars(watering_place[2])[[1]],
                                        stars::read_stars(watering_place[3])[[1]])
@@ -477,7 +477,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
     pop_file <- file.path(destination, "data_raw", "world_pop", paste0(ISO_country_code, "_pop_res.tif"))
     system(glue('gdal_merge.py -ot Int16 -of GTiff -o {file.path(destination, "data_raw", "environ_no_name.tif")} -a_nodata {nodat} -separate \\
             -co "COMPRESS=LZW" -co "PREDICTOR=2" \\
-            {aspect_file} {evelation_file} {roughness_file} {slope_file} \\
+            {aspect_file} {elevation_file} {roughness_file} {slope_file} \\
             {srad_file} {soilgrid_file} {distSea_file} {distroad_file} \\
             {distplace_file} {distwater_file} {wdpa_file} {pop_file}'),
            ignore.stdout = TRUE, ignore.stderr = TRUE)
