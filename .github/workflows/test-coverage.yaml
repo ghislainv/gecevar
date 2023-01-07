@@ -32,6 +32,11 @@ jobs:
           sudo apt-get -y upgrade
           sudo apt-get install grass grass-doc
 
+      - name: Install tools for Open Street Maps
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get install osmctools
+
       - name: Test coverage
         run: |
           covr::codecov(

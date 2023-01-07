@@ -80,6 +80,11 @@ jobs:
           sudo apt install libudunits2-dev libgdal-dev libgeos-dev libproj-dev libfontconfig1-dev
           sudo Rscript -e "install.packages(c('sf','stars','terra', 'stringi'), type='source', repos='http://cran.us.r-project.org')"
 
+      - name: Install tools for Open Street Maps
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get install osmctools
+
       - name: Cache R packages
         if: runner.os != 'Windows'
         uses: actions/cache@v3
