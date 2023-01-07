@@ -1,64 +1,64 @@
+#' Create multilayer Tiff file with 11 environmental variables
+#'
+#' @description
+#' Variables are type of soil, elevation, slope, aspect, roughness, solar radiation, distance to sea,
+#' protected areas, distance to roads, distance to cities and town, distance to rivers & lake.
+#'
+#' @param extent_latlon int vector. in this order c(lon_min, lat_min, lon_max, lat_max).
+#' @param extent character. First output of `transform_shp_country_extent` function.
+#' @param EPSG int. to consider for this country/area.
+#' @param country_name character. country name (in English) which be use to collect protected areas. This country must be available in `https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA`.
+#' @param destination character. absolute path where to download files like `here()` output.
+#' @param resolution int. in meters, recommended resolution are 250m, 500m, 1km, 2km or 5km, default is 1km. See more in details.
+#' @param rm_download boolean. If TRUE remove download files and folders. Keep only environ.tif in `data_raw` folder, default is FALSE.
+#' @param forest_year int. Forest at the decade chosen. Must be one of 2000, 2010 or 2020, default is 2010.
+#' @param gisBase NULL or character. Parameter `gisBase` for `rgrass::initGRASS()`. The directory path to GRASS binaries and libraries, containing bin and lib subdirectories among others; if NULL, system("grass --config path") is tried.
+#' @return character. Absolute path to `environ.tif` file.
+#' @details `resolution` need to be carefully chosen because if .tif file is too large, R can crash.
+#'
+#' @details
+#'
+#' environ.tif.aux.xml is an extention of environ.tif, it allows to classify soilgrid variable with QGIS with RasterAttributeTable extension.
+#' Nevertheless it's cause problems to open it with `stars` package but not with `terra`. If you have any problems to open environ.tif, you can remove environ.tif.aux.xml.
+#' This solve all accessibility problems with `stars` and `terra` packages.
+#'
+#' Unit of each environ variable :
+#'
+#' | Name                                 | Unit          |
+#' | ------------------------------------ | ------------- |
+#' | Elevation                            | m             |
+#' | Aspect                               | degrees       |
+#' | Roughness                            | m             |
+#' | Slope                                | degrees       |
+#' | Solar radiation                      | Wh.m^{-2}.day |
+#' | Soilgrids                            | category      |
+#' | Forest                               | binary        |
+#' | Distance to forest                   | m             |
+#' | Distance sea                         | m             |
+#' | Distance road                        | m             |
+#' | Distance place                       | m             |
+#' | Distance watering place              | m             |
+#' | Protected Area (WDPA)                | category      |
+#' | Population density                   | people/km²    |
+#' @md
+#'
+#' @importFrom glue glue
+#' @importFrom utils download.file unzip
+#' @importFrom RCurl url.exists
+#' @import sf
+#' @import stars
+#' @import rgrass
+#' @import osmextract
+#' @import RCurl
+#' @import countrycode
+#' @import stringr
+#' @import httr
+#' @import retry
+#' @export
+
 get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destination,
                               resolution = 1000, rm_download = FALSE, forest_year = 2010,
                               gisBase = NULL){
-  #' Create multilayer Tiff file with 11 environmental variables
-  #'
-  #' @description
-  #' Variables are type of soil, elevation, slope, aspect, roughness, solar radiation, distance to sea,
-  #' protected areas, distance to roads, distance to cities and town, distance to rivers & lake.
-  #'
-  #' @param extent_latlon int vector. in this order c(lon_min, lat_min, lon_max, lat_max).
-  #' @param extent character. First output of `transform_shp_country_extent` function.
-  #' @param EPSG int. to consider for this country/area.
-  #' @param country_name character. country name (in English) which be use to collect protected areas. This country must be available in `https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA`.
-  #' @param destination character. absolute path where to download files like `here()` output.
-  #' @param resolution int. in meters, recommended resolution are 250m, 500m, 1km, 2km or 5km, default is 1km. See more in details.
-  #' @param rm_download boolean. If TRUE remove download files and folders. Keep only environ.tif in `data_raw` folder, default is FALSE.
-  #' @param forest_year int. Forest at the decade chosen. Must be one of 2000, 2010 or 2020, default is 2010.
-  #' @param gisBase NULL or character. Parameter `gisBase` for `rgrass::initGRASS()`. The directory path to GRASS binaries and libraries, containing bin and lib subdirectories among others; if NULL, system("grass --config path") is tried.
-  #' @return character. Absolute path to `environ.tif` file.
-  #' @details `resolution` need to be carefully chosen because if .tif file is too large, R can crash.
-  #'
-  #' @details
-  #'
-  #' environ.tif.aux.xml is an extention of environ.tif, it allows to classify soilgrid variable with QGIS with RasterAttributeTable extension.
-  #' Nevertheless it's cause problems to open it with `stars` package but not with `terra`. If you have any problems to open environ.tif, you can remove environ.tif.aux.xml.
-  #' This solve all accessibility problems with `stars` and `terra` packages.
-  #'
-  #' Unit of each environ variable :
-  #'
-  #' | Name                                 | Unit          |
-  #' | ------------------------------------ | ------------- |
-  #' | Elevation                            | m             |
-  #' | Aspect                               | degrees       |
-  #' | Roughness                            | m             |
-  #' | Slope                                | degrees       |
-  #' | Solar radiation                      | Wh.m^{-2}.day |
-  #' | Soilgrids                            | category      |
-  #' | Forest                               | binary        |
-  #' | Distance to forest                   | m             |
-  #' | Distance sea                         | m             |
-  #' | Distance road                        | m             |
-  #' | Distance place                       | m             |
-  #' | Distance watering place              | m             |
-  #' | Protected Area (WDPA)                | category      |
-  #' | Population density                   | people/km²    |
-  #' @md
-  #'
-  #' @importFrom glue glue
-  #' @importFrom utils download.file unzip
-  #' @importFrom RCurl url.exists
-  #' @import sf
-  #' @import stars
-  #' @import rgrass
-  #' @import osmextract
-  #' @import RCurl
-  #' @import countrycode
-  #' @import stringr
-  #' @import httr
-  #' @import retry
-  #' @export
-
   options(warn = -1)
   dir.create(path = destination, recursive = TRUE, showWarnings = FALSE)
   nodat <- -32768
@@ -207,9 +207,9 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   system(glue('grass -c {elevation} -e grassdata/environ'), ignore.stdout = TRUE, ignore.stderr = TRUE)
   # connect to grass database
   rgrass::initGRASS(gisBase = gisBase,
-            gisDbase = "grassdata", home = tempdir(),
-            location = "environ", mapset = "PERMANENT",
-            override = TRUE)
+                    gisDbase = "grassdata", home = tempdir(),
+                    location = "environ", mapset = "PERMANENT",
+                    override = TRUE)
   ## Import raster in grass
   system(glue("r.in.gdal -e -o input={elevation} output=elevation"), ignore.stdout = TRUE, ignore.stderr = TRUE)
   slope <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "slope.tif")
@@ -387,12 +387,13 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
 
   file.remove(list.files(file.path(destination, "data_raw", "OSM"), pattern = "distance.tif", full.names = TRUE)) # delete temporary files
   water <- paste("lake", "reservoir", "river", sep = "|")
-  watering_place <- list.files(file.path(destination, "data_raw","OSM"), pattern = water, full.names = TRUE)
+  watering_place <- list.files(file.path(destination, "data_raw","OSM"),
+                               pattern = water, full.names = TRUE)
   dim_matrix <- dim(stars::read_stars(watering_place[1])[[1]])[1]
-  watering_place_dist.tif <- stars::read_stars(watering_place[1])
+  watering_place_dist.tif <- stars::read_stars(watering_place[1], normalize_path=FALSE)
   watering_place_dist.tif[[1]] <- pmin(stars::read_stars(watering_place[1])[[1]],
-                                  stars::read_stars(watering_place[2])[[1]],
-                                  stars::read_stars(watering_place[3])[[1]])
+                                       stars::read_stars(watering_place[2])[[1]],
+                                       stars::read_stars(watering_place[3])[[1]])
   stars::write_stars(watering_place_dist.tif, file.path(destination, "data_raw", "OSM", "wateringplacedistance_res.tif"))
   file.remove(list.files(file.path(destination, "data_raw","OSM"), pattern = water, full.names = TRUE))
 
@@ -423,7 +424,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   # unit set to pop/km²
   pop <- round(rast(dest) * 100)
   terra::writeRaster(pop, filename = file.path(destination, "data_raw", "world_pop", "temp", paste0(ISO_country_code, "_pop_km.tif")),
-              gdal = c("COMPRESS=LZW","PREDICTOR=2"), progress = 0, overwrite = TRUE, datatype = "INT2S")
+                     gdal = c("COMPRESS=LZW","PREDICTOR=2"), progress = 0, overwrite = TRUE, datatype = "INT2S")
   sourcefile <- file.path(destination, "data_raw", "world_pop", "temp", paste0(ISO_country_code, "_pop_km.tif"))
   destfile <- file.path(destination, "data_raw", "world_pop", paste0(ISO_country_code, "_pop_res.tif"))
   system(glue('gdalwarp -tr {resolution} {resolution} -te {extent} -s_srs {proj.s} -t_srs {proj.t}  \\
@@ -486,7 +487,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   }
 
   terra::writeRaster(environ, filename = file.path(destination, "data_raw", "environ_nocrop.tif"),
-              gdal = c("COMPRESS=LZW","PREDICTOR=2"), progress = 0, overwrite = TRUE, datatype = "INT2S")
+                     gdal = c("COMPRESS=LZW","PREDICTOR=2"), progress = 0, overwrite = TRUE, datatype = "INT2S")
   sourcefile <- file.path(destination, 'data_raw', 'environ_nocrop.tif')
   destfile <- file.path(destination, 'data_raw', 'environ.tif')
   system(glue("gdal_translate -projwin {extent_num[1]} {extent_num[4]} {extent_num[3]} {extent_num[2]} -projwin_srs {proj.t} {sourcefile} \\
