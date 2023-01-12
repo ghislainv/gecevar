@@ -75,7 +75,9 @@ Others variables are climatic water deficit with Thornthwaite, number of dry mon
 <span>  <span class="va">destination</span>,</span>
 <span>  resolution <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  phase <span class="op">=</span> <span class="st">"2071-2100"</span>,</span>
-<span>  ssp <span class="op">=</span> <span class="fl">585</span></span>
+<span>  GCM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"GFDL-ESM4"</span>, <span class="st">"IPSL-CM6A-LR"</span>, <span class="st">"MPI-ESM1-2-HR"</span>, <span class="st">"MRI-ESM2-0"</span>, <span class="st">"UKESM1-0-LL"</span><span class="op">)</span>,</span>
+<span>  SSP <span class="op">=</span> <span class="fl">585</span>,</span>
+<span>  rm_download <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -105,10 +107,24 @@ Others variables are climatic water deficit with Thornthwaite, number of dry mon
 <dd><p>character. Must be in c("2041-2070", "2071-2100") match to years to download, default is "2071-2100".</p></dd>
 
 
-<dt>ssp</dt>
-<dd><p>character or int. Must be in c(126, 370, 585). It's the Shared Socio-economic Pathways you want to download.</p></dd>
+<dt>GCM</dt>
+<dd><p>character.  Global Climatic Models considered. Must be in c("GFDL-ESM4", "IPSL-CM6A-LR", "MPI-ESM1-2-HR", "MRI-ESM2-0", "UKESM1-0-LL"). By default climate simulated by the five GCMs are downloaded.</p></dd>
+
+
+<dt>SSP</dt>
+<dd><p>character or int. Scenario specifier must be in c(126, 370, 585). Corresponding to the the Shared Socio-economic Pathways you want to download, default is 585 for SSP5-RCP8.5 climate as simulated by the GCMs.</p></dd>
+
+
+<dt>rm_download</dt>
+<dd><p>boolean. If TRUE remove download files and folders. Keep only future_chelsa.tif in <code>data_raw</code> folder, default is FALSE.</p></dd>
 
 </dl></div>
+    <div id="value">
+    <h2>Value</h2>
+    
+
+<p>character. absolute path to future_chelsa.tif.</p>
+    </div>
     <div id="details">
     <h2>Details</h2>
     <p><code>resolution</code> need to be carefully choosen because if Tiff file is too big, R can crash.</p>
