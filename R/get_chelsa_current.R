@@ -8,7 +8,6 @@
 ## license         :GPLv3
 ## ==============================================================================
 
-get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolution = 1000, rm_download = FALSE) {
   #' Create multilayer Tiff file with 107 variables from chelsa-climate.org
   #'
   #' @description
@@ -22,9 +21,9 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolut
   #' @param EPSG int. to consider for this country/area.
   #' @param destination character. absolute path where to download files like `here()` output.
   #' @param resolution int. in meters, recommended resolution are 250m, 500m, 1km, 2km or 5km, default is 1km. See more in details.
-  #' @param rm_download boolean. If TRUE remove download files and folders. Keep only environ.tif in `data_raw` folder, default is FALSE.
-  #' @return character. absolute path to climate_chelsa.tif.
-  #' @details `resolution` need to be carefully choosen because if Tiff file is too big, R can crash.
+  #' @param rm_download boolean. If TRUE remove download files and folders. Keep only current_chelsa.tif in `data_raw` folder, default is FALSE.
+  #' @return character. absolute path to current_chelsa.tif.
+  #' @details `resolution` need to be carefully chosen because if Tiff file is too big, R can crash.
   #'
   #' @details
   #' Unit of each climatic variable :
@@ -72,6 +71,9 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolut
   #' @importFrom glue glue
   #' @export
 
+get_chelsa_current <- function(extent, extent_latlon, EPSG, destination,
+                               resolution = 1000, rm_download = FALSE) {
+
   nodat <- -9999
   proj.s <- "EPSG:4326"
   proj.t <- paste0("EPSG:", EPSG)
@@ -97,64 +99,64 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolut
   nb_var_download <- 12 * 6
   print("Downloading tasmin, tasmax, tas, pr, clt, and pet_penman")
   pb = txtProgressBar(min = 0, max = nb_var_download, initial = 0)
-  for (m in str_pad(1:12, width = 2, pad = "0")) {
+  for (m in stringr::str_pad(1:12, width = 2, pad = "0")) {
     ## Monthly minimum temperature (°C).
-    ifile <- glue("{url_base_chelsa}/tasmin/CHELSA_tasmin_{m}_1981-2010_V.2.1.tif")
+    ifile <- glue::glue("{url_base_chelsa}/tasmin/CHELSA_tasmin_{m}_1981-2010_V.2.1.tif")
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0('tasmin', m, '.tif'))
     if (!file.exists(ofile)) {
-      system(glue("gdal_translate -projwin {ext_gdal} -projwin_srs {proj.s} \\
+      system(glue::glue("gdal_translate -projwin {ext_gdal} -projwin_srs {proj.s} \\
                   /vsicurl/{ifile} {ofile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
     }
     progress_bar <- progress_bar + 1
     setTxtProgressBar(pb, progress_bar)
     ## Monthly maximum temperature (°C).
-    ifile <- glue("{url_base_chelsa}/tasmax/CHELSA_tasmax_{m}_1981-2010_V.2.1.tif")
+    ifile <- glue::glue("{url_base_chelsa}/tasmax/CHELSA_tasmax_{m}_1981-2010_V.2.1.tif")
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0('tasmax', m, '.tif'))
     if (!file.exists(ofile)) {
-      system(glue("gdal_translate -projwin {ext_gdal} -projwin_srs {proj.s} \\
+      system(glue::glue("gdal_translate -projwin {ext_gdal} -projwin_srs {proj.s} \\
                   /vsicurl/{ifile} {ofile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
     }
     progress_bar <- progress_bar + 1
     setTxtProgressBar(pb, progress_bar)
     ## Monthly average temperature (°C).
-    ifile <- glue("{url_base_chelsa}/tas/CHELSA_tas_{m}_1981-2010_V.2.1.tif")
+    ifile <- glue::glue("{url_base_chelsa}/tas/CHELSA_tas_{m}_1981-2010_V.2.1.tif")
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0('tas', m, '.tif'))
     if (!file.exists(ofile)) {
-      system(glue("gdal_translate -projwin {ext_gdal} -projwin_srs {proj.s} \\
+      system(glue::glue("gdal_translate -projwin {ext_gdal} -projwin_srs {proj.s} \\
                   /vsicurl/{ifile} {ofile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
     }
     progress_bar <- progress_bar + 1
     setTxtProgressBar(pb, progress_bar)
     ## Monthly precipitation (mm ~ kg/m2).
-    ifile <- glue("{url_base_chelsa}/pr/CHELSA_pr_{m}_1981-2010_V.2.1.tif")
+    ifile <- glue::glue("{url_base_chelsa}/pr/CHELSA_pr_{m}_1981-2010_V.2.1.tif")
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0('pr', m, '.tif'))
     if (!file.exists(ofile)) {
-      system(glue("gdal_translate -projwin {ext_gdal} -projwin_srs {proj.s} \\
+      system(glue::glue("gdal_translate -projwin {ext_gdal} -projwin_srs {proj.s} \\
                   /vsicurl/{ifile} {ofile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
     }
     progress_bar <- progress_bar + 1
     setTxtProgressBar(pb, progress_bar)
     ## Monthly cloud area fraction
-    ifile <- glue("{url_base_chelsa}/clt/CHELSA_clt_{m}_1981-2010_V.2.1.tif")
+    ifile <- glue::glue("{url_base_chelsa}/clt/CHELSA_clt_{m}_1981-2010_V.2.1.tif")
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0('clt', m, '.tif'))
     if (!file.exists(ofile)) {
-      system(glue("gdal_translate -projwin {ext_gdal} -projwin_srs {proj.s} \\
+      system(glue::glue("gdal_translate -projwin {ext_gdal} -projwin_srs {proj.s} \\
                   /vsicurl/{ifile} {ofile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
     }
     progress_bar <- progress_bar + 1
     setTxtProgressBar(pb, progress_bar)
     ## Monthly pet_penman
     # https://www.fao.org/3/x0490e/x0490e06.htm
-    ifile <- glue("{url_base_chelsa}/pet/CHELSA_pet_penman_{m}_1981-2010_V.2.1.tif")
+    ifile <- glue::glue("{url_base_chelsa}/pet/CHELSA_pet_penman_{m}_1981-2010_V.2.1.tif")
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0('pet_penman', m, '.tif'))
     if (!file.exists(ofile)) {
-      system(glue("gdal_translate -projwin {ext_gdal} -projwin_srs {proj.s} \\
+      system(glue::glue("gdal_translate -projwin {ext_gdal} -projwin_srs {proj.s} \\
                   /vsicurl/{ifile} {ofile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
     }
     progress_bar <- progress_bar + 1
@@ -166,11 +168,11 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolut
   ## See https://chelsa-climate.org/wp-admin/download-page/CHELSA_tech_specification_V2.pdf for details
   print("Downloading bioclimatic variables")
   for(i in 1:19){
-    ifile <- glue("{url_base_chelsa}/bio/CHELSA_bio{i}_1981-2010_V.2.1.tif")
+    ifile <- glue::glue("{url_base_chelsa}/bio/CHELSA_bio{i}_1981-2010_V.2.1.tif")
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
-                       paste0('bio', str_pad(i, width = 2, pad = '0'), '.tif'))
+                       paste0('bio', stringr::str_pad(i, width = 2, pad = '0'), '.tif'))
     if (!file.exists(ofile)) {
-      system(glue("gdal_translate -projwin {ext_gdal} -projwin_srs {proj.s} \\
+      system(glue::glue("gdal_translate -projwin {ext_gdal} -projwin_srs {proj.s} \\
                   /vsicurl/{ifile} {ofile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
     }
   }
@@ -186,7 +188,7 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolut
     for (i in 1:length(files.tif)) {
       sourcefile <- files.tif[i]
       destfile <- gsub(".tif", "_res.tif", files.tif[i])
-      system(glue("gdalwarp -overwrite -s_srs {proj.s} -t_srs {proj.t} \\
+      system(glue::glue("gdalwarp -overwrite -s_srs {proj.s} -t_srs {proj.t} \\
         -r bilinear -tr {resolution} {resolution} -te {extent} -ot Int16 -of GTiff -srcnodata 0 -dstnodata {nodat} \\
         {sourcefile} {destfile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
       if (var %in% c("tasmin", "tasmax", "tas") | (var == "bio" & i <= 11)) {
@@ -200,10 +202,10 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolut
     }
     ifile <- file.path(destination, "data_raw", "chelsa_v2_1", "temp")
     files.tif <- list.files(ifile, pattern = paste0(var, "[0-9]{2}_res\\.tif"), full.names = TRUE)
-    r <- rast(sort(files.tif))
+    r <- terra::rast(sort(files.tif))
     r <- stats::setNames(r, paste0(var, 1:length(files.tif)))
     ofile <- file.path(destination, "data_raw", "chelsa_v2_1", paste0(var, "_res.tif"))
-    writeRaster(r, gdal = c("COMPRESS=LZW","PREDICTOR=2"), progress = 0, overwrite = TRUE,
+    terra::writeRaster(r, gdal = c("COMPRESS=LZW","PREDICTOR=2"), progress = 0, overwrite = TRUE,
                 datatype = "INT2S", filename = ofile)
   }
 
@@ -226,7 +228,7 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolut
   ## Compute water deficit (cwd and ndw) with Penman ETP
   ## ===================================================
 
-  print("Compute water deficit (cwd and ndw) with Penman ETP")
+  print("Compute water deficit (cwd and ndm) with Penman ETP")
   ## cwd: climatic water deficit
   ## ndm: number of dry months
   pr_file <- file.path(destination, "data_raw", "chelsa_v2_1", "pr_res.tif")
@@ -237,23 +239,23 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolut
     # CWD = min(pet_penman_i - pr_i, 0)
     # CWD is positive and indicates a deficit of water
     cwd_file <- file.path(destination, "data_raw", "chelsa_v2_1", paste0("cwd", i, "_res.tif"))
-    system(glue('gdal_calc.py -A {pet_penman_file} --A_band={i} -B {pr_file} --B_band={i} --quiet --type=Int16 \\
+    system(glue::glue('gdal_calc.py -A {pet_penman_file} --A_band={i} -B {pr_file} --B_band={i} --quiet --type=Int16 \\
                 --creation-option="COMPRESS=LZW" --creation-option="PREDICTOR=2"  --calc="A-B" --NoDataValue={nodat} \\
-                --outfile={cwd_file} --overwrite'),
-           ignore.stdout = TRUE, ignore.stderr = TRUE)
+                --outfile={cwd_file} --overwrite')
+               ,ignore.stdout = TRUE, ignore.stderr = TRUE)
     # Number of dry months, ie sum(CWD > 0)
     ndm_file <- file.path(destination, "data_raw", "chelsa_v2_1", "temp",
                           paste0("ndm", i, "_res.tif"))
-    system(glue('gdal_calc.py -A {cwd_file} --A_band={1} --quiet --type=Int16 \\
+    system(glue::glue('gdal_calc.py -A {cwd_file} --A_band={1} --quiet --type=Int16 \\
                 --creation-option="COMPRESS=LZW" --creation-option="PREDICTOR=2" \\
-                --outfile={ndm_file} --calc="A>0" --overwrite --NoDataValue={nodat}'),
-           ignore.stdout = TRUE, ignore.stderr = TRUE)
+                --outfile={ndm_file} --calc="A>0" --overwrite --NoDataValue={nodat}')
+              ,ignore.stdout = TRUE, ignore.stderr = TRUE)
   }
 
   ifile <- file.path(destination, "data_raw", "chelsa_v2_1", "temp")
   ndm_files <- list.files(ifile, pattern = "ndm[0-9]{1,2}_res.tif", full.names = TRUE)
   ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "ndm_res.tif")
-  system(glue('gdal_calc.py -A {ndm_files[1]} -B {ndm_files[2]} -C {ndm_files[3]} -D {ndm_files[4]}  -E {ndm_files[5]} \\
+  system(glue::glue('gdal_calc.py -A {ndm_files[1]} -B {ndm_files[2]} -C {ndm_files[3]} -D {ndm_files[4]}  -E {ndm_files[5]} \\
             -F {ndm_files[6]} -G {ndm_files[7]} -H {ndm_files[8]} -I {ndm_files[9]} -J {ndm_files[10]} -K {ndm_files[11]} \\
             -L {ndm_files[12]} --quiet --type=Int16 --creation-option="COMPRESS=LZW" --creation-option="PREDICTOR=2" \\
             --outfile={ofile} --NoDataValue={nodat} \\
@@ -262,25 +264,26 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolut
   ifile <- file.path(destination, "data_raw", "chelsa_v2_1")
   cwd_files <- list.files(ifile, pattern = "cwd[0-9]{1,2}_res.tif", full.names = TRUE)
   ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "cwd_res.tif")
-  system(glue('gdal_calc.py -A {cwd_files[1]} -B {cwd_files[2]} -C {cwd_files[3]} -D {cwd_files[4]} -E {cwd_files[5]} \\
+  system(glue::glue('gdal_calc.py -A {cwd_files[1]} -B {cwd_files[2]} -C {cwd_files[3]} -D {cwd_files[4]} -E {cwd_files[5]} \\
             -F {cwd_files[6]} -G {cwd_files[7]} -H {cwd_files[8]} -I {cwd_files[9]} -J {cwd_files[10]} -K {cwd_files[11]} \\
             -L {cwd_files[12]} --quiet --type=Int16 --creation-option="COMPRESS=LZW" --creation-option="PREDICTOR=2" \\
             --outfile={ofile} --NoDataValue={nodat} \\
             --calc="numpy.maximum(A,0)+numpy.maximum(B,0)+numpy.maximum(C,0)+numpy.maximum(D,0)+numpy.maximum(E,0)+numpy.maximum(F,0) \\
-            +numpy.maximum(G,0)+numpy.maximum(H,0)+numpy.maximum(I,0)+numpy.maximum(J,0)+numpy.maximum(K,0)+numpy.maximum(L,0)" --overwrite'), ignore.stdout = TRUE, ignore.stderr = TRUE)
+            +numpy.maximum(G,0)+numpy.maximum(H,0)+numpy.maximum(I,0)+numpy.maximum(J,0)+numpy.maximum(K,0)+numpy.maximum(L,0)" --overwrite'),
+         ignore.stdout = TRUE, ignore.stderr = TRUE)
 
   ## =========================================================
   ## Compute water deficit (cwd and ndw) with Thornthwaite ETP
   ## =========================================================
 
-  print("Compute water deficit (cwd and ndw) with Thornthwaite ETP")
+  print("Compute water deficit and number of dry months (cwd and ndm) with Thornthwaite ETP")
   ## PET with Thornthwaite formula
   tas <- read_stars(file.path(destination, "data_raw", "chelsa_v2_1", "tas_res.tif"))
   # keep only latitude coordinates
   extent_tas <- st_bbox(tas)
-  e <- ext(extent_tas[1], extent_tas[3], extent_tas[2], extent_tas[4])
+  e <- terra::ext(extent_tas[1], extent_tas[3], extent_tas[2], extent_tas[4])
   e <- terra::as.polygons(e)
-  crs(e) <- paste0("epsg:", EPSG)
+  terra::crs(e) <- paste0("epsg:", EPSG)
   extent_latlon <- st_bbox(terra::project(e, "epsg:4326"))
   lat <- seq(extent_latlon[4], extent_latlon[2], length.out = dim(tas)[2])
   lat <- rep(lat, each = dim(tas)[1])
@@ -294,7 +297,7 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolut
   month_length <- c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
   mid_month_day <- c(15, 43, 74, 104, 135, 165, 196, 227, 257, 288, 318, 349)
   for (i in 1:12){
-    L <- cbind(L, daylength(lat, doy = mid_month_day[i]))
+    L <- cbind(L, geosphere::daylength(lat, doy = mid_month_day[i]))
   }
   PET_Thornthwaite <- 16 * (L / 12) * (10 * tas_matrix / I)^alpha
   pet_stars <- tas
@@ -349,18 +352,20 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolut
   pet_t_file <- file.path(destination, "data_raw", "chelsa_v2_1", "pet_thornthwaite_res.tif")
   cwd_t_file <- file.path(destination, "data_raw", "chelsa_v2_1", "cwd_thornthwaite_res.tif")
   ndm_t_file <- file.path(destination, "data_raw", "chelsa_v2_1", "ndm_thornthwaite_res.tif")
-  system(glue('gdal_merge.py -o {ofile} -of GTiff -ot Int16 -co "COMPRESS=LZW" \\
+  system(glue::glue('gdal_merge.py -o {ofile} -of GTiff -ot Int16 -co "COMPRESS=LZW" \\
             -co "PREDICTOR=2" -separate -a_nodata {nodat} \\
             {clim_file} {cwd_file} {ndm_file} {pet_t_file} {cwd_t_file} {ndm_t_file}'),
          ignore.stdout = TRUE, ignore.stderr = TRUE)
-  current <- rast(file.path(destination, "data_raw",  "current_chelsa_no_name.tif"))
+  current <- terra::rast(file.path(destination, "data_raw",  "current_chelsa_no_name.tif"))
   clim_res_file <- file.path(destination, "data_raw", "chelsa_v2_1", "clim_res.tif")
-  names(current) <- c(names(rast(clim_res_file)), "cwd_penman", "ndm_penman", paste0("pet_thornthwaite_", 1:12), "cwd_thornthwaite", "ndm_thornthwaite")
+  names(current) <- c(names(terra::rast(clim_res_file)), "cwd_penman", "ndm_penman",
+                      paste0("pet_thornthwaite_", 1:12), "cwd_thornthwaite", "ndm_thornthwaite")
   ofile <- file.path(destination, "data_raw", "current_chelsa.tif")
   writeRaster(current, datatype = "INT2S", filename = ofile,
               overwrite = TRUE, gdal = c("COMPRESS=LZW","PREDICTOR=2"), progress = 0)
   rm(current)
   cat("File ", ofile, " has been created\n")
+  unlink(file.path(destination, "data_raw",  "current_chelsa_no_name.tif"))
 
   ## ========================================
   ## Clean and return results
@@ -370,9 +375,10 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination, resolut
     ifile <- file.path(destination, "data_raw", "chelsa_v2_1")
     cat("Removing folder ", ifile, "\n")
     unlink(file.path(destination, "data_raw", "chelsa_v2_1"), recursive = TRUE)
+    unlink(file.path(destination, "data_raw",  "current_chelsa_no_name.tif"))
   }
-  return(file.path(destination, "data_raw", "current_chelsa.tif"))
 
+  return(file.path(destination, "data_raw","current_chelsa.tif"))
 }
 
 ## End of file

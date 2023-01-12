@@ -24,10 +24,10 @@ get_chelsa_current(
 
 \item{resolution}{int. in meters, recommended resolution are 250m, 500m, 1km, 2km or 5km, default is 1km. See more in details.}
 
-\item{rm_download}{boolean. If TRUE remove download files and folders. Keep only environ.tif in \code{data_raw} folder, default is FALSE.}
+\item{rm_download}{boolean. If TRUE remove download files and folders. Keep only current_chelsa.tif in \code{data_raw} folder, default is FALSE.}
 }
 \value{
-character. absolute path to climate_chelsa.tif.
+character. absolute path to current_chelsa.tif.
 }
 \description{
 Gives the average values on the data recovered between 1981 and 2010.
@@ -36,7 +36,7 @@ and total cloud cover.
 Others variables are climatic water deficit (with Penman and Thornthwaite), number of dry month (with Penman and Thornthwaite) and 19 bio variables (more information in chelsa documentation).
 }
 \details{
-\code{resolution} need to be carefully choosen because if Tiff file is too big, R can crash.
+\code{resolution} need to be carefully chosen because if Tiff file is too big, R can crash.
 
 Unit of each climatic variable :\tabular{ll}{
    Name \tab Unit \cr
