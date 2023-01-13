@@ -182,7 +182,7 @@ get_chelsa_future <- function(extent, extent_latlon, EPSG,
       r <- terra::rast(sort(files.tif))
       names(r) <-  paste0(var, 1:length(files.tif))
       terra::writeRaster(x = r, gdal = c("COMPRESS=LZW","PREDICTOR=2"),
-                         datatype = "Int16", overwrite = TRUE,
+                         datatype = "INT2S", overwrite = TRUE,
                          filename = file.path(destination, "data_raw","future_chelsa",
                                               paste('climat', phase, model, 'ssp', SSP, sep = '_'),
                                               paste0(var,"_res.tif")))
@@ -232,7 +232,7 @@ get_chelsa_future <- function(extent, extent_latlon, EPSG,
     terra::writeRaster(x=pet, overwrite=TRUE,
                        filename= file.path(destination, "data_raw", "future_chelsa",
                                            paste('climat', phase, model, 'ssp', SSP, sep = '_'), "pet_thornthwaite_res.tif"),
-                       gdal = c("COMPRESS=LZW","PREDICTOR=2"), datatype = "Int16")
+                       gdal = c("COMPRESS=LZW","PREDICTOR=2"), datatype = "INT2S")
 
     ## CWD with Thornthwaite PET
 
@@ -249,7 +249,7 @@ get_chelsa_future <- function(extent, extent_latlon, EPSG,
     terra::writeRaster(x=cwd_annual, overwrite=TRUE,
                        filename= file.path(destination, "data_raw", "future_chelsa",
                                            paste('climat', phase, model, 'ssp', SSP, sep = '_'), "cwd_thornthwaite_res.tif"),
-                       gdal = c("COMPRESS=LZW","PREDICTOR=2"), datatype = "Int16")
+                       gdal = c("COMPRESS=LZW","PREDICTOR=2"), datatype = "INT2S")
     rm(cwd_annual)
 
     ## NDM with Thornthwaite
@@ -261,7 +261,7 @@ get_chelsa_future <- function(extent, extent_latlon, EPSG,
                        filename = file.path(destination, "data_raw", "future_chelsa",
                                             paste('climat', phase, model, 'ssp', SSP, sep = '_'),
                                             "ndm_thornthwaite_res.tif"),
-                       gdal = c("COMPRESS=LZW","PREDICTOR=2"), datatype = "Int16")
+                       gdal = c("COMPRESS=LZW","PREDICTOR=2"), datatype = "INT2S")
     rm(ndm)
   }
 

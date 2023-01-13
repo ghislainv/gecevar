@@ -84,6 +84,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get install osmctools
+          sudo apt-get install curl
 
       - name: Cache R packages
         if: runner.os != 'Windows'
