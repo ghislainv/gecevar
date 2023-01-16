@@ -83,6 +83,8 @@ jobs:
       - name: Install tools for Open Street Maps
         if: runner.os == 'Linux'
         run: |
+          sudo apt-get update
+          sudo apt-get -y upgrade
           sudo apt-get install osmctools
           sudo apt-get install curl
 

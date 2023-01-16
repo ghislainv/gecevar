@@ -1,4 +1,3 @@
-transform_shp_country_extent <- function(EPSG, country_name = NULL, shapefile_path = NULL, extent_project = NULL, extent_latlon = NULL){
   #' Create extent & extent in latitude and longitude
   #'
   #' @description
@@ -10,13 +9,20 @@ transform_shp_country_extent <- function(EPSG, country_name = NULL, shapefile_pa
   #' @param extent_project int vector. length 4, with this order c(xmin, ymin, xmax, ymax), default is NULL.
   #' @param extent_latlon int vector. length 4, with this order c(lonmin, latmin, lonmax, latmax), default is NULL.
   #' @param EPSG int. to consider for this country/area.
+  #' @param rm_download boolean. If TRUE remove downloaded shapefile to get area extent, default is TRUE.
+
   #'
-  #' @return character vector. with extent of the area in one character, other are latlon coord of area
+  #' @return character vector. with extent of the area in one character, other are latlon coord of area and the path to the downloaded shapefile, if rm_download=FALSE.
   #' @import sf
   #' @importFrom utils download.file unzip
   #' @import terra
   #' @import countrycode
   #' @export
+
+transform_shp_country_extent <- function(EPSG, country_name = NULL,
+                                         shapefile_path = NULL,
+                                         extent_project = NULL, extent_latlon = NULL,
+                                         rm_download=TRUE){
 
   if ((as.numeric(!is.null(country_name)) + as.numeric(!is.null(shapefile_path)) + as.numeric(!is.null(extent_project)) + as.numeric(!is.null(extent_latlon))) != 1){
     stop("One attribute among country_name, shapefile_path and extent_project")
@@ -34,8 +40,10 @@ transform_shp_country_extent <- function(EPSG, country_name = NULL, shapefile_pa
     # Read vector (level 0 for country borders)
     coord <- st_bbox(sf::st_read(paste(getwd(), "gaul", paste0("gadm36_", ISO_country_code, ".gpkg"), sep = '/'),
                            layer = paste0("gadm36_", ISO_country_code, "_0"), quiet = TRUE))
+    if(rm_download){
     unlink(paste(getwd(), "gaul/", sep = "/"), recursive = TRUE)
     unlink(paste(getwd(), "gaul.zip", sep = "/"), recursive = TRUE)
+    }
     lonmin <- floor(coord[1])
     lonmax <- ceiling(coord[3])
     latmin <- floor(coord[2])
@@ -82,5 +90,9 @@ transform_shp_country_extent <- function(EPSG, country_name = NULL, shapefile_pa
 
   }
   extent <- paste(extent[1], extent[2], extent[3], extent[4], sep = " ")
+  if(rm_download){
   return(c(extent, extent_final_latlon))
+  } else {
+    return(list(extent=c(extent, extent_final_latlon), shapefiel.path=paste(getwd(), "gaul", sep = "/")))
+  }
 }
