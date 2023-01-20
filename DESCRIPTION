@@ -2,10 +2,10 @@ Package: gecevar
 Title: GEtting Climatic and Environmental VARiables from open and free online datasets for a specific region
 Version: 0.0.1
 Authors@R: c(
-  person("Jeanne", "Clément", role=c("aut"),
+  person("Jeanne", "Clément", role=c("aut", "cre"),
          email="jeanne.clement16@laposte.net",
          comment=c(ORCID="0000-0002-5228-5015")),
-  person("Pierre", "Guillaumont", role=c("aut", "cre"),
+  person("Pierre", "Guillaumont", role=c("aut"),
          email="pierre.guillaumont@gmail.com"),
   person("Philippe", "Birnbaum", role=c("aut"),
          email="philippe.birnbaum@cirad.fr",

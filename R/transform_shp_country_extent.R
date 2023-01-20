@@ -93,6 +93,8 @@ transform_shp_country_extent <- function(EPSG, country_name = NULL,
   if(rm_download){
   return(c(extent, extent_final_latlon))
   } else {
-    return(list(extent=c(extent, extent_final_latlon), shapefiel.path=paste(getwd(), "gaul", sep = "/")))
+    return(list(extent=c(extent, extent_final_latlon),
+                shapefiel.path=paste(getwd(), "gaul",
+                                     paste0("gadm36_", ISO_country_code, ".gpkg"), sep = '/')))
   }
 }

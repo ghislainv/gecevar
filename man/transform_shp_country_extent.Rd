@@ -9,7 +9,8 @@ transform_shp_country_extent(
   country_name = NULL,
   shapefile_path = NULL,
   extent_project = NULL,
-  extent_latlon = NULL
+  extent_latlon = NULL,
+  rm_download = TRUE
 )
 }
 \arguments{
@@ -22,9 +23,11 @@ transform_shp_country_extent(
 \item{extent_project}{int vector. length 4, with this order c(xmin, ymin, xmax, ymax), default is NULL.}
 
 \item{extent_latlon}{int vector. length 4, with this order c(lonmin, latmin, lonmax, latmax), default is NULL.}
+
+\item{rm_download}{boolean. If TRUE remove downloaded shapefile to get area extent, default is TRUE.}
 }
 \value{
-character vector. with extent of the area in one character, other are latlon coord of area
+character vector. with extent of the area in one character, other are latlon coord of area and the path to the downloaded shapefile, if rm_download=FALSE.
 }
 \description{
 With a country name, a shapefile or an extent and an EPSG value,
