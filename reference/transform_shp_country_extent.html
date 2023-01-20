@@ -69,7 +69,8 @@ give the extent corresponding to the coordinates system (EPSG) specified and the
 <span>  country_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  shapefile_path <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  extent_project <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  extent_latlon <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  extent_latlon <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  rm_download <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -94,12 +95,16 @@ give the extent corresponding to the coordinates system (EPSG) specified and the
 <dt>extent_latlon</dt>
 <dd><p>int vector. length 4, with this order c(lonmin, latmin, lonmax, latmax), default is NULL.</p></dd>
 
+
+<dt>rm_download</dt>
+<dd><p>boolean. If TRUE remove downloaded shapefile to get area extent, default is TRUE.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
     
 
-<p>character vector. with extent of the area in one character, other are latlon coord of area</p>
+<p>character vector. with extent of the area in one character, other are latlon coord of area and the path to the downloaded shapefile, if rm_download=FALSE.</p>
     </div>
 
   </div>
