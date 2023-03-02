@@ -28,8 +28,10 @@ jobs:
 
       - name: Install grass
         run: |
-          sudo apt-get update
+          sudo apt-mark hold grub-efi-amd64-signed
+          sudo apt-get update --fix-missing
           sudo apt-get -y upgrade
+          sudo apt-get update
           sudo apt-get install grass grass-doc
 
       - name: Install tools for Open Street Maps
