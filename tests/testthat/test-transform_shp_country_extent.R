@@ -1,7 +1,7 @@
 test_that("transform_shp_country_extent works", {
   expect_equal(transform_shp_country_extent(EPSG=4326, country_name="France")[[1]], "-6 41 10 52")
   expect_equal(transform_shp_country_extent(EPSG=2154, country_name="France")[[1]],  "-58254 6014745 1290258 7247373")
-  expect_equal(as.numeric(transform_shp_country_extent(EPSG=2154, extent_latlon=c(-6,41,10,52))[2:5]),
+  expect_equal(as.numeric(strsplit(transform_shp_country_extent(EPSG=2154, extent_latlon=c(-6,41,10,52))[1], " ")[[1]]),
                c(-58254,6014745,1290258,7247373))
   expect_equal(as.numeric(transform_shp_country_extent(EPSG=2154, extent_project=c(-58254,6014745,1290258,7247373))[2:5]),
                c(-8,40,12,53))

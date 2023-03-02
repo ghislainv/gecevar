@@ -25,7 +25,7 @@ transform_shp_country_extent <- function(EPSG, country_name = NULL,
                                          rm_download=TRUE){
 
   if ((as.numeric(!is.null(country_name)) + as.numeric(!is.null(shapefile_path)) + as.numeric(!is.null(extent_project)) + as.numeric(!is.null(extent_latlon))) != 1){
-    stop("One attribute among country_name, shapefile_path and extent_project")
+    stop("One attribute among country_name, shapefile_path and extent_project must be specified")
 
   }
   if (!is.null(country_name)){
@@ -80,14 +80,13 @@ transform_shp_country_extent <- function(EPSG, country_name = NULL,
     extent_final_latlon <- c(floor(extent_final_latlon[1]), floor(extent_final_latlon[2]), ceiling(extent_final_latlon[3]), ceiling(extent_final_latlon[4]))
   }
   if (!is.null(extent_latlon)){
-    extent <- round(extent_latlon)
-    e <- ext(extent[1], extent[3], extent[2], extent[4])
+    extent_final_latlon <- c(lonmin.xmin=floor(extent_latlon[1]), latmin.ymin=floor(extent_latlon[2]),
+                             lonmax.xmax=ceiling(extent_latlon[3]), latmax.ymax=ceiling(extent_latlon[4]))
+    e <- ext(extent_final_latlon[1], extent_final_latlon[3], extent_final_latlon[2], extent_final_latlon[4])
     e <- as.polygons(e)
     crs(e) <- "epsg:4326"
-    extent_final_latlon <- st_bbox(project(e, paste0("epsg:", EPSG)))
-    extent_final_latlon <- c(lonmin.xmin=floor(extent_final_latlon[1]), latmin.ymin=floor(extent_final_latlon[2]),
-                             lonmax.xmax=ceiling(extent_final_latlon[3]), latmax.ymax=ceiling(extent_final_latlon[4]))
-
+    extent <- st_bbox(project(e, paste0("epsg:", EPSG)))
+    extent <- c(floor(extent[1]), floor(extent[2]), ceiling(extent[3]), ceiling(extent[4]))
   }
   extent <- paste(extent[1], extent[2], extent[3], extent[4], sep = " ")
   if(rm_download){
