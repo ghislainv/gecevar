@@ -1,82 +1,83 @@
-#!/usr/bin/R
+#' Create multilayer Tiff file with 107 variables from chelsa-climate.org
+#'
+#' @description Gives the average values on the data recovered between
+#'   1981 and 2010. Monthly variables are average temperatures, min
+#'   temperatures, max temperatures, precipitation, potential
+#'   evapotranspiration (with Penman formula and with Thornthwaite
+#'   formula), and total cloud cover. Others variables are climatic
+#'   water deficit (with Penman and Thornthwaite), number of dry month
+#'   (with Penman and Thornthwaite) and 19 bio variables (more
+#'   information in chelsa documentation).
+#' 
+#' @param extent_latlon vector. First output of `get_aoi_extent()` function.
+#' @param extent_proj vector. Second output of `get_aoi_extent()` function.
+#' @param EPSG int. to consider for this country/area.
+#' @param destination character. absolute path where to download files like `here()` output.
+#' @param resolution int. in meters, recommended resolution are 250m, 500m, 1km, 2km or 5km, default is 1km. See more in details.
+#' @param rm_download boolean. If TRUE remove download files and folders. Keep only current_chelsa.tif in `data_raw` folder, default is FALSE.
+#' @return character. absolute path to current_chelsa.tif.
+#' @details `resolution` need to be carefully chosen because if Tiff file is too big, R can crash.
+#'
+#' @details
+#' Unit of each climatic variable :
+#'
+#' | Name                                  | Unit                 |
+#' | ------------------------------------- | -------------------- |
+#' | Temperature average (tas)             | °C x 10              |
+#' | Temperature min (tasmin)              | °C x 10              |
+#' | Temperature max (tasmax)              | °C x 10              |
+#' | Precipitation                         | kg.m^{-2}            |
+#' | Cloud area fraction (clt)             | %                    |
+#' | PET Penman                            | kg.m^{-2}            |
+#' | PET Thornthwaite                      | kg.m^{-2}            |
+#' | Climatic water deficit (Penman)       | kg.m^{-2}            |
+#' | Climatic dater deficit (Thornthwaite) | kg.m^{-2}            |
+#' | Number of dry months (Penman)         | month                |
+#' | Number of dry months (Thornthwaite)   | month                |
+#' | bio1                                  | °C x 10              |
+#' | bio2                                  | °C x 10              |
+#' | bio3                                  | °C x 10              |
+#' | bio4                                  | °C x 10              |
+#' | bio5                                  | °C x 10              |
+#' | bio6                                  | °C x 10              |
+#' | bio7                                  | °C x 10              |
+#' | bio8                                  | °C x 10              |
+#' | bio9                                  | °C x 10              |
+#' | bio10                                 | °C x 10              |
+#' | bio11                                 | °C x 10              |
+#' | bio12                                 | kg.m^{-2}.year^{-1}  |
+#' | bio13                                 | kg.m^{-2}.month^{-1} |
+#' | bio14                                 | kg.m^{-2}.month^{-1} |
+#' | bio15                                 | kg.m^{-2}            |
+#' | bio16                                 | kg.m^{-2}.month^{-1} |
+#' | bio17                                 | kg.m^{-2}.month^{-1} |
+#' | bio18                                 | kg.m^{-2}.month^{-1} |
+#' | bio19                                 | kg.m^{-2}.month^{-1} |
+#' @md
+#'
+#' @import stars
+#' @import stringr
+#' @importFrom utils txtProgressBar setTxtProgressBar
+#' @import geosphere
+#' @import terra
+#' @import sp
+#' @importFrom glue glue
+#' @export
 
-## ==============================================================================
-## authors         :Pierre Guillaumont, Ghislain Vieilledent
-## emails          :pierreguillaumont@gmail.com,
-##                  ghislain.vieilledent@cirad.fr, ghislainv@gmail.com
-## web             :https://ecology.ghislainv.fr
-## license         :GPLv3
-## ==============================================================================
-
-  #' Create multilayer Tiff file with 107 variables from chelsa-climate.org
-  #'
-  #' @description
-  #' Gives the average values on the data recovered between 1981 and 2010.
-  #' Monthly variables are average temperatures, min temperatures, max temperatures, precipitation, potential evapotranspiration (with Penman formula and with Thornthwaite formula),
-  #' and total cloud cover.
-  #' Others variables are climatic water deficit (with Penman and Thornthwaite), number of dry month (with Penman and Thornthwaite) and 19 bio variables (more information in chelsa documentation).
-  #'
-  #' @param extent character. First output of `get_aoi_extent()` function.
-  #' @param extent_latlon character. Second output of `get_aoi_extent()` function.
-  #' @param EPSG int. to consider for this country/area.
-  #' @param destination character. absolute path where to download files like `here()` output.
-  #' @param resolution int. in meters, recommended resolution are 250m, 500m, 1km, 2km or 5km, default is 1km. See more in details.
-  #' @param rm_download boolean. If TRUE remove download files and folders. Keep only current_chelsa.tif in `data_raw` folder, default is FALSE.
-  #' @return character. absolute path to current_chelsa.tif.
-  #' @details `resolution` need to be carefully chosen because if Tiff file is too big, R can crash.
-  #'
-  #' @details
-  #' Unit of each climatic variable :
-  #'
-  #' | Name                                  | Unit                 |
-  #' | ------------------------------------- | -------------------- |
-  #' | Temperature average (tas)             | °C x 10              |
-  #' | Temperature min (tasmin)              | °C x 10              |
-  #' | Temperature max (tasmax)              | °C x 10              |
-  #' | Precipitation                         | kg.m^{-2}            |
-  #' | Cloud area fraction (clt)             | %                    |
-  #' | PET Penman                            | kg.m^{-2}            |
-  #' | PET Thornthwaite                      | kg.m^{-2}            |
-  #' | Climatic water deficit (Penman)       | kg.m^{-2}            |
-  #' | Climatic dater deficit (Thornthwaite) | kg.m^{-2}            |
-  #' | Number of dry months (Penman)         | month                |
-  #' | Number of dry months (Thornthwaite)   | month                |
-  #' | bio1                                  | °C x 10              |
-  #' | bio2                                  | °C x 10              |
-  #' | bio3                                  | °C x 10              |
-  #' | bio4                                  | °C x 10              |
-  #' | bio5                                  | °C x 10              |
-  #' | bio6                                  | °C x 10              |
-  #' | bio7                                  | °C x 10              |
-  #' | bio8                                  | °C x 10              |
-  #' | bio9                                  | °C x 10              |
-  #' | bio10                                 | °C x 10              |
-  #' | bio11                                 | °C x 10              |
-  #' | bio12                                 | kg.m^{-2}.year^{-1}  |
-  #' | bio13                                 | kg.m^{-2}.month^{-1} |
-  #' | bio14                                 | kg.m^{-2}.month^{-1} |
-  #' | bio15                                 | kg.m^{-2}            |
-  #' | bio16                                 | kg.m^{-2}.month^{-1} |
-  #' | bio17                                 | kg.m^{-2}.month^{-1} |
-  #' | bio18                                 | kg.m^{-2}.month^{-1} |
-  #' | bio19                                 | kg.m^{-2}.month^{-1} |
-  #' @md
-  #'
-  #' @import stars
-  #' @import stringr
-  #' @importFrom utils txtProgressBar setTxtProgressBar
-  #' @import geosphere
-  #' @import terra
-  #' @import sp
-  #' @importFrom glue glue
-  #' @export
-
-get_chelsa_current <- function(extent, extent_latlon, EPSG, destination,
+get_chelsa_current <- function(extent_latlon, extent_proj, EPSG, destination,
                                resolution = 1000, rm_download = FALSE) {
 
+  # Extent for gdal_translate
+  # /!\ with gdal_translate: (xmin, ymax, xmax, ymin) corresponding to <ulx> <uly> <lrx> <lry> 
+  extent_gdal_translate <- paste(extent_latlon[1], extent_latlon[4],
+                                 extent_latlon[3], extent_latlon[2], sep=" ")
+  
+  # Transform extent_proj from vector to string
+  extent_proj_string <- paste(extent_proj, collapse=" ")
+  
   nodat <- -9999
-  proj.s <- "EPSG:4326"
-  proj.t <- paste0("EPSG:", EPSG)
+  proj_s <- "EPSG:4326"
+  proj_t <- paste0("EPSG:", EPSG)
   dir.create(file.path(destination, "data_raw", "chelsa_v2_1", "temp"),
              recursive = TRUE, showWarnings = FALSE)
 
@@ -91,10 +92,6 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination,
     "envicloud/chelsa/chelsa_V2/GLOBAL/",
     "climatologies/1981-2010")
 
-  ## Extent for gdal
-  ext_gdal <- paste(extent_latlon[1], extent_latlon[4],
-                    extent_latlon[3], extent_latlon[2], sep=" ")
-
   progress_bar <- 0
   nb_var_download <- 12 * 6
   print("Downloading tasmin, tasmax, tas, pr, clt, and pet_penman")
@@ -105,7 +102,7 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination,
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0('tasmin', m, '.tif'))
     if (!file.exists(ofile)) {
-      system(glue::glue("gdal_translate -projwin {ext_gdal} -projwin_srs {proj.s} \\
+      system(glue::glue("gdal_translate -projwin {extent_gdal_translate} -projwin_srs {proj_s} \\
                   /vsicurl/{ifile} {ofile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
     }
     progress_bar <- progress_bar + 1
@@ -115,7 +112,7 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination,
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0('tasmax', m, '.tif'))
     if (!file.exists(ofile)) {
-      system(glue::glue("gdal_translate -projwin {ext_gdal} -projwin_srs {proj.s} \\
+      system(glue::glue("gdal_translate -projwin {extent_gdal_translate} -projwin_srs {proj_s} \\
                   /vsicurl/{ifile} {ofile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
     }
     progress_bar <- progress_bar + 1
@@ -125,7 +122,7 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination,
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0('tas', m, '.tif'))
     if (!file.exists(ofile)) {
-      system(glue::glue("gdal_translate -projwin {ext_gdal} -projwin_srs {proj.s} \\
+      system(glue::glue("gdal_translate -projwin {extent_gdal_translate} -projwin_srs {proj_s} \\
                   /vsicurl/{ifile} {ofile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
     }
     progress_bar <- progress_bar + 1
@@ -135,7 +132,7 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination,
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0('pr', m, '.tif'))
     if (!file.exists(ofile)) {
-      system(glue::glue("gdal_translate -projwin {ext_gdal} -projwin_srs {proj.s} \\
+      system(glue::glue("gdal_translate -projwin {extent_gdal_translate} -projwin_srs {proj_s} \\
                   /vsicurl/{ifile} {ofile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
     }
     progress_bar <- progress_bar + 1
@@ -145,7 +142,7 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination,
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0('clt', m, '.tif'))
     if (!file.exists(ofile)) {
-      system(glue::glue("gdal_translate -projwin {ext_gdal} -projwin_srs {proj.s} \\
+      system(glue::glue("gdal_translate -projwin {extent_gdal_translate} -projwin_srs {proj_s} \\
                   /vsicurl/{ifile} {ofile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
     }
     progress_bar <- progress_bar + 1
@@ -156,7 +153,7 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination,
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0('pet_penman', m, '.tif'))
     if (!file.exists(ofile)) {
-      system(glue::glue("gdal_translate -projwin {ext_gdal} -projwin_srs {proj.s} \\
+      system(glue::glue("gdal_translate -projwin {extent_gdal_translate} -projwin_srs {proj_s} \\
                   /vsicurl/{ifile} {ofile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
     }
     progress_bar <- progress_bar + 1
@@ -172,7 +169,7 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination,
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0('bio', stringr::str_pad(i, width = 2, pad = '0'), '.tif'))
     if (!file.exists(ofile)) {
-      system(glue::glue("gdal_translate -projwin {ext_gdal} -projwin_srs {proj.s} \\
+      system(glue::glue("gdal_translate -projwin {extent_gdal_translate} -projwin_srs {proj_s} \\
                   /vsicurl/{ifile} {ofile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
     }
   }
@@ -188,8 +185,8 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination,
     for (i in 1:length(files.tif)) {
       sourcefile <- files.tif[i]
       destfile <- gsub(".tif", "_res.tif", files.tif[i])
-      system(glue::glue("gdalwarp -overwrite -s_srs {proj.s} -t_srs {proj.t} \\
-        -r bilinear -tr {resolution} {resolution} -te {extent} -ot Int16 -of GTiff -srcnodata 0 -dstnodata {nodat} \\
+      system(glue::glue("gdalwarp -overwrite -s_srs {proj_s} -t_srs {proj_t} \\
+        -r bilinear -tr {resolution} {resolution} -te {extent_proj_string} -ot Int16 -of GTiff -srcnodata 0 -dstnodata {nodat} \\
         {sourcefile} {destfile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
       if (var %in% c("tasmin", "tasmax", "tas") | (var == "bio" & i <= 11)) {
         # Stock °C as integer to reduce size
@@ -279,13 +276,13 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination,
   print("Compute water deficit and number of dry months (cwd and ndm) with Thornthwaite ETP")
   ## PET with Thornthwaite formula
   tas <- read_stars(file.path(destination, "data_raw", "chelsa_v2_1", "tas_res.tif"))
-  # keep only latitude coordinates
+  # Keep only latitude coordinates
   extent_tas <- st_bbox(tas)
   e <- terra::ext(extent_tas[1], extent_tas[3], extent_tas[2], extent_tas[4])
   e <- terra::as.polygons(e)
   terra::crs(e) <- paste0("epsg:", EPSG)
-  extent_latlon <- st_bbox(terra::project(e, "epsg:4326"))
-  lat <- seq(extent_latlon[4], extent_latlon[2], length.out = dim(tas)[2])
+  ext_ll <- st_bbox(terra::project(e, "epsg:4326"))
+  lat <- seq(ext_ll[4], ext_ll[2], length.out = dim(tas)[2])
   lat <- rep(lat, each = dim(tas)[1])
   tas_matrix <- NULL
   for (month in 1:12) {
@@ -301,7 +298,7 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination,
   }
   PET_Thornthwaite <- 16 * (L / 12) * (10 * tas_matrix / I)^alpha
   pet_stars <- tas
-  for (i in 1:12){
+  for (i in 1:12) {
     pet_stars[[1]][,, i] <- PET_Thornthwaite[, i] * (month_length[i] / 30)
   }
   rm(PET_Thornthwaite, tas_matrix, lat, I, L)
@@ -381,4 +378,4 @@ get_chelsa_current <- function(extent, extent_latlon, EPSG, destination,
   return(file.path(destination, "data_raw","current_chelsa.tif"))
 }
 
-## End of file
+# End

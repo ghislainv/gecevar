@@ -1,13 +1,3 @@
-#!/usr/bin/R
-
-## ==============================================================================
-## authors         :Pierre Guillaumont, Ghislain Vieilledent
-## emails          :pierreguillaumont@gmail.com,
-##                  ghislain.vieilledent@cirad.fr, ghislainv@gmail.com
-## web             :https://ecology.ghislainv.fr
-## license         :GPLv3
-## ==============================================================================
-
 #' Get the extent of an area of interest (AOI) in GDAL format (xmin, ymin, xmax, ymax).
 #'
 #' This function gets the extent of an area of interest (AOI) in GDAL
@@ -15,7 +5,7 @@
 #'   latitude and longitude and in the projected coordinate reference
 #'   system (CRS) specified by the user. The area of interest can be
 #'   specified either by a country iso3 code, a vector file, or an
-#'   extent (in latlong or projected CRS). When the area of interest
+#'   extent (in latlon or projected CRS). When the area of interest
 #'   is specified with a country iso3 code, the country borders are
 #'   downloaded from the GADM (Global ADMinistrative areas database)
 #'   at \url{https://gadm.org}.
@@ -49,9 +39,10 @@
 #' @param rm_output_dir boolean. If FALSE, does not remove the output
 #'   directory. Default is TRUE.
 #'
-#' @return list. With `e_proj`: projected extent, `e_latlong`: extent
-#'   in latlong, and `gpkg_file`: path to .gpkg country vector file if
-#'   downloaded.
+#' @return list. With `extent_latlon`: extent in latitude and
+#'   longitude (lonmin, latmin, lonmax, latmax),
+#'   `extent_proj`: projected extent (xmin, ymin, xmax, ymax),
+#'   and `gpkg_file`: path to .gpkg country vector file if downloaded.
 #'
 #' @import sf
 #' @importFrom utils download.file
@@ -71,7 +62,7 @@ get_aoi_extent <- function(country_iso=NULL,
          as.numeric(!is.null(vector_file)) +
          as.numeric(!is.null(extent_proj)) +
          as.numeric(!is.null(extent_latlon))) != 1) {
-    stop("One attribute among 'country_iso', 'vector_file', 'extent_proj', or 'exent_latlong' must be specified") 
+    stop("One attribute among 'country_iso', 'vector_file', 'extent_proj', or 'exent_latlon' must be specified") 
   }
 
   # Set gpkg_file to NULL
@@ -89,13 +80,13 @@ get_aoi_extent <- function(country_iso=NULL,
     borders <- sf::st_read(gpkg_file, layer="ADM_ADM_0", quiet=TRUE)
     # Get bounding box
     bbox <- sf::st_bbox(borders)
-    # e_latlong extending to nearest degree
+    # e_latlon extending to nearest degree
     lonmin <- floor(as.numeric(bbox$xmin))
     lonmax <- ceiling(as.numeric(bbox$xmax))
     latmin <- floor(as.numeric(bbox$ymin))
     latmax <- ceiling(as.numeric(bbox$ymax))
-    e_latlong <- c(lonmin=lonmin, latmin=latmin, lonmax=lonmax, latmax=latmax)
-    # e_proj from e_latlong
+    e_latlon <- c(lonmin=lonmin, latmin=latmin, lonmax=lonmax, latmax=latmax)
+    # e_proj from e_latlon
     e <- terra::ext(lonmin, lonmax, latmin, latmax)
     e <- terra::as.polygons(e, crs="epsg:4326")
     e_proj <- sf::st_bbox(terra::project(e, paste0("epsg:", EPSG_proj)))
@@ -108,18 +99,18 @@ get_aoi_extent <- function(country_iso=NULL,
 
   # With AOI vector file
   if (!is.null(vector_file)) {
-    # Reproject in latlong
+    # Reproject in latlon
     borders <- sf::st_read(vector_file, quiet=TRUE) 
     borders <- sf::st_transform(borders, "EPSG:4326")
     # Get bounding box
     bbox <- sf::st_bbox(borders)
-    # e_latlong extending to nearest degree
+    # e_latlon extending to nearest degree
     lonmin <- floor(as.numeric(bbox$xmin))
     lonmax <- ceiling(as.numeric(bbox$xmax))
     latmin <- floor(as.numeric(bbox$ymin))
     latmax <- ceiling(as.numeric(bbox$ymax))
-    e_latlong <- c(lonmin=lonmin, latmin=latmin, lonmax=lonmax, latmax=latmax)
-    # e_proj from e_latlong
+    e_latlon <- c(lonmin=lonmin, latmin=latmin, lonmax=lonmax, latmax=latmax)
+    # e_proj from e_latlon
     e <- terra::ext(lonmin, lonmax, latmin, latmax)
     e <- terra::as.polygons(e, crs="epsg:4326")
     e_proj <- sf::st_bbox(terra::project(e, paste0("epsg:", EPSG_proj)))
@@ -128,20 +119,20 @@ get_aoi_extent <- function(country_iso=NULL,
 
   # With projected extent
   if (!is.null(extent_proj)) {
-    # Get the bounding box in latlong
+    # Get the bounding box in latlon
     e <- terra::ext(as.numeric(extent_proj[1]),
                     as.numeric(extent_proj[3]),
                     as.numeric(extent_proj[2]),
                     as.numeric(extent_proj[4]))
     e <- terra::as.polygons(e, crs=paste0("epsg:", EPSG_proj))
     bbox <-  sf::st_bbox(terra::project(e, "epsg:4326"))
-     # e_latlong extending to nearest degree
+     # e_latlon extending to nearest degree
     lonmin <- floor(as.numeric(bbox$xmin))
     lonmax <- ceiling(as.numeric(bbox$xmax))
     latmin <- floor(as.numeric(bbox$ymin))
     latmax <- ceiling(as.numeric(bbox$ymax))
-    e_latlong <- c(lonmin=lonmin, latmin=latmin, lonmax=lonmax, latmax=latmax)
-    # e_proj from e_latlong
+    e_latlon <- c(lonmin=lonmin, latmin=latmin, lonmax=lonmax, latmax=latmax)
+    # e_proj from e_latlon
     e <- terra::ext(lonmin, lonmax, latmin, latmax)
     e <- terra::as.polygons(e, crs="epsg:4326")
     e_proj <- sf::st_bbox(terra::project(e, paste0("epsg:", EPSG_proj)))
@@ -150,25 +141,21 @@ get_aoi_extent <- function(country_iso=NULL,
 
   # With extent in lat long
   if (!is.null(extent_latlon)) {
-    # e_latlong extending to nearest degree
+    # e_latlon extending to nearest degree
     lonmin <- floor(as.numeric(extent_latlon[1]))
     lonmax <- ceiling(as.numeric(extent_latlon[3]))
     latmin <- floor(as.numeric(extent_latlon[2]))
     latmax <- ceiling(as.numeric(extent_latlon[4]))
-    e_latlong <- c(lonmin=lonmin, latmin=latmin, lonmax=lonmax, latmax=latmax)
-    # e_proj from e_latlong
+    e_latlon <- c(lonmin=lonmin, latmin=latmin, lonmax=lonmax, latmax=latmax)
+    # e_proj from e_latlon
     e <- terra::ext(lonmin, lonmax, latmin, latmax)
     e <- terra::as.polygons(e, crs="epsg:4326")
     e_proj <- sf::st_bbox(terra::project(e, paste0("epsg:", EPSG_proj)))
     e_proj <- c(floor(e_proj$xmin), floor(e_proj$ymin), ceiling(e_proj$xmax), ceiling(e_proj$ymax))
   }
 
-  # Collapse vectors to characters
-  e_latlong <- paste(e_latlong, collapse=" ")
-  e_proj <- paste(e_proj, collapse=" ")
-
   # Return results
-  return(list(e_proj=e_proj, e_latlong=e_latlong, gpkg_file=gpkg_file))
+  return(list(extent_latlon=e_latlon, extent_proj=e_proj, gpkg_file=gpkg_file))
   
 }
 

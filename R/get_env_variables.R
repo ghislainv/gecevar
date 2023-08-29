@@ -4,8 +4,8 @@
 #' Variables are type of soil, elevation, slope, aspect, roughness, solar radiation, distance to sea,
 #' protected areas, distance to roads, distance to cities and town, distance to rivers & lake.
 #'
-#' @param extent character. First output of `get_aoi_extent()` function.
-#' @param extent_latlon int vector. Second output of `get_aoi_extent()` function.
+#' @param extent_latlon vector. First output of `get_aoi_extent()` function.
+#' @param extent_proj vector. Second output of `get_aoi_extent()` function.
 #' @param EPSG int. to consider for this country/area.
 #' @param country_name character. country name (in English) which be use to collect protected areas. This country must be available in `https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA`.
 #' @param destination character. absolute path where to download files like `here()` output.
@@ -56,18 +56,21 @@
 #' @import retry
 #' @export
 
-get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destination,
+get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, destination,
                               resolution = 1000, rm_download = FALSE, forest_year = 2010,
                               gisBase = NULL){
+
+  # Transform extent_proj from vector to string
+  extent_proj_string <- paste(extent_proj, collapse=" ")
+
   options(warn = -1)
   dir.create(path = destination, recursive = TRUE, showWarnings = FALSE)
   nodat <- -32768
-  proj.s <- "EPSG:4326"
-  proj.t <- paste0("EPSG:", EPSG)
+  proj_s <- "EPSG:4326"
+  proj_t <- paste0("EPSG:", EPSG)
   ISO_country_code <- countrycode::countryname(country_name, destination = "iso3c")
-  extent_num <- as.numeric(strsplit(extent, split = " ")[[1]])
   options(download.file.method="auto")
-
+  
   ##==============================
   ##
   ## Soilgrids
@@ -102,7 +105,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   destfile <- file.path(destination, "data_raw", "soilgrids250_v2_0", "soilgrids.tif")
   system(glue('gdal_translate -of GTiff  -r bilinear {sourcefile} {destfile}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
   in_file <-file.path(destination, "data_raw", "soilgrids250_v2_0", "soilgrids_res.tif")
-  system(glue('gdalwarp -tr {resolution} {resolution} -te {extent} -s_srs {proj.s} -t_srs {proj.t} -overwrite {destfile} \\
+  system(glue('gdalwarp -tr {resolution} {resolution} -te {extent_proj_string} -s_srs {proj_s} -t_srs {proj_t} -overwrite {destfile} \\
               -r mode {in_file}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
 
   ##==============================
@@ -144,8 +147,8 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   destfile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "srtm.vrt")
   list_file <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "sourcefilevrt.txt")
   system(glue('gdalbuildvrt {destfile} -vrtnodata {nodat} -input_file_list {list_file}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
-  system(glue('gdalwarp -overwrite -t_srs {proj.t} -tap -r bilinear -dstnodata {nodat} \\
-            -co "COMPRESS=LZW" -co "PREDICTOR=2" -te {extent} -ot Int16 -of GTiff \\
+  system(glue('gdalwarp -overwrite -t_srs {proj_t} -tap -r bilinear -dstnodata {nodat} \\
+            -co "COMPRESS=LZW" -co "PREDICTOR=2" -te {extent_proj_string} -ot Int16 -of GTiff \\
             -tr {resolution / 2} {resolution / 2} {destfile} {file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "elevation.tif")}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
 
   ## Compute slope, aspect and roughness using gdaldem
@@ -225,7 +228,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   # srad
   in_f <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "srad.tif")
   out_f <- file.path(destination, "data_raw", "srtm_v1_4_90m", "srad_res.tif")
-  system(glue('gdalwarp  -t_srs {proj.t} -dstnodata {nodat} \\
+  system(glue('gdalwarp  -t_srs {proj_t} -dstnodata {nodat} \\
         -r bilinear -tr {resolution} {resolution} -ot Int16 -of GTiff \\
         -co "COMPRESS=LZW" -co "PREDICTOR=2" -overwrite {in_f} {out_f}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
 
@@ -251,7 +254,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
                 /vsicurl/{url_far} -co "COMPRESS=LZW" -co "PREDICTOR=2" {destfile}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
     sourcefile <- file.path(destination, "data_raw", "forestatrisk", "forest_nocrop.tif")
     destfile <- file.path(destination, "data_raw", "forestatrisk", "forest.tif")
-    system(glue("gdalwarp -overwrite -t_srs {proj.t} -r bilinear -tr {resolution} {resolution} -te {extent} -ot Int16 -of GTiff \\
+    system(glue("gdalwarp -overwrite -t_srs {proj_t} -r bilinear -tr {resolution} {resolution} -te {extent_proj_string} -ot Int16 -of GTiff \\
         {sourcefile} {destfile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
     unlink(file.path(destination, "data_raw", "forestatrisk", "forest_nocrop.tif"))
     forest_stars <- stars::read_stars(destfile)
@@ -375,10 +378,10 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
     system(glue("ogr2ogr -overwrite -skipfailures -f 'ESRI Shapefile' -progress \\
               -sql 'SELECT osm_id, name,{osm_key[i]}  FROM {type_object[i]} WHERE {osm_key[i]} IS NOT NULL' \\
               -lco ENCODING=UTF-8  {shpfile} {osm_file}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
-    system(glue("ogr2ogr -overwrite -s_srs EPSG:4326 -t_srs {proj.t} -f 'ESRI Shapefile' \\
+    system(glue("ogr2ogr -overwrite -s_srs EPSG:4326 -t_srs {proj_t} -f 'ESRI Shapefile' \\
               -lco ENCODING=UTF-8 {projshp} {shpfile} "), ignore.stdout = TRUE, ignore.stderr = TRUE)
-    system(glue("gdal_rasterize  {projshp} -te {extent} -tap -burn 1 -co 'COMPRESS=LZW' -co 'PREDICTOR=2' \\
-              -ot Byte -of GTiff -a_nodata {nodat} -a_srs {proj.t} -tr 100 100 {file.tif}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
+    system(glue("gdal_rasterize  {projshp} -te {extent_proj_string} -tap -burn 1 -co 'COMPRESS=LZW' -co 'PREDICTOR=2' \\
+              -ot Byte -of GTiff -a_nodata {nodat} -a_srs {proj_t} -tr 100 100 {file.tif}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
     system(glue("gdal_proximity.py {file.tif} {distance.tif} -f -overwrite -co 'COMPRESS=LZW' -co 'PREDICTOR=2' \\
               -values 1 -ot Int16 -of GTiff -distunits GEO -use_input_nodata NO"), ignore.stdout = TRUE, ignore.stderr = TRUE)
     system(glue("gdalwarp -overwrite -r average -tr {resolution} {resolution} -ot Int16 -srcnodata {nodat} -of GTiff \\
@@ -427,7 +430,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
                      gdal = c("COMPRESS=LZW","PREDICTOR=2"), progress = 0, overwrite = TRUE, datatype = "INT2S")
   sourcefile <- file.path(destination, "data_raw", "world_pop", "temp", paste0(ISO_country_code, "_pop_km.tif"))
   destfile <- file.path(destination, "data_raw", "world_pop", paste0(ISO_country_code, "_pop_res.tif"))
-  system(glue('gdalwarp -tr {resolution} {resolution} -te {extent} -s_srs {proj.s} -t_srs {proj.t}  \\
+  system(glue('gdalwarp -tr {resolution} {resolution} -te {extent_proj} -s_srs {proj_s} -t_srs {proj_t}  \\
               -r bilinear -ot Int16 -overwrite -srcnodata -32768 -dstnodata -32768 {sourcefile} {destfile}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
 
   ##=====================================
@@ -490,7 +493,7 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
                      gdal = c("COMPRESS=LZW","PREDICTOR=2"), progress = 0, overwrite = TRUE, datatype = "INT2S")
   sourcefile <- file.path(destination, 'data_raw', 'environ_nocrop.tif')
   destfile <- file.path(destination, 'data_raw', 'environ.tif')
-  system(glue("gdal_translate -projwin {extent_num[1]} {extent_num[4]} {extent_num[3]} {extent_num[2]} -projwin_srs {proj.t} {sourcefile} \\
+  system(glue("gdal_translate -projwin {extent_proj[1]} {extent_proj[4]} {extent_proj[3]} {extent_proj[2]} -projwin_srs {proj_t} {sourcefile} \\
               {destfile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
 
   unique_values <- unique(c(values(rast(file.path(destination, "data_raw", "environ.tif"))[[6]])))
@@ -515,4 +518,4 @@ get_env_variables <- function(extent_latlon, extent, EPSG, country_name, destina
   return(file.path(destination, "data_raw", "environ.tif"))
 }
 
-## End of file
+# End
