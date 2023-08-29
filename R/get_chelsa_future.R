@@ -73,9 +73,9 @@ get_chelsa_future <- function(extent, extent_latlon, EPSG,
   proj.s <- "EPSG:4326"
   proj.t <- paste0("EPSG:", EPSG)
   dir.create(file.path(destination, "data_raw"), showWarnings = FALSE)
-  dir.create(file.path(destination, "data_raw","future_chelsa"), showWarnings = FALSE) ## folder for climatic data
+  dir.create(file.path(destination, "data_raw", "future_chelsa"), showWarnings = FALSE) ## folder for climatic data
   for (model in GCM){
-    dir.create(file.path(destination, "data_raw","future_chelsa", paste("climat", phase, model, "ssp", SSP, sep = "_"), "temp"),
+    dir.create(file.path(destination, "data_raw", "future_chelsa", paste("climat", phase, model, "ssp", SSP, sep = "_"), "temp"),
                showWarnings = FALSE, recursive = TRUE)
   }
   progress_bar <- 0

@@ -16,8 +16,8 @@
   #' and total cloud cover.
   #' Others variables are climatic water deficit (with Penman and Thornthwaite), number of dry month (with Penman and Thornthwaite) and 19 bio variables (more information in chelsa documentation).
   #'
-  #' @param extent character. First output of `transform_shp_coutry_extent`.
-  #' @param extent_latlon character. Second output of `transform_shp_country_extent`
+  #' @param extent character. First output of `get_aoi_extent()` function.
+  #' @param extent_latlon character. Second output of `get_aoi_extent()` function.
   #' @param EPSG int. to consider for this country/area.
   #' @param destination character. absolute path where to download files like `here()` output.
   #' @param resolution int. in meters, recommended resolution are 250m, 500m, 1km, 2km or 5km, default is 1km. See more in details.

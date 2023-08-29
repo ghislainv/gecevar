@@ -4,8 +4,8 @@
 #' Variables are type of soil, elevation, slope, aspect, roughness, solar radiation, distance to sea,
 #' protected areas, distance to roads, distance to cities and town, distance to rivers & lake.
 #'
-#' @param extent_latlon int vector. in this order c(lon_min, lat_min, lon_max, lat_max).
-#' @param extent character. First output of `transform_shp_country_extent` function.
+#' @param extent character. First output of `get_aoi_extent()` function.
+#' @param extent_latlon int vector. Second output of `get_aoi_extent()` function.
 #' @param EPSG int. to consider for this country/area.
 #' @param country_name character. country name (in English) which be use to collect protected areas. This country must be available in `https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA`.
 #' @param destination character. absolute path where to download files like `here()` output.
