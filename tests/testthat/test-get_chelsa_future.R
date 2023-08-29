@@ -1,12 +1,13 @@
 library(gecevar)
-name <- "Reunion"
+iso <- "REU"
 epsg <- 3337
-all_extent <- transform_shp_country_extent(EPSG = epsg,
-                                           country_name = name)
-extent <- all_extent[1]
-extent_latlon <- as.numeric(all_extent[2:5])
+r <- get_aoi_extent(EPSG = epsg,
+                    country_iso = iso)
+extent_latlon <- r$extent_latlon
+extent_proj <- r$extent_proj
+
 clim_path <- get_chelsa_future(extent_latlon = extent_latlon,
-                               extent = extent,
+                               extent_proj = extent_proj,
                                EPSG = epsg,
                                destination = tempfile(),
                                resolution = 1000,
@@ -16,6 +17,7 @@ clim_path <- get_chelsa_future(extent_latlon = extent_latlon,
                                        "UKESM1-0-LL"),
                                SSP = 585,
                                rm_download = TRUE)
+
 clim <- terra::rast(clim_path)
 GCM = c("GFDL-ESM4", "IPSL-CM6A-LR",
         "MPI-ESM1-2-HR", "MRI-ESM2-0",
@@ -39,3 +41,5 @@ test_that("get_chelsa_future works", {
 })
 
 unlink(file.path(clim_path))
+
+# End
