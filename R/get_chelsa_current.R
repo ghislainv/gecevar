@@ -9,15 +9,33 @@
 #'   (with Penman and Thornthwaite) and 19 bio variables (more
 #'   information in chelsa documentation).
 #' 
-#' @param extent_latlon vector. First output of `get_aoi_extent()` function.
-#' @param extent_proj vector. Second output of `get_aoi_extent()` function.
-#' @param EPSG int. to consider for this country/area.
-#' @param destination character. absolute path where to download files like `here()` output.
-#' @param resolution int. in meters, recommended resolution are 250m, 500m, 1km, 2km or 5km, default is 1km. See more in details.
-#' @param rm_download boolean. If TRUE remove download files and folders. Keep only current_chelsa.tif in `data_raw` folder, default is FALSE.
-#' @return character. absolute path to current_chelsa.tif.
-#' @details `resolution` need to be carefully chosen because if Tiff file is too big, R can crash.
+#' @param extent_latlon num vector. Must be in the form c(lonmin, latmin,
+#'   lonmax, latmax). This extent is used to download climatic data
+#'   using GDAL function `gdal_translate` and properties of COG
+#'   files. This extent can be obtained with the `get_aoi_extent()`
+#'   function.
 #'
+#' @param extent_proj num vector. Must be in the form c(xmin, ymin, xmax,
+#'   ymax). This extent is used for the output raster file. This
+#'   extent can be obtained with the `get_aoi_extent()` function.
+#'
+#' @param EPSG_proj int. EPSG code used to define the coordinate
+#'   reference system to project the output raster file.
+#' 
+#' @param destination character. Directory path for outputs.
+#' 
+#' @param resol int. Resolution. If in meters, recommended
+#'   resolutions are 250m, 500m, 1km, 2km or 5km. The resolution needs
+#'   to be carefully chosen. If set too small (e.g. < 250m), raster
+#'   file will be too big to fit in memory and R will crash. Default
+#'   is 1km.
+#' 
+#' @param rm_download boolean. If TRUE, remove downloaded files and
+#'   folders except `current_chelsa.tif` file in the `data_raw`
+#'   folder. Default is FALSE.
+#' 
+#' @return character. The absolute path to the `current_chelsa.tif` file.
+#' 
 #' @details
 #' Unit of each climatic variable :
 #'
@@ -60,12 +78,11 @@
 #' @importFrom utils txtProgressBar setTxtProgressBar
 #' @import geosphere
 #' @import terra
-#' @import sp
 #' @importFrom glue glue
 #' @export
 
-get_chelsa_current <- function(extent_latlon, extent_proj, EPSG, destination,
-                               resolution = 1000, rm_download = FALSE) {
+get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destination,
+                               resol = 1000, rm_download = FALSE) {
 
   # Extent for gdal_translate
   # /!\ with gdal_translate: (xmin, ymax, xmax, ymin) corresponding to <ulx> <uly> <lrx> <lry> 
@@ -77,7 +94,7 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG, destination,
   
   nodat <- -9999
   proj_s <- "EPSG:4326"
-  proj_t <- paste0("EPSG:", EPSG)
+  proj_t <- paste0("EPSG:", EPSG_proj)
   dir.create(file.path(destination, "data_raw", "chelsa_v2_1", "temp"),
              recursive = TRUE, showWarnings = FALSE)
 
@@ -94,7 +111,7 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG, destination,
 
   progress_bar <- 0
   nb_var_download <- 12 * 6
-  print("Downloading tasmin, tasmax, tas, pr, clt, and pet_penman")
+  cat("Downloading tasmin, tasmax, tas, pr, clt, and pet_penman\n")
   pb = txtProgressBar(min = 0, max = nb_var_download, initial = 0)
   for (m in stringr::str_pad(1:12, width = 2, pad = "0")) {
     ## Monthly minimum temperature (°C).
@@ -163,7 +180,7 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG, destination,
 
   ## Bioclimatic variables
   ## See https://chelsa-climate.org/wp-admin/download-page/CHELSA_tech_specification_V2.pdf for details
-  print("Downloading bioclimatic variables")
+  cat("Downloading bioclimatic variables\n")
   for(i in 1:19){
     ifile <- glue::glue("{url_base_chelsa}/bio/CHELSA_bio{i}_1981-2010_V.2.1.tif")
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
@@ -178,7 +195,7 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG, destination,
   ## Reproject and stack per variable
   ## ================================
 
-  print("Reprojecting rasters and stacking monthly rasters per variable")
+  cat("Reprojecting rasters and stacking monthly rasters per variable\n")
   for(var in c("tasmin", "tasmax", "tas", "pr", "bio", "clt", "pet_penman")) {
     ifile <- file.path(destination, "data_raw", "chelsa_v2_1", "temp")
     files.tif <- list.files(ifile, pattern = paste0(var, "[0-9]{2}\\.tif"), full.names = TRUE)
@@ -186,7 +203,7 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG, destination,
       sourcefile <- files.tif[i]
       destfile <- gsub(".tif", "_res.tif", files.tif[i])
       system(glue::glue("gdalwarp -overwrite -s_srs {proj_s} -t_srs {proj_t} \\
-        -r bilinear -tr {resolution} {resolution} -te {extent_proj_string} -ot Int16 -of GTiff -srcnodata 0 -dstnodata {nodat} \\
+        -r bilinear -tr {resol} {resol} -te {extent_proj_string} -ot Int16 -of GTiff -srcnodata 0 -dstnodata {nodat} \\
         {sourcefile} {destfile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
       if (var %in% c("tasmin", "tasmax", "tas") | (var == "bio" & i <= 11)) {
         # Stock °C as integer to reduce size
@@ -210,7 +227,7 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG, destination,
   ## Create raster stack
   ## ==============================
 
-  print("Create raster stack of monthly variables and bioclimatic variables")
+  cat("Create raster stack of monthly variables and bioclimatic variables\n")
   # Stack tasmin, tasmax, tas, pr, clt, pet_penman, and bio
   files.tif <- file.path(destination, "data_raw", "chelsa_v2_1",
                          paste0(c("tasmin", "tasmax", "tas", "pr", "clt", "pet_penman", "bio"), "_res.tif"))
@@ -225,7 +242,7 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG, destination,
   ## Compute water deficit (cwd and ndw) with Penman ETP
   ## ===================================================
 
-  print("Compute water deficit (cwd and ndm) with Penman ETP")
+  cat("Compute water deficit (cwd and ndm) with Penman ETP\n")
   ## cwd: climatic water deficit
   ## ndm: number of dry months
   pr_file <- file.path(destination, "data_raw", "chelsa_v2_1", "pr_res.tif")
@@ -273,14 +290,14 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG, destination,
   ## Compute water deficit (cwd and ndw) with Thornthwaite ETP
   ## =========================================================
 
-  print("Compute water deficit and number of dry months (cwd and ndm) with Thornthwaite ETP")
+  cat("Compute water deficit and number of dry months (cwd and ndm) with Thornthwaite ETP\n")
   ## PET with Thornthwaite formula
   tas <- read_stars(file.path(destination, "data_raw", "chelsa_v2_1", "tas_res.tif"))
   # Keep only latitude coordinates
   extent_tas <- st_bbox(tas)
   e <- terra::ext(extent_tas[1], extent_tas[3], extent_tas[2], extent_tas[4])
   e <- terra::as.polygons(e)
-  terra::crs(e) <- paste0("epsg:", EPSG)
+  terra::crs(e) <- paste0("epsg:", EPSG_proj)
   ext_ll <- st_bbox(terra::project(e, "epsg:4326"))
   lat <- seq(ext_ll[4], ext_ll[2], length.out = dim(tas)[2])
   lat <- rep(lat, each = dim(tas)[1])
@@ -341,7 +358,7 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG, destination,
   ## Creating final raster stack
   ## =========================================================
 
-  print("Creating final raster stack")
+  cat("Creating final raster stack\n")
   ofile <- file.path(destination, "data_raw", "current_chelsa_no_name.tif")
   clim_file <- file.path(destination, "data_raw", "chelsa_v2_1", "clim_res.tif")
   cwd_file <- file.path(destination, "data_raw", "chelsa_v2_1", "cwd_res.tif")
@@ -372,10 +389,10 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG, destination,
     ifile <- file.path(destination, "data_raw", "chelsa_v2_1")
     cat("Removing folder ", ifile, "\n")
     unlink(file.path(destination, "data_raw", "chelsa_v2_1"), recursive = TRUE)
-    unlink(file.path(destination, "data_raw",  "current_chelsa_no_name.tif"))
+    unlink(file.path(destination, "data_raw", "current_chelsa_no_name.tif"))
   }
 
-  return(file.path(destination, "data_raw","current_chelsa.tif"))
+  return(file.path(destination, "data_raw", "current_chelsa.tif"))
 }
 
 # End

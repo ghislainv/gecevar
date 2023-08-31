@@ -1,23 +1,50 @@
-#' Create several multilayer Tiff files with 81 variables from chelsa-climate.org with future climat variables.
+#' Create several multilayer Tiff files with 81 variables from
+#' chelsa-climate.org with future climat variables.
 #'
-#' @description
-#' Gives predictions on future values for the choosen phase. Prediction are from multiple models (GFDL-ESM4, IPSL-CM6A-LR, MPI-ESM1-2-HR, MRI-ESM2-0, UKESM1-0-LL).
-#' Creates folder for each model and a folder with mean of this five models.
-#' Monthly variables are average temperatures, min temperatures, max temperatures, precipitation, potential evapotranspiration with Thornthwaite formula.
-#' Others variables are climatic water deficit with Thornthwaite, number of dry month with Thornthwaite and 19 bio variables (more information in chelsa documentation).
+#' @description Gives predictions on future values for the choosen
+#'   phase. Prediction are from multiple models (GFDL-ESM4,
+#'   IPSL-CM6A-LR, MPI-ESM1-2-HR, MRI-ESM2-0, UKESM1-0-LL).  Creates
+#'   folder for each model and a folder with mean of this five models.
+#'   Monthly variables are average temperatures, min temperatures, max
+#'   temperatures, precipitation, potential evapotranspiration with
+#'   Thornthwaite formula.  Others variables are climatic water
+#'   deficit with Thornthwaite, number of dry month with Thornthwaite
+#'   and 19 bio variables (more information in chelsa documentation).
 #'
 #' @param extent_latlon vector. First output of `get_aoi_extent()` function.
+#' 
 #' @param extent_proj vector. Second output of `get_aoi_extent()` function.
+#' 
 #' @param EPSG int. to consider for this country/area.
-#' @param destination character. absolute path where to download files like `here()` output.
-#' @param resolution int. in meters, recommended resolution are 250m, 500m, 1km, 2km or 5km, default is 1km. See more in details.
-#' @param phase character. Must be in c("2041-2070", "2071-2100") match to years to download, default is "2071-2100".
-#' @param GCM character.  Global Climatic Models considered. Must be in c("GFDL-ESM4", "IPSL-CM6A-LR", "MPI-ESM1-2-HR", "MRI-ESM2-0", "UKESM1-0-LL"). By default climate simulated by the five GCMs are downloaded.
-#' @param SSP character or int. Scenario specifier must be in c(126, 370, 585). Corresponding to the the Shared Socio-economic Pathways you want to download, default is 585 for SSP5-RCP8.5 climate as simulated by the GCMs.
-#' @param rm_download boolean. If TRUE remove download files and folders. Keep only future_chelsa.tif in `data_raw` folder, default is FALSE.
+#' 
+#' @param destination character. absolute path where to download files
+#'   like `here()` output.
+#' 
+#' @param resol int. Resolution. If in meters, recommended resolutions
+#'   are 250m, 500m, 1km, 2km or 5km. The resolution needs to be
+#'   carefully chosen. If set too small (e.g. < 250m), raster file
+#'   will be too big to fit in memory and R will crash. Default is
+#'   1km.
+#' 
+#' @param phase character. Must be in c("2041-2070", "2071-2100")
+#'   match to years to download, default is "2071-2100".
+#' 
+#' @param GCM character. Global Climatic Models considered. Must be
+#'   in c("GFDL-ESM4", "IPSL-CM6A-LR", "MPI-ESM1-2-HR", "MRI-ESM2-0",
+#'   "UKESM1-0-LL"). By default climate simulated by the five GCMs are
+#'   downloaded.
+#' 
+#' @param SSP character or int. Scenario specifier must be in c(126,
+#'   370, 585). Corresponding to the the Shared Socio-economic
+#'   Pathways you want to download, default is 585 for SSP5-RCP8.5
+#'   climate as simulated by the GCMs.
+#' 
+#' @param rm_download boolean. If TRUE remove download files and
+#'   folders. Keep only future_chelsa.tif in `data_raw` folder,
+#'   default is FALSE.
+#' 
 #' @return character. absolute path to future_chelsa.tif.
-#' @details `resolution` need to be carefully choosen because if Tiff file is too big, R can crash.
-#'
+#' 
 #' @details
 #' Unit of each climatic variable :
 #'
@@ -57,11 +84,10 @@
 #' @importFrom glue glue
 #' @import geosphere
 #' @import terra
-#' @import sp
 #' @export
 
 get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
-                              destination, resolution = 1000,
+                              destination, resol = 1000,
                               phase = "2071-2100",
                               GCM = c("GFDL-ESM4", "IPSL-CM6A-LR",
                                       "MPI-ESM1-2-HR", "MRI-ESM2-0", "UKESM1-0-LL"),
@@ -88,7 +114,7 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
   }
   progress_bar <- 0
   nb_var_download <- 12 * 5 * length(GCM)
-  print("Downloading tasmin, tasmax, tas and pr")
+  cat("Downloading tasmin, tasmax, tas and pr\n")
   pb = txtProgressBar(min = 0, max = nb_var_download, initial = 0)
   for(m in stringr::str_pad(1:12, width = 2, pad = "0")) {
     for (model in GCM) {
@@ -144,7 +170,7 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
 
   progress_bar <- 0
   nb_var_download <- 19 *  length(GCM)
-  print("Downloading bioclimatic variables")
+  cat("Downloading bioclimatic variables\n")
   pb = txtProgressBar(min = 0, max = nb_var_download, initial = 0)
   for(i in 1:19){
     for(model in GCM){
@@ -161,7 +187,7 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
   }
   close(pb)
 
-  print("Reprojecting rasters and stacking monthly rasters per variable")
+  cat("Reprojecting rasters and stacking monthly rasters per variable\n")
   for(var in c("tasmin", "tasmax", "tas", "pr", "bio")) {
     for (model in GCM){
       files.tif <- list.files(file.path(destination, "data_raw", "future_chelsa",
@@ -172,7 +198,7 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
         sourcefile <- files.tif[i]
         destfile <- gsub(".tif", "_res.tif", files.tif[i])
         system(glue("gdalwarp -overwrite -s_srs {proj_s} -t_srs {proj_t} \\
-        -r bilinear -tr {resolution} {resolution} -te {extent_proj_string} -ot Int16 -of GTiff -srcnodata 0 -dstnodata {nodat} \\
+        -r bilinear -tr {resol} {resol} -te {extent_proj_string} -ot Int16 -of GTiff -srcnodata 0 -dstnodata {nodat} \\
         {sourcefile} {destfile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
         if (var %in% c("tasmin", "tasmax", "tas") | (var == "bio" & i <= 11))
         {
@@ -197,7 +223,7 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
     }
   }
 
-  print("Create raster stack of monthly variables and bioclimatic variables")
+  cat("Create raster stack of monthly variables and bioclimatic variables\n")
   for (model in GCM){
     # Stack Tasmin, Tasmax, Tas, Pr & bio
     files.tif <- file.path(destination, "data_raw", "future_chelsa", paste('climat', phase, model, 'ssp', SSP, sep = '_'),
@@ -211,7 +237,7 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
   }
 
   ## PET with Thornthwaite formula
-  print("Compute water deficit and number of dry months (cwd and ndm) with Thornthwaite ETP")
+  cat("Compute water deficit and number of dry months (cwd and ndm) with Thornthwaite ETP\n")
   for (model in GCM){
     tas <- terra::rast(file.path(destination, "data_raw", "future_chelsa",
                                  paste('climat', phase, model, 'ssp', SSP, sep = '_'), "tas_res.tif"))
@@ -273,7 +299,7 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
     rm(ndm)
   }
 
-  print("Creating final raster stack")
+  cat("Creating final raster stack\n")
   for (model in GCM){
     clim_file <- file.path(destination, "data_raw", "future_chelsa",
                            paste("climat", phase, model, "ssp", SSP, sep = "_"), "clim_res.tif")
@@ -301,7 +327,7 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
     rm(future)
   }
   if (rm_download) {
-    cat("Removing intermediate data \n")
+    cat("Removing intermediate data\n")
     for (model in GCM){
 
       unlink(file.path(destination, "data_raw", "future_chelsa",

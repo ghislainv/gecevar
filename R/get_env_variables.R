@@ -1,26 +1,52 @@
 #' Create multilayer Tiff file with 11 environmental variables
 #'
-#' @description
-#' Variables are type of soil, elevation, slope, aspect, roughness, solar radiation, distance to sea,
-#' protected areas, distance to roads, distance to cities and town, distance to rivers & lake.
+#' @description Variables are type of soil, elevation, slope, aspect,
+#'   roughness, solar radiation, distance to sea, protected areas,
+#'   distance to roads, distance to cities and town, distance to
+#'   rivers & lake.
 #'
-#' @param extent_latlon vector. First output of `get_aoi_extent()` function.
-#' @param extent_proj vector. Second output of `get_aoi_extent()` function.
+#' @param extent_latlon vector. First output of `get_aoi_extent()`
+#'   function.
+#' 
+#' @param extent_proj vector. Second output of `get_aoi_extent()`
+#'   function.
+#' 
 #' @param EPSG int. to consider for this country/area.
-#' @param country_name character. country name (in English) which be use to collect protected areas. This country must be available in `https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA`.
-#' @param destination character. absolute path where to download files like `here()` output.
-#' @param resolution int. in meters, recommended resolution are 250m, 500m, 1km, 2km or 5km, default is 1km. See more in details.
-#' @param rm_download boolean. If TRUE remove download files and folders. Keep only environ.tif in `data_raw` folder, default is FALSE.
-#' @param forest_year int. Forest at the decade chosen. Must be one of 2000, 2010 or 2020, default is 2010.
-#' @param gisBase NULL or character. Parameter `gisBase` for `rgrass::initGRASS()`. The directory path to GRASS binaries and libraries, containing bin and lib subdirectories among others; if NULL, system("grass --config path") is tried.
+#' 
+#' @param country_name character. country name (in English) which be
+#'   use to collect protected areas. This country must be available in
+#'   `https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA`.
+#' 
+#' @param destination character. absolute path where to download files
+#'   like `here()` output.
+#' 
+#' @param resol int. Resolution. If in meters, recommended resolutions
+#'   are 250m, 500m, 1km, 2km or 5km. The resolution needs to be
+#'   carefully chosen. If set too small (e.g. < 250m), raster file
+#'   will be too big to fit in memory and R will crash. Default is
+#'   1km.
+#' 
+#' @param rm_download boolean. If TRUE remove download files and
+#'   folders. Keep only environ.tif in `data_raw` folder, default is
+#'   FALSE.
+#' 
+#' @param forest_year int. Forest at the decade chosen. Must be one of
+#'   2000, 2010 or 2020, default is 2010.
+#' 
+#' @param gisBase NULL or character. Parameter `gisBase` for
+#'   `rgrass::initGRASS()`. The directory path to GRASS binaries and
+#'   libraries, containing bin and lib subdirectories among others; if
+#'   NULL, system("grass --config path") is tried.
+#' 
 #' @return character. Absolute path to `environ.tif` file.
-#' @details `resolution` need to be carefully chosen because if .tif file is too large, R can crash.
-#'
-#' @details
-#'
-#' environ.tif.aux.xml is an extention of environ.tif, it allows to classify soilgrid variable with QGIS with RasterAttributeTable extension.
-#' Nevertheless it's cause problems to open it with `stars` package but not with `terra`. If you have any problems to open environ.tif, you can remove environ.tif.aux.xml.
-#' This solve all accessibility problems with `stars` and `terra` packages.
+#' 
+#' @details environ.tif.aux.xml is an extention of environ.tif, it
+#'   allows to classify soilgrid variable with QGIS with
+#'   RasterAttributeTable extension. Nevertheless it's cause problems
+#'   to open it with `stars` package but not with `terra`. If you have
+#'   any problems to open environ.tif, you can remove
+#'   environ.tif.aux.xml. This solve all accessibility problems with
+#'   `stars` and `terra` packages.
 #'
 #' Unit of each environ variable :
 #'
@@ -57,7 +83,7 @@
 #' @export
 
 get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, destination,
-                              resolution = 1000, rm_download = FALSE, forest_year = 2010,
+                              resol = 1000, rm_download = FALSE, forest_year = 2010,
                               gisBase = NULL){
 
   # Transform extent_proj from vector to string
@@ -105,7 +131,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
   destfile <- file.path(destination, "data_raw", "soilgrids250_v2_0", "soilgrids.tif")
   system(glue('gdal_translate -of GTiff  -r bilinear {sourcefile} {destfile}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
   in_file <-file.path(destination, "data_raw", "soilgrids250_v2_0", "soilgrids_res.tif")
-  system(glue('gdalwarp -tr {resolution} {resolution} -te {extent_proj_string} -s_srs {proj_s} -t_srs {proj_t} -overwrite {destfile} \\
+  system(glue('gdalwarp -tr {resol} {resol} -te {extent_proj_string} -s_srs {proj_s} -t_srs {proj_t} -overwrite {destfile} \\
               -r mode {in_file}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
 
   ##==============================
@@ -149,7 +175,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
   system(glue('gdalbuildvrt {destfile} -vrtnodata {nodat} -input_file_list {list_file}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
   system(glue('gdalwarp -overwrite -t_srs {proj_t} -tap -r bilinear -dstnodata {nodat} \\
             -co "COMPRESS=LZW" -co "PREDICTOR=2" -te {extent_proj_string} -ot Int16 -of GTiff \\
-            -tr {resolution / 2} {resolution / 2} {destfile} {file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "elevation.tif")}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
+            -tr {resol / 2} {resol / 2} {destfile} {file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "elevation.tif")}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
 
   ## Compute slope, aspect and roughness using gdaldem
   # compute slope
@@ -166,22 +192,22 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
   # Resolution from resolution/2 to chosen resolution using gdalwarp
   # elevation
   out_f <- file.path(destination, "data_raw", "srtm_v1_4_90m", "elevation_res.tif")
-  system(glue('gdalwarp -r bilinear -tr {resolution} {resolution} -ot Int16 -of GTiff -dstnodata {nodat} \\
+  system(glue('gdalwarp -r bilinear -tr {resol} {resol} -ot Int16 -of GTiff -dstnodata {nodat} \\
         -co "COMPRESS=LZW" -co "PREDICTOR=2" -overwrite {in_f} {out_f}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
   # aspect
   in_f <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "aspect.tif")
   out_f <-file.path(destination, "data_raw", "srtm_v1_4_90m", "aspect_res.tif")
-  system(glue('gdalwarp -r bilinear -tr {resolution} {resolution} -ot Int16 -of GTiff -dstnodata {nodat} \\
+  system(glue('gdalwarp -r bilinear -tr {resol} {resol} -ot Int16 -of GTiff -dstnodata {nodat} \\
         -co "COMPRESS=LZW" -co "PREDICTOR=2" -overwrite {in_f} {out_f}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
   # slope
   in_f <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "slope.tif")
   out_f <- file.path(destination, "data_raw", "srtm_v1_4_90m", "slope_res.tif")
-  system(glue('gdalwarp -r bilinear -tr {resolution} {resolution} -ot Int16 -of GTiff \\
+  system(glue('gdalwarp -r bilinear -tr {resol} {resol} -ot Int16 -of GTiff \\
         -co "COMPRESS=LZW" -co "PREDICTOR=2" -overwrite {in_f} {out_f}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
   # roughness
   in_f <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "roughness.tif")
   out_f <- file.path(destination, "data_raw", "srtm_v1_4_90m", "roughness_res.tif")
-  system(glue('gdalwarp -r bilinear -tr {resolution} {resolution} -ot Int16 -of GTiff \\
+  system(glue('gdalwarp -r bilinear -tr {resol} {resol} -ot Int16 -of GTiff \\
         -co "COMPRESS=LZW" -co "PREDICTOR=2" -overwrite {in_f} {out_f}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
 
   ##==============================
@@ -229,7 +255,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
   in_f <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "srad.tif")
   out_f <- file.path(destination, "data_raw", "srtm_v1_4_90m", "srad_res.tif")
   system(glue('gdalwarp  -t_srs {proj_t} -dstnodata {nodat} \\
-        -r bilinear -tr {resolution} {resolution} -ot Int16 -of GTiff \\
+        -r bilinear -tr {resol} {resol} -ot Int16 -of GTiff \\
         -co "COMPRESS=LZW" -co "PREDICTOR=2" -overwrite {in_f} {out_f}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
 
   ##===========================
@@ -254,7 +280,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
                 /vsicurl/{url_far} -co "COMPRESS=LZW" -co "PREDICTOR=2" {destfile}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
     sourcefile <- file.path(destination, "data_raw", "forestatrisk", "forest_nocrop.tif")
     destfile <- file.path(destination, "data_raw", "forestatrisk", "forest.tif")
-    system(glue("gdalwarp -overwrite -t_srs {proj_t} -r bilinear -tr {resolution} {resolution} -te {extent_proj_string} -ot Int16 -of GTiff \\
+    system(glue("gdalwarp -overwrite -t_srs {proj_t} -r bilinear -tr {resol} {resol} -te {extent_proj_string} -ot Int16 -of GTiff \\
         {sourcefile} {destfile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
     unlink(file.path(destination, "data_raw", "forestatrisk", "forest_nocrop.tif"))
     forest_stars <- stars::read_stars(destfile)
@@ -334,7 +360,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
   WDPA <- terra::vect(file.path(destination, "data_raw", "WDPA", "temp", paste0("WDPA_WDOECM_", date, "_Public_", ISO_country_code, ".gdb/")), layer = paste0("WDPA_WDOECM_poly_", date, "_", ISO_country_code))
   WDPA <- sf::st_as_sf(WDPA)[3]
   WDPA <- sf::st_transform(WDPA, EPSG)
-  WDPA <- stars::st_rasterize(WDPA, dx = resolution, dy = resolution)
+  WDPA <- stars::st_rasterize(WDPA, dx = resol, dy = resol)
   WDPA[[1]] <- WDPA[[1]] != 0
   stars::write_stars(WDPA, options = c("COMPRESS=LZW", "PREDICTOR=2"), NA_value = nodat,
                      dsn = file.path(destination, "data_raw", "WDPA", "WDPA_resBool.tif"))
@@ -384,7 +410,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
               -ot Byte -of GTiff -a_nodata {nodat} -a_srs {proj_t} -tr 100 100 {file.tif}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
     system(glue("gdal_proximity.py {file.tif} {distance.tif} -f -overwrite -co 'COMPRESS=LZW' -co 'PREDICTOR=2' \\
               -values 1 -ot Int16 -of GTiff -distunits GEO -use_input_nodata NO"), ignore.stdout = TRUE, ignore.stderr = TRUE)
-    system(glue("gdalwarp -overwrite -r average -tr {resolution} {resolution} -ot Int16 -srcnodata {nodat} -of GTiff \\
+    system(glue("gdalwarp -overwrite -r average -tr {resol} {resol} -ot Int16 -srcnodata {nodat} -of GTiff \\
               -dstnodata {nodat} {distance.tif} {distance_res.tif}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
   }
 
@@ -430,7 +456,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
                      gdal = c("COMPRESS=LZW","PREDICTOR=2"), progress = 0, overwrite = TRUE, datatype = "INT2S")
   sourcefile <- file.path(destination, "data_raw", "world_pop", "temp", paste0(ISO_country_code, "_pop_km.tif"))
   destfile <- file.path(destination, "data_raw", "world_pop", paste0(ISO_country_code, "_pop_res.tif"))
-  system(glue('gdalwarp -tr {resolution} {resolution} -te {extent_proj} -s_srs {proj_s} -t_srs {proj_t}  \\
+  system(glue('gdalwarp -tr {resol} {resol} -te {extent_proj} -s_srs {proj_s} -t_srs {proj_t}  \\
               -r bilinear -ot Int16 -overwrite -srcnodata -32768 -dstnodata -32768 {sourcefile} {destfile}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
 
   ##=====================================

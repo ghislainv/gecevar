@@ -5,8 +5,8 @@
 \title{Create several multilayer Tiff files with 81 variables from chelsa-climate.org with future climat variables.}
 \usage{
 get_chelsa_future(
-  extent,
   extent_latlon,
+  extent_proj,
   EPSG,
   destination,
   resolution = 1000,
@@ -17,9 +17,9 @@ get_chelsa_future(
 )
 }
 \arguments{
-\item{extent}{character. First output of \code{transform_shp_coutry_extent}.}
+\item{extent_latlon}{vector. First output of \code{get_aoi_extent()} function.}
 
-\item{extent_latlon}{character. Second output of \code{transfomr_shp_country_extent}}
+\item{extent_proj}{vector. Second output of \code{get_aoi_extent()} function.}
 
 \item{EPSG}{int. to consider for this country/area.}
 

@@ -5,39 +5,54 @@
 \title{Create multilayer Tiff file with 107 variables from chelsa-climate.org}
 \usage{
 get_chelsa_current(
-  extent,
   extent_latlon,
-  EPSG,
+  extent_proj,
+  EPSG_proj,
   destination,
-  resolution = 1000,
+  resol = 1000,
   rm_download = FALSE
 )
 }
 \arguments{
-\item{extent}{character. First output of \code{transform_shp_coutry_extent}.}
+\item{extent_latlon}{num vector. Must be in the form c(lonmin, latmin,
+lonmax, latmax). This extent is used to download climatic data
+using GDAL function \code{gdal_translate} and properties of COG
+files. This extent can be obtained with the \code{get_aoi_extent()}
+function.}
 
-\item{extent_latlon}{character. Second output of \code{transform_shp_country_extent}}
+\item{extent_proj}{num vector. Must be in the form c(xmin, ymin, xmax,
+ymax). This extent is used for the output raster file. This
+extent can be obtained with the \code{get_aoi_extent()} function.}
 
-\item{EPSG}{int. to consider for this country/area.}
+\item{EPSG_proj}{int. EPSG code used to define the coordinate
+reference system to project the output raster file.}
 
-\item{destination}{character. absolute path where to download files like \code{here()} output.}
+\item{destination}{character. Directory path for outputs.}
 
-\item{resolution}{int. in meters, recommended resolution are 250m, 500m, 1km, 2km or 5km, default is 1km. See more in details.}
+\item{resol}{int. Resolution. If in meters, recommended
+resolution are 250m, 500m, 1km, 2km or 5km. The resolution needs
+to be carefully chosen. If set too small (e.g. < 250m), raster
+file will be too big to fit in memory and R will crash. Default
+is 1km.}
 
-\item{rm_download}{boolean. If TRUE remove download files and folders. Keep only current_chelsa.tif in \code{data_raw} folder, default is FALSE.}
+\item{rm_download}{boolean. If TRUE, remove downloaded files and
+folders except \code{current_chelsa.tif} file in the \code{data_raw}
+folder. Default is FALSE.}
 }
 \value{
-character. absolute path to current_chelsa.tif.
+character. The absolute path to the \code{current_chelsa.tif} file.
 }
 \description{
-Gives the average values on the data recovered between 1981 and 2010.
-Monthly variables are average temperatures, min temperatures, max temperatures, precipitation, potential evapotranspiration (with Penman formula and with Thornthwaite formula),
-and total cloud cover.
-Others variables are climatic water deficit (with Penman and Thornthwaite), number of dry month (with Penman and Thornthwaite) and 19 bio variables (more information in chelsa documentation).
+Gives the average values on the data recovered between
+1981 and 2010. Monthly variables are average temperatures, min
+temperatures, max temperatures, precipitation, potential
+evapotranspiration (with Penman formula and with Thornthwaite
+formula), and total cloud cover. Others variables are climatic
+water deficit (with Penman and Thornthwaite), number of dry month
+(with Penman and Thornthwaite) and 19 bio variables (more
+information in chelsa documentation).
 }
 \details{
-\code{resolution} need to be carefully chosen because if Tiff file is too big, R can crash.
-
 Unit of each climatic variable :\tabular{ll}{
    Name \tab Unit \cr
    Temperature average (tas) \tab °C x 10 \cr

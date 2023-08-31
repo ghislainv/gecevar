@@ -6,7 +6,7 @@
 \usage{
 get_env_variables(
   extent_latlon,
-  extent,
+  extent_proj,
   EPSG,
   country_name,
   destination,
@@ -17,9 +17,9 @@ get_env_variables(
 )
 }
 \arguments{
-\item{extent_latlon}{int vector. in this order c(lon_min, lat_min, lon_max, lat_max).}
+\item{extent_latlon}{vector. First output of \code{get_aoi_extent()} function.}
 
-\item{extent}{character. First output of \code{transform_shp_country_extent} function.}
+\item{extent_proj}{vector. Second output of \code{get_aoi_extent()} function.}
 
 \item{EPSG}{int. to consider for this country/area.}
 
