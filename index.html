@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GEtting Climatic and Environmental VARiables from open and free online datasets for a specific region • gecevar</title>
+<title>GEtting Climatic and other Environmental VARiables • gecevar</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
 <link rel="apple-touch-icon" type="image/png" sizes="180x180" href="apple-touch-icon.png">
@@ -17,9 +17,23 @@
 <script src="bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="pkgdown.css" rel="stylesheet">
-<script src="pkgdown.js"></script><meta property="og:title" content="GEtting Climatic and Environmental VARiables from open and free online datasets for a specific region">
-<meta property="og:description" content="Download and combine environmental and climatic variables in one files.
-    Downloaded files are in .tif format reprojected with wanted projection.">
+<script src="pkgdown.js"></script><meta property="og:title" content="GEtting Climatic and other Environmental VARiables">
+<meta property="og:description" content="The package contains functions for downloading climate
+  and environmental data from open and free online datasets for any
+  region of the world. The data can be used for ecological
+  studies. The area of interest can be a country, state or project
+  area and is defined by an extent, vector file or country
+  iso-code. Data comes from a variety of sources (e.g. Chelsa,
+  OpenStreetMap, TropicalMoistForest, SRTMv4.1, SoilGrids). Climate
+  and environmental data are available as multiband raster files at a
+  resolution and in the coordinate reference system specified by the
+  user. When possible, the package uses the properties of Cloud
+  Optimized GeoTIFF (COGs &lt;https://www.cogeo.org/&gt;) files to
+  download only the portion of the global datasets corresponding to
+  the area of interest, reducing download time. The package uses
+  GDAL &lt;https://gdal.org/&gt; and the R libraries terra
+  &lt;https://rspatial.org/&gt; and sf &lt;https://r-spatial.github.io/sf/&gt;
+  for optimized processing of raster and vector geospatial data.">
 <meta property="og:image" content="/logo.svg">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
@@ -87,7 +101,7 @@
 <code>gecevar</code> R Package <img src="https://ecology.ghislainv.fr/gecevar/logo.svg" align="right" alt="logo-gecevar" width="120"><a class="anchor" aria-label="anchor" href="#gecevar-r-package-"></a>
 </h1></div>
 <p><a href="https://github.com/ghislainv/gecevar/actions" class="external-link"><img src="https://github.com/ghislainv/gecevar/workflows/R-CMD-check/badge.svg" alt="R-CMD-check"></a> <a href="https://app.codecov.io/gh/ghislainv/gecevar?branch=main" class="external-link"><img src="https://codecov.io/gh/ghislainv/gecevar/branch/main/graph/badge.svg" alt="Codecov test coverage"></a> <!-- [![CRAN Status](https://www.r-pkg.org/badges/version/gecevar)](https://cran.r-project.org/package=gecevar) --> <!-- [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3253460.svg)](https://doi.org/10.5281/zenodo.3253460) --> <!-- [![Downloads](https://cranlogs.r-pkg.org/badges/gecevar)](https://cran.r-project.org/package=gecevar) --></p>
-<p><code>gecevar</code> provides a set of climatic and environmental data for a given area of interest (eg. country scale) that can be used for ecological analyses. Data come from a variety of sources (eg. Chelsa, OpenStreetMap, TropicalMoistForest, SRTMv4.1, SoilGrids). Climatic and environmental data are available as multiband raster files at a resolution and in the coordinate reference system provided by the user.</p>
+<p><code>gecevar</code> stands for “GEts Climatic and other Environmental VARiables”. The package contains functions for downloading climate and environmental data from open and free online datasets for any region of the world. The data can be used for ecological studies. The area of interest can be a country, state or project area and is defined by an extent, vector file or country iso-code. Data comes from a variety of sources (e.g. Chelsa, OpenStreetMap, TropicalMoistForest, SRTMv4.1, SoilGrids). Climate and environmental data are available as multiband raster files at a resolution and in the coordinate reference system specified by the user. When possible, the package uses the properties of Cloud Optimized GeoTIFF (<a href="https://www.cogeo.org/" class="external-link">COGs</a>) files to download only the portion of the global datasets corresponding to the area of interest, reducing download time. The package uses <a href="https://gdal.org/" class="external-link">GDAL</a> and the R libraries <a href="https://rspatial.org/" class="external-link"><code>terra</code></a> and <a href="https://r-spatial.github.io/sf/" class="external-link"><code>sf</code></a> for optimized processing of raster and vector geospatial data.</p>
 <div class="section level2">
 <h2 id="system-requirements">System requirements<a class="anchor" aria-label="anchor" href="#system-requirements"></a>
 </h2>
@@ -144,8 +158,10 @@
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
 <li>
-<a href="https://jeanneclement.github.io/" class="external-link">Jeanne Clément</a> <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0002-5228-5015" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
+<a href="https://ecology.ghislainv.fr" class="external-link">Ghislain Vieilledent</a> <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0002-1685-4997" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
 <li>Pierre Guillaumont <br><small class="roles"> Author </small>  </li>
+<li>
+<a href="https://jeanneclement.github.io/" class="external-link">Jeanne Clément</a> <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0002-5228-5015" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
 <li>
 <a href="https://www.researchgate.net/profile/Philippe-Birnbaum" class="external-link">Philippe Birnbaum</a> <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0003-4830-5500" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
 <li>
@@ -154,8 +170,6 @@
 <a href="https://www.researchgate.net/profile/Gaelle-Jaouen" class="external-link">Gaëlle Jaouen</a> <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0002-5655-9044" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
 <li>
 <a href="http://www.ecofog.gf/spip.php?article965" class="external-link">Clément Stahl</a> <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0001-5411-1169" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
-<li>
-<a href="https://ecology.ghislainv.fr" class="external-link">Ghislain Vieilledent</a> <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0002-1685-4997" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
 <li>
 <a href="https://www.labex-ceba.fr" class="external-link"><img src="https://ecology.ghislainv.fr/gecevar/articles/logos/Logo_CEBA_simple.jpg" height="24" style="height:24px;"></a> <br><small class="roles"> Funder </small>  </li>
 <li>
@@ -173,7 +187,7 @@
 
       <footer><div class="copyright">
   <p></p>
-<p>Developed by <a href="https://jeanneclement.github.io/" class="external-link">Jeanne Clément</a>, Pierre Guillaumont, <a href="https://www.researchgate.net/profile/Philippe-Birnbaum" class="external-link">Philippe Birnbaum</a>, <a href="https://www.researchgate.net/profile/Thomas-Ibanez" class="external-link">Thomas Ibanez</a>, <a href="https://www.researchgate.net/profile/Gaelle-Jaouen" class="external-link">Gaëlle Jaouen</a>, <a href="http://www.ecofog.gf/spip.php?article965" class="external-link">Clément Stahl</a>, <a href="https://ecology.ghislainv.fr" class="external-link">Ghislain Vieilledent</a>, <a href="https://www.labex-ceba.fr" class="external-link"><img src="https://ecology.ghislainv.fr/gecevar/articles/logos/Logo_CEBA_simple.jpg" height="24" style="height:24px;"></a>, <a href="https://cnrt.nc" class="external-link"><img src="https://ecology.ghislainv.fr/gecevar/articles/logos/Logo_CNRT.png" height="24" style="height:24px;"></a>, <a href="https://www.cirad.fr" class="external-link"><img src="https://ecology.ghislainv.fr/gecevar/articles/logos/logo-cirad.svg" height="24" style="height:24px;"></a>.</p>
+<p>Developed by <a href="https://ecology.ghislainv.fr" class="external-link">Ghislain Vieilledent</a>, Pierre Guillaumont, <a href="https://jeanneclement.github.io/" class="external-link">Jeanne Clément</a>, <a href="https://www.researchgate.net/profile/Philippe-Birnbaum" class="external-link">Philippe Birnbaum</a>, <a href="https://www.researchgate.net/profile/Thomas-Ibanez" class="external-link">Thomas Ibanez</a>, <a href="https://www.researchgate.net/profile/Gaelle-Jaouen" class="external-link">Gaëlle Jaouen</a>, <a href="http://www.ecofog.gf/spip.php?article965" class="external-link">Clément Stahl</a>, <a href="https://www.labex-ceba.fr" class="external-link"><img src="https://ecology.ghislainv.fr/gecevar/articles/logos/Logo_CEBA_simple.jpg" height="24" style="height:24px;"></a>, <a href="https://cnrt.nc" class="external-link"><img src="https://ecology.ghislainv.fr/gecevar/articles/logos/Logo_CNRT.png" height="24" style="height:24px;"></a>, <a href="https://www.cirad.fr" class="external-link"><img src="https://ecology.ghislainv.fr/gecevar/articles/logos/logo-cirad.svg" height="24" style="height:24px;"></a>.</p>
 </div>
 
 <div class="pkgdown">

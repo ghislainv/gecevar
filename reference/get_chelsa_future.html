@@ -69,8 +69,8 @@ Others variables are climatic water deficit with Thornthwaite, number of dry mon
 
     <div id="ref-usage">
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">get_chelsa_future</span><span class="op">(</span></span>
-<span>  <span class="va">extent</span>,</span>
 <span>  <span class="va">extent_latlon</span>,</span>
+<span>  <span class="va">extent_proj</span>,</span>
 <span>  <span class="va">EPSG</span>,</span>
 <span>  <span class="va">destination</span>,</span>
 <span>  resolution <span class="op">=</span> <span class="fl">1000</span>,</span>
@@ -83,12 +83,12 @@ Others variables are climatic water deficit with Thornthwaite, number of dry mon
 
     <div id="arguments">
     <h2>Arguments</h2>
-    <dl><dt>extent</dt>
-<dd><p>character. First output of <code>transform_shp_coutry_extent</code>.</p></dd>
+    <dl><dt>extent_latlon</dt>
+<dd><p>vector. First output of <code><a href="get_aoi_extent.html">get_aoi_extent()</a></code> function.</p></dd>
 
 
-<dt>extent_latlon</dt>
-<dd><p>character. Second output of <code>transfomr_shp_country_extent</code></p></dd>
+<dt>extent_proj</dt>
+<dd><p>vector. Second output of <code><a href="get_aoi_extent.html">get_aoi_extent()</a></code> function.</p></dd>
 
 
 <dt>EPSG</dt>
@@ -138,7 +138,7 @@ Others variables are climatic water deficit with Thornthwaite, number of dry mon
 
 
       <footer><div class="copyright">
-  <p></p><p>Developed by <a href="https://jeanneclement.github.io/" class="external-link">Jeanne Clément</a>, Pierre Guillaumont, <a href="https://www.researchgate.net/profile/Philippe-Birnbaum" class="external-link">Philippe Birnbaum</a>, <a href="https://www.researchgate.net/profile/Thomas-Ibanez" class="external-link">Thomas Ibanez</a>, <a href="https://www.researchgate.net/profile/Gaelle-Jaouen" class="external-link">Gaëlle Jaouen</a>, <a href="http://www.ecofog.gf/spip.php?article965" class="external-link">Clément Stahl</a>, <a href="https://ecology.ghislainv.fr" class="external-link">Ghislain Vieilledent</a>, <a href="https://www.labex-ceba.fr" class="external-link"><img src="https://ecology.ghislainv.fr/gecevar/articles/logos/Logo_CEBA_simple.jpg" height="24" style="height:24px;"></a>, <a href="https://cnrt.nc" class="external-link"><img src="https://ecology.ghislainv.fr/gecevar/articles/logos/Logo_CNRT.png" height="24" style="height:24px;"></a>, <a href="https://www.cirad.fr" class="external-link"><img src="https://ecology.ghislainv.fr/gecevar/articles/logos/logo-cirad.svg" height="24" style="height:24px;"></a>.</p>
+  <p></p><p>Developed by <a href="https://ecology.ghislainv.fr" class="external-link">Ghislain Vieilledent</a>, Pierre Guillaumont, <a href="https://jeanneclement.github.io/" class="external-link">Jeanne Clément</a>, <a href="https://www.researchgate.net/profile/Philippe-Birnbaum" class="external-link">Philippe Birnbaum</a>, <a href="https://www.researchgate.net/profile/Thomas-Ibanez" class="external-link">Thomas Ibanez</a>, <a href="https://www.researchgate.net/profile/Gaelle-Jaouen" class="external-link">Gaëlle Jaouen</a>, <a href="http://www.ecofog.gf/spip.php?article965" class="external-link">Clément Stahl</a>, <a href="https://www.labex-ceba.fr" class="external-link"><img src="https://ecology.ghislainv.fr/gecevar/articles/logos/Logo_CEBA_simple.jpg" height="24" style="height:24px;"></a>, <a href="https://cnrt.nc" class="external-link"><img src="https://ecology.ghislainv.fr/gecevar/articles/logos/Logo_CNRT.png" height="24" style="height:24px;"></a>, <a href="https://www.cirad.fr" class="external-link"><img src="https://ecology.ghislainv.fr/gecevar/articles/logos/logo-cirad.svg" height="24" style="height:24px;"></a>.</p>
 </div>
 
 <div class="pkgdown">

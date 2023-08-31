@@ -34,6 +34,9 @@
     <loc>/reference/create_xml_legend.html</loc>
   </url>
   <url>
+    <loc>/reference/get_aoi_extent.html</loc>
+  </url>
+  <url>
     <loc>/reference/get_chelsa_current.html</loc>
   </url>
   <url>
@@ -43,12 +46,12 @@
     <loc>/reference/get_env_variables.html</loc>
   </url>
   <url>
+    <loc>/reference/get_extents_from_e_latlon.html</loc>
+  </url>
+  <url>
     <loc>/reference/index.html</loc>
   </url>
   <url>
     <loc>/reference/merge_files.html</loc>
-  </url>
-  <url>
-    <loc>/reference/transform_shp_country_extent.html</loc>
   </url>
 </urlset>
