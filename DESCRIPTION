@@ -22,6 +22,9 @@ Authors@R: c(
   person("Clément", "Stahl", role="aut",
          email="clement.stahl@ecofog.gf",
          comment=c(ORCID = "0000-0001-5411-1169")),
+  person("Javier G.", "Corripio", role="ctb",
+         email="jgc@meteoexploration.com",
+	 comment=c(ORCID = "0000-0001-6994-4913")),
   person("CEBA", role=c("fnd")),
   person("CNRT", role=c("fnd")),
   person("Cirad", role=c("cph","fnd")))

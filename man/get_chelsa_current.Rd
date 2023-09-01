@@ -30,7 +30,7 @@ reference system to project the output raster file.}
 \item{destination}{character. Directory path for outputs.}
 
 \item{resol}{int. Resolution. If in meters, recommended
-resolution are 250m, 500m, 1km, 2km or 5km. The resolution needs
+resolutions are 250m, 500m, 1km, 2km or 5km. The resolution needs
 to be carefully chosen. If set too small (e.g. < 250m), raster
 file will be too big to fit in memory and R will crash. Default
 is 1km.}

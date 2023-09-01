@@ -1,46 +1,3 @@
-#' Get extents from e_latlong.
-#' 
-#' @param e_latlon num vector. Named vector of length 4, in this order c(lonmin,
-#'   latmin, lonmax, latmax).
-#'
-#' @param EPSG_proj int. EPSG code.
-#'
-#' @param resol num. Resolution used to align the extent.
-#' 
-#' @return list. With projected extent and latlon extent.
-#'
-#' @import sf
-#' @import terra
-get_extents_from_e_latlon <- function(e_latlon_orig, EPSG_proj, resol) {
-  
-  # e_proj from e_latlon_orig
-  e <- terra::ext(e_latlon_orig["lonmin"], e_latlon_orig["lonmax"],
-                  e_latlon_orig["latmin"], e_latlon_orig["latmax"])
-  e <- terra::as.polygons(e, crs="epsg:4326")
-  e_proj <- sf::st_bbox(terra::project(e, paste0("epsg:", EPSG_proj)))
-  xmin <- ifelse(EPSG_proj != 4326, floor(e_proj$xmin), floor(e_proj$xmin * 100) / 100)
-  ymax <- ifelse(EPSG_proj != 4326, ceiling(e_proj$ymax), ceiling(e_proj$ymax * 100) / 100)
-  
-  # tap
-  xmax <- xmin + ceiling((e_proj$xmax - xmin) / resol) * resol
-  ymin <- ymax - ceiling((ymax - e_proj$ymin) / resol) * resol
-  e_proj <- c(xmin, ymin, xmax, ymax)
-  names(e_proj) <- c("xmin", "ymin", "xmax", "ymax")
-  
-  # New e_latlon from e_proj to ensure that the extended aoi (cf. tap) is included in e_latlong.
-  e <- terra::ext(xmin, xmax, ymin, ymax)
-  e <- terra::as.polygons(e, crs=paste0("epsg:", EPSG_proj))
-  bbox <- sf::st_bbox(terra::project(e, "epsg:4326"))
-  
-  # Coordinates are extended to nearest 0.01 degree (about 1km).
-  e_latlon <- c(floor(bbox$xmin * 100) / 100, floor(bbox$ymin * 100) / 100,
-                ceiling(bbox$xmax * 100) / 100, ceiling(bbox$ymax * 100) / 100)
-  names(e_latlon) <- c("lonmin", "latmin", "lonmax", "latmax")
-  
-  return(list(e_proj=e_proj, e_latlon=e_latlon))
-  
-}
-
 #' Get the extent of an area of interest (AOI) in GDAL format (xmin,
 #' ymin, xmax, ymax).
 #'
@@ -104,6 +61,7 @@ get_extents_from_e_latlon <- function(e_latlon_orig, EPSG_proj, resol) {
 #' @importFrom utils download.file
 #' @import terra
 #' @export
+#' 
 get_aoi_extent <- function(country_iso=NULL,
                            vector_file=NULL,
                            extent_proj=NULL,
@@ -212,6 +170,50 @@ get_aoi_extent <- function(country_iso=NULL,
   # Return results
   return(list(extent_latlon=e_latlon, extent_proj=e_proj,
               extent_latlon_orig=e_latlon_orig, gpkg_file=gpkg_file))
+  
+}
+
+#' Get extents from e_latlong.
+#' 
+#' @param e_latlon_orig num vector. Named vector of length 4, in this order c(lonmin,
+#'   latmin, lonmax, latmax).
+#'
+#' @param EPSG_proj int. EPSG code.
+#'
+#' @param resol num. Resolution used to align the extent.
+#' 
+#' @return list. Projected extent and latlon extent.
+#'
+#' @import sf
+#' @import terra
+#' 
+get_extents_from_e_latlon <- function(e_latlon_orig, EPSG_proj, resol) {
+  
+  # e_proj from e_latlon_orig
+  e <- terra::ext(e_latlon_orig["lonmin"], e_latlon_orig["lonmax"],
+                  e_latlon_orig["latmin"], e_latlon_orig["latmax"])
+  e <- terra::as.polygons(e, crs="epsg:4326")
+  e_proj <- sf::st_bbox(terra::project(e, paste0("epsg:", EPSG_proj)))
+  xmin <- ifelse(EPSG_proj != 4326, floor(e_proj$xmin), floor(e_proj$xmin * 100) / 100)
+  ymax <- ifelse(EPSG_proj != 4326, ceiling(e_proj$ymax), ceiling(e_proj$ymax * 100) / 100)
+  
+  # tap
+  xmax <- xmin + ceiling((e_proj$xmax - xmin) / resol) * resol
+  ymin <- ymax - ceiling((ymax - e_proj$ymin) / resol) * resol
+  e_proj <- c(xmin, ymin, xmax, ymax)
+  names(e_proj) <- c("xmin", "ymin", "xmax", "ymax")
+  
+  # New e_latlon from e_proj to ensure that the extended aoi (cf. tap) is included in e_latlong.
+  e <- terra::ext(xmin, xmax, ymin, ymax)
+  e <- terra::as.polygons(e, crs=paste0("epsg:", EPSG_proj))
+  bbox <- sf::st_bbox(terra::project(e, "epsg:4326"))
+  
+  # Coordinates are extended to nearest 0.01 degree (about 1km).
+  e_latlon <- c(floor(bbox$xmin * 100) / 100, floor(bbox$ymin * 100) / 100,
+                ceiling(bbox$xmax * 100) / 100, ceiling(bbox$ymax * 100) / 100)
+  names(e_latlon) <- c("lonmin", "latmin", "lonmax", "latmax")
+  
+  return(list(e_proj=e_proj, e_latlon=e_latlon))
   
 }
 

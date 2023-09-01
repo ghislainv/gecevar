@@ -7,15 +7,15 @@
 get_extents_from_e_latlon(e_latlon_orig, EPSG_proj, resol)
 }
 \arguments{
+\item{e_latlon_orig}{num vector. Named vector of length 4, in this order c(lonmin,
+latmin, lonmax, latmax).}
+
 \item{EPSG_proj}{int. EPSG code.}
 
 \item{resol}{num. Resolution used to align the extent.}
-
-\item{e_latlon}{num vector. Named vector of length 4, in this order c(lonmin,
-latmin, lonmax, latmax).}
 }
 \value{
-list. With projected extent and latlon extent.
+list. Projected extent and latlon extent.
 }
 \description{
 Get extents from e_latlong.

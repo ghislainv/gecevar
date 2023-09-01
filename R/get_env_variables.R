@@ -84,8 +84,12 @@
 
 get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, destination,
                               resol = 1000, rm_download = FALSE, forest_year = 2010,
-                              gisBase = NULL){
+                              gisBase = NULL) {
 
+  # Round extent_latlon to nearest degree
+  extent_latlon_1d <- c(floor(extent_latlon["lonmin"]), floor(extent_latlon["latmin"]),
+                        ceiling(extent_latlon["lonmax"]), ceiling(extent_latlon["latmax"]))
+    
   # Transform extent_proj from vector to string
   extent_proj_string <- paste(extent_proj, collapse=" ")
 
@@ -106,33 +110,37 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
   dir.create(file.path(destination, "data_raw"), showWarnings = FALSE)
   dir.create(file.path(destination, "data_raw", "soilgrids250_v2_0"), showWarnings = FALSE)
   dir.create(file.path(destination, "data_raw", "soilgrids250_v2_0", "temp"), showWarnings = FALSE)
-  # file available only by 2° x 2° for soilgrids250
-  merge_lat <- "c("
-  for (i in extent_latlon[1]:extent_latlon[3]) # longitude
-  {
+  soilgrid_base_url <- paste0("https://maps.isric.org/mapserv?map=/map/wrb.map&SERVICE=WCS&VERSION=2.0.1",
+                              "&REQUEST=GetCoverage&COVERAGEID=MostProbable&FORMAT=image/tiff&SUBSET=long(")
+  soilgrid_end_url <- paste0(".0000)&SUBSETTINGCRS=http://www.opengis.net/def/crs/EPSG/0/4326&OUTPUTCRS=",
+                            "http://www.opengis.net/def/crs/EPSG/0/4326")
+  # Files need to be downloaded degree per degree for Soilgrids
+  # Loop on longitude
+  for (i in extent_latlon_1d[1]:extent_latlon_1d[3]) {
     alpha <- TRUE
-    for (j in extent_latlon[2]:extent_latlon[4]) # latitude
-    {
-      url = paste0("https://maps.isric.org/mapserv?map=/map/wrb.map&SERVICE=WCS&VERSION=2.0.1&REQUEST=GetCoverage&COVERAGEID=MostProbable&FORMAT=image/tiff&SUBSET=long(",i, ".0000,", i + 1, ".0000)&SUBSET=lat(", j, ".0000,", j + 1, ".0000)&SUBSETTINGCRS=http://www.opengis.net/def/crs/EPSG/0/4326&OUTPUTCRS=http://www.opengis.net/def/crs/EPSG/0/4326")
+    # Loop on latitude
+    for (j in extent_latlon_1d[2]:extent_latlon_1d[4]) {
+      url = paste0(soilgrid_base_url, i, ".0000,", i + 1, ".0000)&SUBSET=lat(", j, ".0000,", j + 1, soilgrid_end_url)
+      
       dest = file.path(destination, "data_raw", "soilgrids250_v2_0", "temp", paste0("soilgrids_", j, "_", i, ".tif"))
       download.file(url = url, destfile = dest, quiet = TRUE)
     }
   }
-  destfile <- file.path(destination, "data_raw", "soilgrids250_v2_0", "soilgrids.vrt")
+  vrtfile <- file.path(destination, "data_raw", "soilgrids250_v2_0", "soilgrids.vrt")
   file <- file(file.path(destination, "data_raw", "soilgrids250_v2_0", "temp", "files_list.txt"))
-  writeLines(list.files(file.path(destination, "data_raw", "soilgrids250_v2_0", "temp"), pattern = "soilgrids_", full.names = TRUE),
-             file)
+  writeLines(list.files(file.path(destination, "data_raw", "soilgrids250_v2_0", "temp"),
+                        pattern = "soilgrids_", full.names = TRUE), file)
   close(file)
 
   file_list <- file.path(destination, "data_raw", "soilgrids250_v2_0", "temp", "files_list.txt")
-  system(glue('gdalbuildvrt {destfile} -input_file_list {file_list}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
+  cmd <- glue('gdalbuildvrt {vrtfile} -input_file_list {file_list}')
+  system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
 
-  sourcefile <- destfile
-  destfile <- file.path(destination, "data_raw", "soilgrids250_v2_0", "soilgrids.tif")
-  system(glue('gdal_translate -of GTiff  -r bilinear {sourcefile} {destfile}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
-  in_file <-file.path(destination, "data_raw", "soilgrids250_v2_0", "soilgrids_res.tif")
-  system(glue('gdalwarp -tr {resol} {resol} -te {extent_proj_string} -s_srs {proj_s} -t_srs {proj_t} -overwrite {destfile} \\
-              -r mode {in_file}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
+  ofile <- file.path(destination, "data_raw", "soilgrids250_v2_0", "soilgrids_res.tif")
+  cmd <- glue("gdalwarp -tr {resol} {resol} -te {extent_proj_string} ",
+              "-s_srs {proj_s} -t_srs {proj_t} -overwrite {vrtfile} ",
+              "-r mode {ofile}")
+  system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
 
   ##==============================
   ##
@@ -150,8 +158,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
   lat <- stringr::str_pad(seq(tiles_srtm[1], tiles_srtm[3], 5) / 5 + 37, width = 2, pad = "0")
   lon <- stringr::str_pad(-seq(tiles_srtm[2], tiles_srtm[4], 5) / 5 + 13, width = 2, pad = "0")
   tiles <- NULL
-  for (i in lon)
-  {
+  for (i in lon) {
     tiles <- c(tiles, paste(lat, i, sep = "_"))
   }
 
@@ -165,50 +172,68 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
   }
 
   # Merge and Reproject with EPSG
-  sourcefile <- list.files(file.path(destination, "data_raw", "srtm_v1_4_90m", "temp"), pattern = "*.tif", full.names = TRUE)
-  file <- file(file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "sourcefilevrt.txt"))
+  sourcefile <- list.files(file.path(destination, "data_raw", "srtm_v1_4_90m", "temp"),
+                           pattern = "^srtm_.*\\.tif$", full.names = TRUE)
+  file <- file(file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "sourcefile_vrt.txt"))
   writeLines(sourcefile, file)
   close(file)
 
-  destfile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "srtm.vrt")
-  list_file <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "sourcefilevrt.txt")
-  system(glue('gdalbuildvrt {destfile} -vrtnodata {nodat} -input_file_list {list_file}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
-  system(glue('gdalwarp -overwrite -t_srs {proj_t} -tap -r bilinear -dstnodata {nodat} \\
-            -co "COMPRESS=LZW" -co "PREDICTOR=2" -te {extent_proj_string} -ot Int16 -of GTiff \\
-            -tr {resol / 2} {resol / 2} {destfile} {file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "elevation.tif")}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
+  vrtfile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "srtm.vrt")
+  list_file <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "sourcefile_vrt.txt")
+  cmd <- glue('gdalbuildvrt {vrtfile} -vrtnodata {nodat} -input_file_list {list_file}')
+  system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
+
+  ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "elevation.tif")
+  res_out <- 100 # resample at 100 m
+  cmd <- glue('gdalwarp -overwrite -t_srs {proj_t} -tap -r bilinear -dstnodata {nodat} ',
+              '-co "COMPRESS=LZW" -co "PREDICTOR=2" -te {extent_proj_string} -ot Int16 -of GTiff ',
+              '-tr {res_out} {res_out} {vrtfile} {ofile}')
+  system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
 
   ## Compute slope, aspect and roughness using gdaldem
   # compute slope
   in_f <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "elevation.tif")
   out_f <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "slope.tif")
-  system(glue('gdaldem slope {in_f} {out_f} -co "COMPRESS=LZW" -co "PREDICTOR=2"'), ignore.stdout = TRUE, ignore.stderr = TRUE)
+  cmd <- glue('gdaldem slope {in_f} {out_f} -co "COMPRESS=LZW" -co "PREDICTOR=2"')
+  system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
+  
   # compute aspect
   out_f <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "aspect.tif")
-  system(glue('gdaldem aspect {in_f} {out_f} -co "COMPRESS=LZW" -co "PREDICTOR=2"'), ignore.stdout = TRUE, ignore.stderr = TRUE)
+  cmd <- glue('gdaldem aspect {in_f} {out_f} -co "COMPRESS=LZW" -co "PREDICTOR=2"')
+  system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
+  
   # compute roughness
   out_f <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "roughness.tif")
-  system(glue('gdaldem roughness {in_f} {out_f} -co "COMPRESS=LZW" -co "PREDICTOR=2"'), ignore.stdout = TRUE, ignore.stderr = TRUE)
+  cmd <- glue('gdaldem roughness {in_f} {out_f} -co "COMPRESS=LZW" -co "PREDICTOR=2"')
+  system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
 
-  # Resolution from resolution/2 to chosen resolution using gdalwarp
+  # Resolution from res_out to chosen resolution using gdalwarp
   # elevation
   out_f <- file.path(destination, "data_raw", "srtm_v1_4_90m", "elevation_res.tif")
-  system(glue('gdalwarp -r bilinear -tr {resol} {resol} -ot Int16 -of GTiff -dstnodata {nodat} \\
-        -co "COMPRESS=LZW" -co "PREDICTOR=2" -overwrite {in_f} {out_f}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
+  cmd <- glue('gdalwarp -r bilinear -tr {resol} {resol} -ot Int16 -of GTiff -dstnodata {nodat} ',
+              '-co "COMPRESS=LZW" -co "PREDICTOR=2" -overwrite {in_f} {out_f}')
+  system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
+  
   # aspect
   in_f <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "aspect.tif")
   out_f <-file.path(destination, "data_raw", "srtm_v1_4_90m", "aspect_res.tif")
-  system(glue('gdalwarp -r bilinear -tr {resol} {resol} -ot Int16 -of GTiff -dstnodata {nodat} \\
-        -co "COMPRESS=LZW" -co "PREDICTOR=2" -overwrite {in_f} {out_f}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
+  cmd <- glue('gdalwarp -r bilinear -tr {resol} {resol} -ot Int16 -of GTiff -dstnodata {nodat} ',
+              '-co "COMPRESS=LZW" -co "PREDICTOR=2" -overwrite {in_f} {out_f}')
+  system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
+  
   # slope
   in_f <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "slope.tif")
   out_f <- file.path(destination, "data_raw", "srtm_v1_4_90m", "slope_res.tif")
-  system(glue('gdalwarp -r bilinear -tr {resol} {resol} -ot Int16 -of GTiff \\
-        -co "COMPRESS=LZW" -co "PREDICTOR=2" -overwrite {in_f} {out_f}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
+  cmd <- glue('gdalwarp -r bilinear -tr {resol} {resol} -ot Int16 -of GTiff ',
+              '-co "COMPRESS=LZW" -co "PREDICTOR=2" -overwrite {in_f} {out_f}')
+  system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
+  
   # roughness
   in_f <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "roughness.tif")
   out_f <- file.path(destination, "data_raw", "srtm_v1_4_90m", "roughness_res.tif")
-  system(glue('gdalwarp -r bilinear -tr {resol} {resol} -ot Int16 -of GTiff \\
-        -co "COMPRESS=LZW" -co "PREDICTOR=2" -overwrite {in_f} {out_f}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
+  cmd <- glue('gdalwarp -r bilinear -tr {resol} {resol} -ot Int16 -of GTiff ',
+              '-co "COMPRESS=LZW" -co "PREDICTOR=2" -overwrite {in_f} {out_f}')
+  system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
 
   ##==============================
   ##
@@ -227,36 +252,44 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
   if (is.null(gisBase)) {
     gisBase <- system("grass --config path", intern = TRUE)
   }
-  # set library path
-  wd <- getwd()
-  setwd(file.path(destination, "data_raw"))
+  # Set library path
   Sys.setenv(LD_LIBRARY_PATH = paste(file.path(gisBase, "lib"), Sys.getenv("LD_LIBRARY_PATH"), sep = ":"))
   # use a georeferenced raster
   elevation <- file.path(destination, "data_raw/srtm_v1_4_90m/temp/elevation.tif")
-  system(glue('grass -c {elevation} -e grassdata/environ'), ignore.stdout = TRUE, ignore.stderr = TRUE)
+  cmd <- glue('grass -c {elevation} -e {destination}/data_raw/grassdata/environ')
+  system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
   # connect to grass database
   rgrass::initGRASS(gisBase = gisBase,
-                    gisDbase = "grassdata", home = tempdir(),
+                    gisDbase = file.path(destination, "data_raw", "grassdata"), home = file.path(destination, "data_raw"),
                     location = "environ", mapset = "PERMANENT",
                     override = TRUE)
+  
   ## Import raster in grass
-  system(glue("r.in.gdal -e -o input={elevation} output=elevation"), ignore.stdout = TRUE, ignore.stderr = TRUE)
+  cmd <- glue("r.in.gdal -e -o input={elevation} output=elevation")
+  system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
   slope <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "slope.tif")
-  system(glue("r.in.gdal -e --o input={slope} output=slope"), ignore.stdout = TRUE, ignore.stderr = TRUE)
+  cmd <- glue("r.in.gdal -e --o input={slope} output=slope")
+  system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
   aspect <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "aspect.tif")
-  system(glue("r.in.gdal -e --o input={aspect} output=aspect"), ignore.stdout = TRUE, ignore.stderr = TRUE)
+  cmd <- glue("r.in.gdal -e --o input={aspect} output=aspect")
+  system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
+  
   # Compute radiation
-  system(glue("r.sun --overwrite --verbose elevation=elevation aspect=aspect slope=slope day=79 glob_rad=global_rad"), ignore.stdout = TRUE, ignore.stderr = TRUE)
+  cmd <- glue("r.sun --overwrite --verbose elevation=elevation aspect=aspect ",
+              "slope=slope day=79 glob_rad=global_rad")
+  system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
   # Export
-  system(glue("r.out.gdal -f --verbose --overwrite input=global_rad createopt='COMPRESS=LZW' nodata={nodat} \\
-  			 output={file.path(destination, 'data_raw', 'srtm_v1_4_90m', 'temp', 'srad.tif')} type=Int16"), ignore.stdout = TRUE, ignore.stderr = TRUE)
+  ofile <- file.path(destination, 'data_raw', 'srtm_v1_4_90m', 'temp', 'srad.tif')
+  cmd <- glue("r.out.gdal -f --verbose --overwrite input=global_rad ",
+              "createopt='COMPRESS=LZW' nodata={nodat} output={ofile} type=Int16")
+  system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
   # Resolution from 90m x 90m to chosen resolution using gdalwarp
-  # srad
   in_f <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "srad.tif")
   out_f <- file.path(destination, "data_raw", "srtm_v1_4_90m", "srad_res.tif")
-  system(glue('gdalwarp  -t_srs {proj_t} -dstnodata {nodat} \\
-        -r bilinear -tr {resol} {resol} -ot Int16 -of GTiff \\
-        -co "COMPRESS=LZW" -co "PREDICTOR=2" -overwrite {in_f} {out_f}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
+  cmd <- glue('gdalwarp -t_srs {proj_t} -dstnodata {nodat} ',
+              '-r bilinear -tr {resol} {resol} -ot Int16 -of GTiff ',
+              '-co "COMPRESS=LZW" -co "PREDICTOR=2" -overwrite {in_f} {out_f}')
+  system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
 
   ##===========================
   ##
@@ -264,7 +297,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
   ## if available
   ##===========================
 
-  forest = FALSE
+  forest <- FALSE
   continent_name <- countrycode::countrycode(sourcevar = country_name,
                                              origin = "country.name",
                                              destination = "continent")
@@ -276,29 +309,32 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
     dir.create(file.path(destination, "data_raw", "forestatrisk"), showWarnings = FALSE)
     url_far <- paste0("https://forestatrisk.cirad.fr/tropics/tif/fcc_123_", continent_short, "_aea.tif")
     destfile <- file.path(destination, "data_raw", "forestatrisk", "forest_nocrop.tif")
-    system(glue('gdal_translate -projwin {extent_latlon[1]} {extent_latlon[4]} {extent_latlon[3]} {extent_latlon[2]} -projwin_srs EPSG:4326 \\
-                /vsicurl/{url_far} -co "COMPRESS=LZW" -co "PREDICTOR=2" {destfile}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
+    cmd <- glue('gdal_translate -projwin {extent_latlon[1]} {extent_latlon[4]} {extent_latlon[3]} {extent_latlon[2]} ',
+                '-projwin_srs EPSG:4326 /vsicurl/{url_far} -co "COMPRESS=LZW" -co "PREDICTOR=2" {destfile}')
+    system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
+    
     sourcefile <- file.path(destination, "data_raw", "forestatrisk", "forest_nocrop.tif")
     destfile <- file.path(destination, "data_raw", "forestatrisk", "forest.tif")
-    system(glue("gdalwarp -overwrite -t_srs {proj_t} -r bilinear -tr {resol} {resol} -te {extent_proj_string} -ot Int16 -of GTiff \\
-        {sourcefile} {destfile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
+    cmd <- glue("gdalwarp -overwrite -t_srs {proj_t} -r bilinear -tr {resol} {resol} ",
+                "-te {extent_proj_string} -ot Int16 -of GTiff ",
+                "{sourcefile} {destfile}")
+    system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
+    
     unlink(file.path(destination, "data_raw", "forestatrisk", "forest_nocrop.tif"))
     forest_stars <- stars::read_stars(destfile)
-    if (forest_year == 2000){
+    if (forest_year == 2000) {
       # 1 is deforestation during 2000-2010
       forest_stars[[1]] <- forest_stars[[1]] >= 1
-    }else{
-      if (forest_year == 2010){
+    } else if (forest_year == 2010) {
         # 2 is deforestation during 2010-2020
         forest_stars[[1]] <- forest_stars[[1]] >= 2
-      }else{
+    } else {
         # 3 is forest in 2020
         forest_stars[[1]] <- forest_stars[[1]] == 3
-      }
     }
     stars::write_stars(forest_stars, dsn = destfile, update = TRUE, type = "Int16", options = c("COMPRESS=LZW", "PREDICTOR=2"))
     forest <- TRUE
-  }else{
+  } else{
     print("Forest layer is not available for your country")
   }
 
@@ -312,8 +348,9 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
     dir.create(file.path(destination, "data_raw", "distForest"), showWarnings = FALSE)
     sourcefile <- file.path(destination, "data_raw", "forestatrisk", "forest.tif")
     destfile <- file.path(destination, "data_raw", "distForest", "distForest.tif")
-    system(glue("gdal_proximity.py {sourcefile} {destfile} -ot Int16 -of GTiff -nodata {nodat} \\
-        -values {1} -distunits GEO -use_input_nodata NO "), ignore.stdout = TRUE, ignore.stderr = TRUE)
+    cmd <- glue("gdal_proximity.py {sourcefile} {destfile} -ot Int16 -of GTiff -nodata {nodat} ",
+         "-values {1} -distunits GEO -use_input_nodata NO")
+    system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
   }
 
   ##===========================
@@ -323,13 +360,14 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
   ##===========================
 
   dir.create(file.path(destination, "data_raw", "distSea"), showWarnings = FALSE)
-  seaBool <- stars::read_stars(file.path(destination, "data_raw", "srtm_v1_4_90m", "srad_res.tif")) == nodat
+  seaBool <- (stars::read_stars(file.path(destination, "data_raw", "srtm_v1_4_90m", "srad_res.tif")) == nodat)
   stars::write_stars(seaBool, options = c("COMPRESS=LZW", "PREDICTOR=2"), NA_value = nodat,
                      dsn = file.path(destination, "data_raw", "distSea", "Sea_resBool.tif"))
   sourcefile <- file.path(destination, "data_raw", "distSea", "Sea_resBool.tif")
   destfile <- file.path(destination, "data_raw", "distSea", "distSea.tif")
-  system(glue("gdal_proximity.py -ot Int16 -of GTiff -nodata {nodat} \\
-        -values {nodat} -distunits GEO -use_input_nodata NO {sourcefile} {destfile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
+  cmd <- glue("gdal_proximity.py -ot Int16 -of GTiff -nodata {nodat} ",
+              "-values {nodat} -distunits GEO -use_input_nodata NO {sourcefile} {destfile}")
+  system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
   distSea <- stars::read_stars(file.path(destination, "data_raw", "distSea", "distSea.tif"))
   distSea[[1]][distSea[[1]] == 0] <- NA
   stars::write_stars(distSea, file.path(destination, "data_raw", "distSea", "distSea.tif"), NA_value = nodat,
@@ -344,26 +382,33 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
   ##
   ##=========================
 
+  ## /!\ This needs to be rewritten using a wdpa token and something like worlpa https://frbcesab.github.io/worldpa/
+  
   dir.create(file.path(destination, "data_raw", "WDPA"), showWarnings = FALSE)
-  dir.create(file.path(destination, "data_raw", "WDPA", "temp"), showWarnings = FALSE)
-  # Date in english
-  Sys.setlocale("LC_TIME", "C")
-  date <- stringr::str_remove(stringr::str_to_title(format(Sys.Date(), format = "%b%Y")), "\\.")
-  Sys.setlocale("LC_TIME", "")
-  httr::POST(url = "https://www.protectedplanet.net/downloads", encode = "json", body = list("domain" = "general", "format" = "gdb", "token" = ISO_country_code))
-  retry::wait_until(RCurl::url.exists(paste0("https://d1gam3xoknrgr2.cloudfront.net/current/WDPA_WDOECM_", date, "_Public_", ISO_country_code, ".zip")), timeout = 60)
-  download.file(paste0("https://d1gam3xoknrgr2.cloudfront.net/current/WDPA_WDOECM_", date, "_Public_", ISO_country_code, ".zip"),
-                destfile = file.path(destination, "data_raw", "WDPA","temp", paste0("WDPA_WDOECM_", date,"_Public_", ISO_country_code, ".zip")),
-                method = 'auto', mode = "wb", quiet = TRUE)
-  unzip(file.path(destination, "data_raw", "WDPA","temp", paste0("WDPA_WDOECM_", date,"_Public_", ISO_country_code, ".zip")),
-        exdir = file.path(destination, 'data_raw', 'WDPA', 'temp'))
-  WDPA <- terra::vect(file.path(destination, "data_raw", "WDPA", "temp", paste0("WDPA_WDOECM_", date, "_Public_", ISO_country_code, ".gdb/")), layer = paste0("WDPA_WDOECM_poly_", date, "_", ISO_country_code))
-  WDPA <- sf::st_as_sf(WDPA)[3]
-  WDPA <- sf::st_transform(WDPA, EPSG)
-  WDPA <- stars::st_rasterize(WDPA, dx = resol, dy = resol)
-  WDPA[[1]] <- WDPA[[1]] != 0
-  stars::write_stars(WDPA, options = c("COMPRESS=LZW", "PREDICTOR=2"), NA_value = nodat,
-                     dsn = file.path(destination, "data_raw", "WDPA", "WDPA_resBool.tif"))
+  ## dir.create(file.path(destination, "data_raw", "WDPA", "temp"), showWarnings = FALSE)
+  ## # Date in english
+  ## Sys.setlocale("LC_TIME", "C")
+  ## date <- stringr::str_remove(stringr::str_to_title(format(Sys.Date(), format = "%b%Y")), "\\.")
+  ## Sys.setlocale("LC_TIME", "")
+  ## httr::POST(url = "https://www.protectedplanet.net/downloads", encode = "json", body = list("domain" = "general", "format" = "gdb", "token" = ISO_country_code))
+  ## retry::wait_until(RCurl::url.exists(paste0("https://d1gam3xoknrgr2.cloudfront.net/current/WDPA_WDOECM_", date, "_Public_", ISO_country_code, ".zip")), timeout = 60)
+  ## download.file(paste0("https://d1gam3xoknrgr2.cloudfront.net/current/WDPA_WDOECM_", date, "_Public_", ISO_country_code, ".zip"),
+  ##               destfile = file.path(destination, "data_raw", "WDPA","temp", paste0("WDPA_WDOECM_", date,"_Public_", ISO_country_code, ".zip")),
+  ##               method = 'auto', mode = "wb", quiet = TRUE)
+  ## unzip(file.path(destination, "data_raw", "WDPA","temp", paste0("WDPA_WDOECM_", date,"_Public_", ISO_country_code, ".zip")),
+  ##       exdir = file.path(destination, 'data_raw', 'WDPA', 'temp'))
+  ## WDPA <- terra::vect(file.path(destination, "data_raw", "WDPA", "temp", paste0("WDPA_WDOECM_", date, "_Public_", ISO_country_code, ".gdb/")), layer = paste0("WDPA_WDOECM_poly_", date, "_", ISO_country_code))
+  ## WDPA <- sf::st_as_sf(WDPA)[3]
+  ## WDPA <- sf::st_transform(WDPA, EPSG)
+  ## WDPA <- stars::st_rasterize(WDPA, dx = resol, dy = resol)
+  ## WDPA[[1]] <- WDPA[[1]] != 0
+  ## stars::write_stars(WDPA, options = c("COMPRESS=LZW", "PREDICTOR=2"), NA_value = nodat,
+  ##                    dsn = file.path(destination, "data_raw", "WDPA", "WDPA_resBool.tif"))
+
+  # Temporary
+  ifile <- file.path(destination, "data_raw", "soilgrids250_v2_0", "soilgrids_res.tif")
+  ofile <- file.path(destination, "data_raw", "WDPA", "WDPA_resBool.tif")
+  file.copy(ifile, ofile)
 
   ##=========================
   ##
@@ -371,8 +416,8 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
   ##
   ##=========================
 
-  dir.create(file.path(destination, "data_raw", "OSM"), showWarnings = FALSE)
-  dir.create(file.path(destination, "data_raw", "OSM", "temp"), showWarnings = FALSE)
+  # Download data with osmextract
+  dir.create(file.path(destination, "data_raw", "OSM", "temp"), recursive = TRUE, showWarnings = FALSE)
   osm_country <- osmextract::oe_match(country_name, quiet = TRUE)
   osmextract::oe_download(file_url = osm_country$url,
                           file_size = osm_country$file_size,
@@ -381,53 +426,78 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
                           download_directory = file.path(destination, "data_raw", "OSM", "temp"),
                           quiet = TRUE)
 
-  download_file <- list.files(file.path(destination, "data_raw", "OSM", "temp"), pattern = "osm.pbf", full.names = TRUE)
+  # Convert .osm.pbf to .5m
+  download_file <- list.files(file.path(destination, "data_raw", "OSM", "temp"), pattern = "^.*\\.osm\\.pbf$", full.names = TRUE)
+  destfile <- paste0(substring(download_file, 1, nchar(download_file) - 8), ".o5m")
+  cmd <- glue("osmconvert {download_file} -o={destfile}")
+  system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
+
+  # Features
   type_object <- c("lines", "points", "lines", "multipolygons", "multipolygons")
   file_name <- c("roads", "place", "river", "lake", "reservoir")
   osm_key <- c("highway", "place", "waterway", "natural", "natural")
-  osm_value <- c( 'highway=motorway or highway=trunk or highway=primary or highway=secondary or highway=primary_link or highway=secondary_link or highway=tertiary or highway=motorway_link)',
-                  'place=city or place=town or place=village',
-                  'waterway=river',
-                  'water=lake',
-                  'water=reservoir and reservoir_type!=sewage and reservoir_type!=water_storage')
-  destfile <- paste0(substring(download_file, 1, nchar(download_file) - 8), ".o5m")
-  system(glue('osmconvert {download_file} -o={destfile}'))
-  for (i in 1:length(osm_key))
-  {
+  osm_value <- c(paste0("highway=motorway or highway=trunk or highway=primary or highway=secondary ",
+                        "or highway=primary_link or highway=secondary_link or highway=tertiary or highway=motorway_link"),
+                 "place=city or place=town or place=village",
+                 "waterway=river",
+                 "water=lake",
+                 "water=reservoir and reservoir_type!=sewage and reservoir_type!=water_storage")
+
+  # Loop on features
+  for (i in 1:length(file_name)) {
     osm_file <- file.path(destination, "data_raw", "OSM" , "temp", paste0(file_name[i], ".osm"))
     shpfile  <- file.path(destination, "data_raw", "OSM" , "temp", paste0(file_name[i], "NoProj.shp"))
     projshp  <- file.path(destination, "data_raw", "OSM" , "temp", paste0(file_name[i], ".shp"))
     file.tif <- file.path(destination, "data_raw", "OSM" , "temp", paste0(file_name[i], ".tif"))
     distance.tif <- file.path(destination, "data_raw", "OSM", paste0(file_name[i], "distance", ".tif"))
     distance_res.tif <- file.path(destination, "data_raw", "OSM", paste0(file_name[i], "distance_res.tif"))
-    system(glue("osmfilter {destfile}  --keep='{osm_value[i]}' > {osm_file}"))
-    system(glue("ogr2ogr -overwrite -skipfailures -f 'ESRI Shapefile' -progress \\
-              -sql 'SELECT osm_id, name,{osm_key[i]}  FROM {type_object[i]} WHERE {osm_key[i]} IS NOT NULL' \\
-              -lco ENCODING=UTF-8  {shpfile} {osm_file}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
-    system(glue("ogr2ogr -overwrite -s_srs EPSG:4326 -t_srs {proj_t} -f 'ESRI Shapefile' \\
-              -lco ENCODING=UTF-8 {projshp} {shpfile} "), ignore.stdout = TRUE, ignore.stderr = TRUE)
-    system(glue("gdal_rasterize  {projshp} -te {extent_proj_string} -tap -burn 1 -co 'COMPRESS=LZW' -co 'PREDICTOR=2' \\
-              -ot Byte -of GTiff -a_nodata {nodat} -a_srs {proj_t} -tr 100 100 {file.tif}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
-    system(glue("gdal_proximity.py {file.tif} {distance.tif} -f -overwrite -co 'COMPRESS=LZW' -co 'PREDICTOR=2' \\
-              -values 1 -ot Int16 -of GTiff -distunits GEO -use_input_nodata NO"), ignore.stdout = TRUE, ignore.stderr = TRUE)
-    system(glue("gdalwarp -overwrite -r average -tr {resol} {resol} -ot Int16 -srcnodata {nodat} -of GTiff \\
-              -dstnodata {nodat} {distance.tif} {distance_res.tif}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
+
+    # Filter
+    cmd <- glue("osmfilter {destfile}  --keep='{osm_value[i]}' > {osm_file}")
+    # /!\ here, ignore.stdout must be set to FALSE, otherwise osmfilter is not working properly
+    STD_OUT <- FALSE
+    system(cmd, ignore.stdout = STD_OUT, ignore.stderr = TRUE)
+
+    # Convert to shp with ogr2ogr
+    cmd <- glue("ogr2ogr -overwrite -skipfailures -f 'ESRI Shapefile' -progress ",
+                "-sql 'SELECT osm_id, name,{osm_key[i]} FROM {type_object[i]} WHERE {osm_key[i]} IS NOT NULL' ",
+                "-lco ENCODING=UTF-8 {shpfile} {osm_file}")
+    system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
+
+    # Reproject
+    cmd <- glue("ogr2ogr -overwrite -s_srs EPSG:4326 -t_srs {proj_t} -f 'ESRI Shapefile' ",
+                "-lco ENCODING=UTF-8 {projshp} {shpfile}")
+    system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
+
+    # Rasterize at 100m
+    cmd <- glue("gdal_rasterize  {projshp} -te {extent_proj_string} -tap -burn 1 ",
+                "-co 'COMPRESS=LZW' -co 'PREDICTOR=2' ",
+                "-ot Byte -of GTiff -a_nodata {nodat} -a_srs {proj_t} -tr 100 100 {file.tif}")
+    system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
+
+    # Computes distances
+    cmd <- glue("gdal_proximity.py {file.tif} {distance.tif} -f -overwrite -co 'COMPRESS=LZW' -co 'PREDICTOR=2' ",
+                "-values 1 -ot Int16 -of GTiff -distunits GEO -use_input_nodata NO")
+    system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
+
+    # Resample at the requested resolution computing the average
+    cmd <- glue("gdalwarp -overwrite -r average -tr {resol} {resol} -ot Int16 -srcnodata {nodat} -of GTiff ",
+                "-dstnodata {nodat} {distance.tif} {distance_res.tif}")
+    system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
   }
 
-  file.remove(list.files(file.path(destination, "data_raw", "OSM"), pattern = "distance.tif", full.names = TRUE)) # delete temporary files
-  water <- paste("lake", "reservoir", "river", sep = "|")
   watering_place <- list.files(file.path(destination, "data_raw","OSM"),
-                               pattern = water, full.names = TRUE)
+                               pattern = "^(lake|reservoir|river)distance_res\\.tif$", full.names = TRUE)
   dim_matrix <- dim(stars::read_stars(watering_place[1])[[1]])[1]
   watering_place_dist.tif <- stars::read_stars(watering_place[1])
   watering_place_dist.tif[[1]] <- pmin(stars::read_stars(watering_place[1])[[1]],
                                        stars::read_stars(watering_place[2])[[1]],
                                        stars::read_stars(watering_place[3])[[1]])
   stars::write_stars(watering_place_dist.tif, file.path(destination, "data_raw", "OSM", "wateringplacedistance_res.tif"))
-  file.remove(list.files(file.path(destination, "data_raw","OSM"), pattern = water, full.names = TRUE))
 
-  for (j in list.files(path = file.path(destination, "data_raw","OSM"), pattern = ".tif", full.names = TRUE))
-  {
+  file_names <- list.files(path = file.path(destination, "data_raw","OSM"),
+                           pattern = "^(roads|place|wateringplace).*_res\\.tif$", full.names = TRUE)
+  for (j in file_names) {
     osm_dist <- sf::st_crop(stars::read_stars(j), sf::st_as_sf(seaBool))
     stars::write_stars(osm_dist, j, options = c("COMPRESS=LZW","PREDICTOR=2"))
   }
@@ -443,11 +513,13 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
 
   dest <- file.path(destination, "data_raw", "world_pop", "temp", paste0(ISO_country_code, "_pop.tif"))
   # url depends of the chosen country (different for New Caledonia or Madagascar)
-  URL_maxar_v1 <- paste0("https://data.worldpop.org/GIS/Population/Global_2000_2020_Constrained/2020/maxar_v1/",ISO_country_code, "/",tolower(ISO_country_code),"_ppp_2020_UNadj_constrained.tif")
-  URL_BSGM <- paste0("https://data.worldpop.org/GIS/Population/Global_2000_2020_Constrained/2020/BSGM/",ISO_country_code, "/",tolower(ISO_country_code),"_ppp_2020_UNadj_constrained.tif")
-  if (RCurl::url.exists(URL_maxar_v1)){
+  URL_maxar_v1 <- paste0("https://data.worldpop.org/GIS/Population/Global_2000_2020_Constrained/2020/maxar_v1/",
+                         ISO_country_code, "/",tolower(ISO_country_code),"_ppp_2020_UNadj_constrained.tif")
+  URL_BSGM <- paste0("https://data.worldpop.org/GIS/Population/Global_2000_2020_Constrained/2020/BSGM/",
+                     ISO_country_code, "/",tolower(ISO_country_code),"_ppp_2020_UNadj_constrained.tif")
+  if (RCurl::url.exists(URL_maxar_v1)) {
     download.file(URL_maxar_v1, destfile = dest, quiet = TRUE)
-  }else{
+  } else {
     download.file(URL_BSGM, destfile = dest, quiet = TRUE)
   }
   # unit set to pop/km²
@@ -456,8 +528,10 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
                      gdal = c("COMPRESS=LZW","PREDICTOR=2"), progress = 0, overwrite = TRUE, datatype = "INT2S")
   sourcefile <- file.path(destination, "data_raw", "world_pop", "temp", paste0(ISO_country_code, "_pop_km.tif"))
   destfile <- file.path(destination, "data_raw", "world_pop", paste0(ISO_country_code, "_pop_res.tif"))
-  system(glue('gdalwarp -tr {resol} {resol} -te {extent_proj} -s_srs {proj_s} -t_srs {proj_t}  \\
-              -r bilinear -ot Int16 -overwrite -srcnodata -32768 -dstnodata -32768 {sourcefile} {destfile}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
+  
+  cmd <- glue("gdalwarp -tr {resol} {resol} -te {extent_proj_string} -s_srs {proj_s} -t_srs {proj_t} ",
+              "-r bilinear -ot Int16 -overwrite -srcnodata -32768 -dstnodata -32768 {sourcefile} {destfile}")
+  system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
 
   ##=====================================
   ##
@@ -465,62 +539,55 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
   ##
   ##=====================================
 
-  if (forest){
-    destfile <- file.path(destination, "data_raw", "environ_no_name.tif")
-    aspect_file <- file.path(destination, "data_raw", "srtm_v1_4_90m", "aspect_res.tif")
-    elevation_file <- file.path(destination, "data_raw", "srtm_v1_4_90m", "elevation_res.tif")
-    roughness_file <- file.path(destination, "data_raw", "srtm_v1_4_90m", "roughness_res.tif")
-    slope_file <- file.path(destination, "data_raw", "srtm_v1_4_90m", "slope_res.tif")
-    srad_file <- file.path(destination, "data_raw", "srtm_v1_4_90m", "srad_res.tif")
-    soilgrid_file <- file.path(destination, "data_raw", "soilgrids250_v2_0", "soilgrids_res.tif")
+  aspect_file <- file.path(destination, "data_raw", "srtm_v1_4_90m", "aspect_res.tif")
+  elevation_file <- file.path(destination, "data_raw", "srtm_v1_4_90m", "elevation_res.tif")
+  roughness_file <- file.path(destination, "data_raw", "srtm_v1_4_90m", "roughness_res.tif")
+  slope_file <- file.path(destination, "data_raw", "srtm_v1_4_90m", "slope_res.tif")
+  srad_file <- file.path(destination, "data_raw", "srtm_v1_4_90m", "srad_res.tif")
+  soilgrids_file <- file.path(destination, "data_raw", "soilgrids250_v2_0", "soilgrids_res.tif")
+  dist_sea_file <- file.path(destination, "data_raw", "distSea", "distSea.tif")
+  dist_road_file <- file.path(destination, "data_raw", "OSM", "roadsdistance_res.tif")
+  dist_place_file <- file.path(destination, "data_raw", "OSM", "placedistance_res.tif")
+  dist_water_file <- file.path(destination, "data_raw", "OSM", "wateringplacedistance_res.tif")
+  wdpa_file <- file.path(destination, "data_raw", "WDPA", "WDPA_resBool.tif")
+  population_file <- file.path(destination, "data_raw", "world_pop", paste0(ISO_country_code, "_pop_res.tif"))
+  file_paths <- c(aspect_file, elevation_file, roughness_file,
+                  slope_file, srad_file, soilgrids_file,
+                  dist_sea_file, dist_road_file, dist_place_file,
+                  dist_water_file, wdpa_file, population_file)
+  file_paths <- paste(file_paths, collapse=" ")
+  layer_names <- c("aspect", "elevation", "roughness", "slope", "srad", "soilgrids",
+                   "dist_sea", "dist_road", "dist_place", "dist_water", "wdpa", "population")
+
+  if (forest) {
+    # Additional files for forest
     forest_file <- file.path(destination, "data_raw", "forestatrisk", "forest.tif")
-    distforest_file <- file.path(destination, "data_raw", "distForest", "distForest.tif")
-    distSea_file <- file.path(destination, "data_raw", "distSea", "distSea.tif")
-    distroad_file <- file.path(destination, "data_raw", "OSM", "roadsdistance_res.tif")
-    distplace_file <- file.path(destination, "data_raw", "OSM", "placedistance_res.tif")
-    distwater_file <- file.path(destination, "data_raw", "OSM", "wateringplacedistance_res.tif")
-    wdpa_file <- file.path(destination, "data_raw", "WDPA", "WDPA_resBool.tif")
-    pop_file <- file.path(destination, "data_raw", "world_pop", paste0(ISO_country_code, "_pop_res.tif"))
-    system(glue('gdal_merge.py -ot Int16 -of GTiff -o {destfile} -a_nodata {nodat} -separate \\
-            -co "COMPRESS=LZW" -co "PREDICTOR=2" \\
-            {aspect_file} {elevation_file} {roughness_file} {slope_file} \\
-            {srad_file} {soilgrid_file} {forest_file} {distforest_file} \\
-            {distSea_file} {distroad_file} {distplace_file} {distwater_file} \\
-            {wdpa_file} {pop_file}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
-    environ <- terra::rast(file.path(destination, "data_raw", "environ_no_name.tif"))
-    names(environ) <- c( "aspect", "elevation", "roughness", "slope", "srad", "soilgrids", "forest", "distanceForest",
-                         "dist_sea", "dist_road", "dist_place", "dist_water", "WDPA", "population")
-  }else{
-    destfile <- file.path(destination, "data_raw", "environ_no_name.tif")
-    aspect_file <- file.path(destination, "data_raw", "srtm_v1_4_90m", "aspect_res.tif")
-    elevation_file <- file.path(destination, "data_raw", "srtm_v1_4_90m", "elevation_res.tif")
-    roughness_file <- file.path(destination, "data_raw", "srtm_v1_4_90m", "roughness_res.tif")
-    slope_file <- file.path(destination, "data_raw", "srtm_v1_4_90m", "slope_res.tif")
-    srad_file <- file.path(destination, "data_raw", "srtm_v1_4_90m", "srad_res.tif")
-    soilgrid_file <- file.path(destination, "data_raw", "soilgrids250_v2_0", "soilgrids_res.tif")
-    distSea_file <- file.path(destination, "data_raw", "distSea", "distSea.tif")
-    distroad_file <- file.path(destination, "data_raw", "OSM", "roadsdistance_res.tif")
-    distplace_file <- file.path(destination, "data_raw", "OSM", "placedistance_res.tif")
-    distwater_file <- file.path(destination, "data_raw", "OSM", "wateringplacedistance_res.tif")
-    wdpa_file <- file.path(destination, "data_raw", "WDPA", "WDPA_resBool.tif")
-    pop_file <- file.path(destination, "data_raw", "world_pop", paste0(ISO_country_code, "_pop_res.tif"))
-    system(glue('gdal_merge.py -ot Int16 -of GTiff -o {file.path(destination, "data_raw", "environ_no_name.tif")} -a_nodata {nodat} -separate \\
-            -co "COMPRESS=LZW" -co "PREDICTOR=2" \\
-            {aspect_file} {elevation_file} {roughness_file} {slope_file} \\
-            {srad_file} {soilgrid_file} {distSea_file} {distroad_file} \\
-            {distplace_file} {distwater_file} {wdpa_file} {pop_file}'),
-           ignore.stdout = TRUE, ignore.stderr = TRUE)
-    environ <- terra::rast(file.path(destination, "data_raw", "environ_no_name.tif"))
-    names(environ) <- c( "aspect", "elevation", "roughness", "slope", "srad", "soilgrids",
-                         "dist_sea", "dist_road", "dist_place", "dist_water", "WDPA", "population")
+    dist_forest_file <- file.path(destination, "data_raw", "distForest", "distForest.tif")
+    file_paths <- c(aspect_file, elevation_file, roughness_file,
+                    slope_file, srad_file, soilgrids_file,
+                    forest_file, dist_forest_file, dist_sea_file,
+                    dist_road_file, dist_place_file, dist_water_file,
+                    wdpa_file, population_file)
+    file_paths <- paste(file_paths, collapse=" ")
+    layer_names <- c("aspect", "elevation", "roughness", "slope", "srad", "soilgrids", "forest", "dist_forest",
+                     "dist_sea", "dist_road", "dist_place", "dist_water", "wdpa", "population")
   }
 
+  ofile <- file.path(destination, "data_raw", "environ_no_name.tif")
+  cmd <- glue("gdal_merge.py -ot Int16 -of GTiff -o {ofile} -a_nodata {nodat} -separate ",
+              "-co 'COMPRESS=LZW' -co 'PREDICTOR=2' {file_paths}")
+  system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
+  
+  environ <- terra::rast(file.path(destination, "data_raw", "environ_no_name.tif"))
+  names(environ) <- layer_names
   terra::writeRaster(environ, filename = file.path(destination, "data_raw", "environ_nocrop.tif"),
-                     gdal = c("COMPRESS=LZW","PREDICTOR=2"), progress = 0, overwrite = TRUE, datatype = "INT2S")
+                     gdal = c("COMPRESS=LZW", "PREDICTOR=2"), progress = 0, overwrite = TRUE, datatype = "INT2S")
+  
   sourcefile <- file.path(destination, 'data_raw', 'environ_nocrop.tif')
   destfile <- file.path(destination, 'data_raw', 'environ.tif')
-  system(glue("gdal_translate -projwin {extent_proj[1]} {extent_proj[4]} {extent_proj[3]} {extent_proj[2]} -projwin_srs {proj_t} {sourcefile} \\
-              {destfile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
+  cmd <- glue("gdal_translate -projwin {extent_proj[1]} {extent_proj[4]} {extent_proj[3]} {extent_proj[2]} ",
+              "-projwin_srs {proj_t} {sourcefile} {destfile}")
+  system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
 
   unique_values <- unique(c(values(rast(file.path(destination, "data_raw", "environ.tif"))[[6]])))
   create_xml_legend(unique_values = unique_values, destination = file.path(destination, "data_raw"), name_file = "environ")
@@ -528,7 +595,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
   unlink(file.path(destination, "data_raw", "environ_nocrop.tif"), recursive = TRUE)
   unlink(file.path(destination, "data_raw", "environ_no_name.tif"), recursive = TRUE)
 
-  if (rm_download){
+  if (rm_download) {
     unlink(file.path(destination, "data_raw", "distSea"), recursive = TRUE)
     unlink(file.path(destination, "data_raw", "grassdata"), recursive = TRUE)
     unlink(file.path(destination, "data_raw", "OSM"), recursive = TRUE)
@@ -539,9 +606,10 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
     unlink(file.path(destination, "data_raw", "distForest"), recursive = TRUE)
     unlink(file.path(destination, "data_raw", "world_pop"), recursive = TRUE)
   }
-  # Restore original working directory
-  setwd(wd)
+  
+  # Return absolute path of environ.tif 
   return(file.path(destination, "data_raw", "environ.tif"))
+
 }
 
 # End

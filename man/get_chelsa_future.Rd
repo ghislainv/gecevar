@@ -2,14 +2,15 @@
 % Please edit documentation in R/get_chelsa_future.R
 \name{get_chelsa_future}
 \alias{get_chelsa_future}
-\title{Create several multilayer Tiff files with 81 variables from chelsa-climate.org with future climat variables.}
+\title{Create several multilayer Tiff files with 81 variables from
+chelsa-climate.org with future climat variables.}
 \usage{
 get_chelsa_future(
   extent_latlon,
   extent_proj,
   EPSG,
   destination,
-  resolution = 1000,
+  resol = 1000,
   phase = "2071-2100",
   GCM = c("GFDL-ESM4", "IPSL-CM6A-LR", "MPI-ESM1-2-HR", "MRI-ESM2-0", "UKESM1-0-LL"),
   SSP = 585,
@@ -23,30 +24,47 @@ get_chelsa_future(
 
 \item{EPSG}{int. to consider for this country/area.}
 
-\item{destination}{character. absolute path where to download files like \code{here()} output.}
+\item{destination}{character. absolute path where to download files
+like \code{here()} output.}
 
-\item{resolution}{int. in meters, recommended resolution are 250m, 500m, 1km, 2km or 5km, default is 1km. See more in details.}
+\item{resol}{int. Resolution. If in meters, recommended resolutions
+are 250m, 500m, 1km, 2km or 5km. The resolution needs to be
+carefully chosen. If set too small (e.g. < 250m), raster file
+will be too big to fit in memory and R will crash. Default is
+1km.}
 
-\item{phase}{character. Must be in c("2041-2070", "2071-2100") match to years to download, default is "2071-2100".}
+\item{phase}{character. Must be in c("2041-2070", "2071-2100")
+match to years to download, default is "2071-2100".}
 
-\item{GCM}{character.  Global Climatic Models considered. Must be in c("GFDL-ESM4", "IPSL-CM6A-LR", "MPI-ESM1-2-HR", "MRI-ESM2-0", "UKESM1-0-LL"). By default climate simulated by the five GCMs are downloaded.}
+\item{GCM}{character. Global Climatic Models considered. Must be
+in c("GFDL-ESM4", "IPSL-CM6A-LR", "MPI-ESM1-2-HR", "MRI-ESM2-0",
+"UKESM1-0-LL"). By default climate simulated by the five GCMs are
+downloaded.}
 
-\item{SSP}{character or int. Scenario specifier must be in c(126, 370, 585). Corresponding to the the Shared Socio-economic Pathways you want to download, default is 585 for SSP5-RCP8.5 climate as simulated by the GCMs.}
+\item{SSP}{character or int. Scenario specifier must be in c(126,
+370, 585). Corresponding to the the Shared Socio-economic
+Pathways you want to download, default is 585 for SSP5-RCP8.5
+climate as simulated by the GCMs.}
 
-\item{rm_download}{boolean. If TRUE remove download files and folders. Keep only future_chelsa.tif in \code{data_raw} folder, default is FALSE.}
+\item{rm_download}{boolean. If TRUE remove download files and
+folders. Keep only future_chelsa.tif in \code{data_raw} folder,
+default is FALSE.}
 }
 \value{
 character. absolute path to future_chelsa.tif.
 }
 \description{
-Gives predictions on future values for the choosen phase. Prediction are from multiple models (GFDL-ESM4, IPSL-CM6A-LR, MPI-ESM1-2-HR, MRI-ESM2-0, UKESM1-0-LL).
-Creates folder for each model and a folder with mean of this five models.
-Monthly variables are average temperatures, min temperatures, max temperatures, precipitation, potential evapotranspiration with Thornthwaite formula.
-Others variables are climatic water deficit with Thornthwaite, number of dry month with Thornthwaite and 19 bio variables (more information in chelsa documentation).
+Gives predictions on future values for the choosen
+phase. Prediction are from multiple models (GFDL-ESM4,
+IPSL-CM6A-LR, MPI-ESM1-2-HR, MRI-ESM2-0, UKESM1-0-LL).  Creates
+folder for each model and a folder with mean of this five models.
+Monthly variables are average temperatures, min temperatures, max
+temperatures, precipitation, potential evapotranspiration with
+Thornthwaite formula.  Others variables are climatic water
+deficit with Thornthwaite, number of dry month with Thornthwaite
+and 19 bio variables (more information in chelsa documentation).
 }
 \details{
-\code{resolution} need to be carefully choosen because if Tiff file is too big, R can crash.
-
 Unit of each climatic variable :\tabular{ll}{
    Name \tab Unit \cr
    Temperature average (tas) \tab °C x 10 \cr

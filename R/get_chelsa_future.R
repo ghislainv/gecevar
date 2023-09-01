@@ -82,10 +82,9 @@
 #' @import stringr
 #' @importFrom utils txtProgressBar setTxtProgressBar
 #' @importFrom glue glue
-#' @import geosphere
 #' @import terra
 #' @export
-
+#' 
 get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
                               destination, resol = 1000,
                               phase = "2071-2100",
@@ -252,9 +251,11 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
     alpha <- (6.75e-7) * I^3 - (7.71e-5) * I^2 + (1.792e-2) * I + 0.49239
     L <- NULL
     month_length <- c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-    mid_month_day <- c(15, 43, 74, 104, 135, 165, 196, 227, 257, 288, 318, 349)
+    # Mid-month julian day: 15 of each month for a regular year
+    mid_month_jday <- c(15, 46, 74, 105, 135, 166, 196, 227, 258, 288, 319, 349)
     for (i in 1:12){
-      L <- cbind(L, geosphere::daylength(lat, doy = mid_month_day[i]))
+      day_lengths <- daylength(lat=lat, long=0, jd=mid_month_jday[i], tmz=0)[, 3]
+      L <- cbind(L, day_lengths)
     }
     PET_Thornthwaite <- 16 * (L / 12) * (10 * tas_matrix / I)^alpha
     pet <- tas

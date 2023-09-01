@@ -10,44 +10,63 @@ get_env_variables(
   EPSG,
   country_name,
   destination,
-  resolution = 1000,
+  resol = 1000,
   rm_download = FALSE,
   forest_year = 2010,
   gisBase = NULL
 )
 }
 \arguments{
-\item{extent_latlon}{vector. First output of \code{get_aoi_extent()} function.}
+\item{extent_latlon}{vector. First output of \code{get_aoi_extent()}
+function.}
 
-\item{extent_proj}{vector. Second output of \code{get_aoi_extent()} function.}
+\item{extent_proj}{vector. Second output of \code{get_aoi_extent()}
+function.}
 
 \item{EPSG}{int. to consider for this country/area.}
 
-\item{country_name}{character. country name (in English) which be use to collect protected areas. This country must be available in \verb{https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA}.}
+\item{country_name}{character. country name (in English) which be
+use to collect protected areas. This country must be available in
+\verb{https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA}.}
 
-\item{destination}{character. absolute path where to download files like \code{here()} output.}
+\item{destination}{character. absolute path where to download files
+like \code{here()} output.}
 
-\item{resolution}{int. in meters, recommended resolution are 250m, 500m, 1km, 2km or 5km, default is 1km. See more in details.}
+\item{resol}{int. Resolution. If in meters, recommended resolutions
+are 250m, 500m, 1km, 2km or 5km. The resolution needs to be
+carefully chosen. If set too small (e.g. < 250m), raster file
+will be too big to fit in memory and R will crash. Default is
+1km.}
 
-\item{rm_download}{boolean. If TRUE remove download files and folders. Keep only environ.tif in \code{data_raw} folder, default is FALSE.}
+\item{rm_download}{boolean. If TRUE remove download files and
+folders. Keep only environ.tif in \code{data_raw} folder, default is
+FALSE.}
 
-\item{forest_year}{int. Forest at the decade chosen. Must be one of 2000, 2010 or 2020, default is 2010.}
+\item{forest_year}{int. Forest at the decade chosen. Must be one of
+2000, 2010 or 2020, default is 2010.}
 
-\item{gisBase}{NULL or character. Parameter \code{gisBase} for \code{rgrass::initGRASS()}. The directory path to GRASS binaries and libraries, containing bin and lib subdirectories among others; if NULL, system("grass --config path") is tried.}
+\item{gisBase}{NULL or character. Parameter \code{gisBase} for
+\code{rgrass::initGRASS()}. The directory path to GRASS binaries and
+libraries, containing bin and lib subdirectories among others; if
+NULL, system("grass --config path") is tried.}
 }
 \value{
 character. Absolute path to \code{environ.tif} file.
 }
 \description{
-Variables are type of soil, elevation, slope, aspect, roughness, solar radiation, distance to sea,
-protected areas, distance to roads, distance to cities and town, distance to rivers & lake.
+Variables are type of soil, elevation, slope, aspect,
+roughness, solar radiation, distance to sea, protected areas,
+distance to roads, distance to cities and town, distance to
+rivers & lake.
 }
 \details{
-\code{resolution} need to be carefully chosen because if .tif file is too large, R can crash.
-
-environ.tif.aux.xml is an extention of environ.tif, it allows to classify soilgrid variable with QGIS with RasterAttributeTable extension.
-Nevertheless it's cause problems to open it with \code{stars} package but not with \code{terra}. If you have any problems to open environ.tif, you can remove environ.tif.aux.xml.
-This solve all accessibility problems with \code{stars} and \code{terra} packages.
+environ.tif.aux.xml is an extention of environ.tif, it
+allows to classify soilgrid variable with QGIS with
+RasterAttributeTable extension. Nevertheless it's cause problems
+to open it with \code{stars} package but not with \code{terra}. If you have
+any problems to open environ.tif, you can remove
+environ.tif.aux.xml. This solve all accessibility problems with
+\code{stars} and \code{terra} packages.
 
 Unit of each environ variable :\tabular{ll}{
    Name \tab Unit \cr
