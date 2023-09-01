@@ -34,6 +34,18 @@
     <loc>/reference/create_xml_legend.html</loc>
   </url>
   <url>
+    <loc>/reference/daylength.html</loc>
+  </url>
+  <url>
+    <loc>/reference/declination.html</loc>
+  </url>
+  <url>
+    <loc>/reference/degrees.html</loc>
+  </url>
+  <url>
+    <loc>/reference/eqtime.html</loc>
+  </url>
+  <url>
     <loc>/reference/get_aoi_extent.html</loc>
   </url>
   <url>
@@ -53,5 +65,8 @@
   </url>
   <url>
     <loc>/reference/merge_files.html</loc>
+  </url>
+  <url>
+    <loc>/reference/radians.html</loc>
   </url>
 </urlset>
