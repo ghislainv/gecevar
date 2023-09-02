@@ -28,16 +28,14 @@ jobs:
 
       - name: Install grass
         run: |
-          sudo apt-mark hold grub-efi-amd64-signed
-          sudo apt-get update --fix-missing
-          sudo apt-get -y upgrade
           sudo apt-get update
-          sudo apt-get install grass grass-doc
+          sudo apt-get install grass
 
       - name: Install tools for Open Street Maps
         if: runner.os == 'Linux'
         run: |
           sudo apt-get install osmctools
+          sudo apt-get install curl
 
       - name: Test coverage
         run: |
@@ -61,3 +59,4 @@ jobs:
         with:
           name: coverage-test-failures
           path: ${{ runner.temp }}/package
+
