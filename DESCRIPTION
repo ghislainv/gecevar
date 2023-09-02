@@ -1,6 +1,7 @@
 Package: gecevar
 Title: GEtting Climatic and other Environmental VARiables
 Version: 0.0.1
+SystemRequirements: GDAL, grass, osmfilter, osmconvert
 Authors@R: c(
   person("Ghislain", "Vieilledent", role=c("aut", "cre"),
          email="ghislain.vieilledent@cirad.fr",
@@ -45,7 +46,7 @@ Description: The package contains functions for downloading climate
   'GDAL' <https://gdal.org/> and the R libraries 'terra'
   <https://rspatial.org/> and 'sf' <https://r-spatial.github.io/sf/>
   for optimized processing of raster and vector geospatial data.
-License: GPL (>= 3)
+License: GPL-3
 URL: https://ecology.ghislainv.fr/gecevar, https://github.com/ghislainv/gecevar
 BugReports: https://github.com/ghislainv/gecevar/issues
 Encoding: UTF-8
