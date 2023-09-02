@@ -29,7 +29,7 @@ authors:
 
 navbar:
   structure:
-    left: [home, intro, articles, reference]
+    left: [home, intro, articles, reference, news]
     right: [github]
   components:
     home:
@@ -44,6 +44,9 @@ navbar:
     reference:
       text: Reference
       href: reference/index.html
+    news:
+      text: Change log
+      href: news/index.html
     github:
       icon: fab fa-github fa-lg
       href: https://github.com/ghislainv/gecevar
