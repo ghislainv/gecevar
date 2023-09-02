@@ -16,15 +16,14 @@ Equation of time in minutes.
 Computes the equation of time for a given Julian Day.
 }
 \examples{
-
-# plot the equation of time for 2013 at daily intervals
-jdays = seq(ISOdate(2013,1,1),ISOdate(2013,12,31),by='day')
-jd = JD(jdays)
-plot(eqtime(jd))
+\dontrun{
+# plot the equation of time at daily intervals
+jd = c(1:365)
+plot(eqtime(jd), type="l")
 abline(h=0,col=8)
 
 # Analema
-plot(eqtime(jd),declination(jd))
+plot(eqtime(jd), declination(jd))
 
 # Analema from Greenwich Observatory
 latGwch = 51.4791
@@ -39,12 +38,12 @@ wintersolstice = which(decl==min(decl))
 summersolstice = which(decl==max(decl))
 ## spring equinox: when declination becomes zero in the first part of the year
 springeqx = uniroot(declination,jd[c(1,180)])$root
-springeqx = daydoy(JD(springeqx,inv=TRUE))
 autumeqx = uniroot(declination,jd[c(180,360)])$root
-autumeqx = daydoy(JD(autumeqx,inv=TRUE))
 nodeseqx = c(springeqx,summersolstice,autumeqx,wintersolstice)
 points(x[nodeseqx],y[nodeseqx],pch=19,col=3)
-abline(h=c(90-latGwch,90-latGwch+max(decl),90-latGwch+min(decl)),col=8)
+abline(h=c(90-latGwch,90-latGwch+max(decl),
+       90-latGwch+min(decl)),col=8)
+}
 
 }
 \references{
@@ -58,5 +57,6 @@ Radiation Applications}. 55 pp.; NREL Report No. TP-560-34302, Revised
 January 2008. \url{https://www.nrel.gov/docs/fy08osti/34302.pdf}
 }
 \author{
-Javier G. Corripio
+Javier G. Corripio \href{mailto:jgc@meteoexploration.com}{jgc@meteoexploration.com}
 }
+\keyword{internal}

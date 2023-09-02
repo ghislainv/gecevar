@@ -1,12 +1,10 @@
 #' Create .tif.aux.xml legend for soilgrids layer
 #'
-#' @description
-#' internal function.
-#'
 #' @param unique_values int vector. with unique values in soilgrids layer.
 #' @param destination character. absolute path where create .tif.aux.xml file.
 #' @param name_file character. Name of the file to create, `gecevar` or `environ`.
 #' @import rjson
+#' @keywords internal
 
 create_xml_legend <- function(unique_values, destination, name_file) {
 

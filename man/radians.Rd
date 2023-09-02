@@ -17,9 +17,12 @@ Accessory function to transform degrees into radians.
 }
 \examples{
 
+\dontrun{
 radians(seq(0,360,90))
+}
 
 }
 \seealso{
 \code{\link{degrees}}
 }
+\keyword{internal}

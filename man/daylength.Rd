@@ -36,12 +36,13 @@ You may like to double check at:
 }
 \examples{
 
-daylength(47,11,JDymd(2019,1,1,12),1)
-daylength(c(47,75),11,2456282,1)
+# Daylength is 12 hours on March, 20th at the Equator. 
+daylength(0, 6.86933, 79, +1)
 
-# Daylength for the whole 2019 year
-jd2019=JD(seq(ISOdate(2019,1,1),ISOdate(2019,12,31),by='day'))
-plot(daylength(47,11,jd2019,1)[,3],xlab='Day of the year',ylab='day length [h]',ylim=c(0,24))
+# Daylength for the whole year in Chamonix (assuming UTC+1)
+jd <- c(1:365)
+plot(daylength(45.92375, 6.86933, jd, 1)[, 3], type="l",
+     xlab='Day of the year', ylab='day length [h]', ylim=c(0,24))
 }
 \references{
 Corripio, J. G.: 2003, Vectorial algebra algorithms for
@@ -53,5 +54,5 @@ Journal of Geographical Information Science} 17(1), 1-23.
 \code{\link{declination}}, \code{\link{eqtime}}
 }
 \author{
-Javier G. Corripio
+Javier G. Corripio \href{mailto:jgc@meteoexploration.com}{jgc@meteoexploration.com}
 }

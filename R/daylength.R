@@ -17,21 +17,23 @@
 #' returns NA for sunrise and sunset during the polar night.
 #' @note You may like to double check at:
 #' \url{https://www.esrl.noaa.gov/gmd/grad/solcalc/azel.html}
-#' @author Javier G. Corripio
+#' @author Javier G. Corripio <jgc@meteoexploration.com>
 #' @seealso \code{\link{declination}}, \code{\link{eqtime}}
 #' @references Corripio, J. G.: 2003, Vectorial algebra algorithms for
 #' calculating terrain parameters from DEMs and the position of the sun for
 #' solar radiation modelling in mountainous terrain, \emph{International
 #' Journal of Geographical Information Science} 17(1), 1-23.
 #' @examples
+#'
+#' # Daylength is 12 hours on March, 20th at the Equator. 
+#' daylength(0, 6.86933, 79, +1)
 #' 
-#' daylength(47,11,JDymd(2019,1,1,12),1)
-#' daylength(c(47,75),11,2456282,1)
-#' 
-#' # Daylength for the whole 2019 year
-#' jd2019=JD(seq(ISOdate(2019,1,1),ISOdate(2019,12,31),by='day'))
-#' plot(daylength(47,11,jd2019,1)[,3],xlab='Day of the year',ylab='day length [h]',ylim=c(0,24))
+#' # Daylength for the whole year in Chamonix (assuming UTC+1)
+#' jd <- c(1:365)
+#' plot(daylength(45.92375, 6.86933, jd, 1)[, 3], type="l",
+#'      xlab='Day of the year', ylab='day length [h]', ylim=c(0,24))
 #' @export
+#' 
 daylength <- function (lat, long=0, jd, tmz=0) {
   if (nargs() < 4) {
     cat("USAGE: daylength(latitude, longitude, jd, timezone) \n values in degrees, julian days, hours \n"); return()
@@ -61,9 +63,13 @@ daylength <- function (lat, long=0, jd, tmz=0) {
 #' @return Angle in radians.
 #' @seealso \code{\link{degrees}}
 #' @examples
-#' 
-#' radians(seq(0,360,90))
 #'
+#' \dontrun{
+#' radians(seq(0,360,90))
+#' }
+#'
+#' @keywords internal 
+#' 
 radians <- function (degree) {
     radian <- degree * (pi/180.0) 
     return(radian) 
@@ -78,9 +84,13 @@ radians <- function (degree) {
 #' @return Angle in degrees.
 #' @seealso \code{\link{radians}}
 #' @examples
-#' 
-#' degrees(seq(0,2*pi,pi/2))
 #'
+#' \dontrun{
+#' degrees(seq(0,2*pi,pi/2))
+#' }
+#'
+#' @keywords internal 
+#' 
 degrees <- function (radian) {
     degree <- radian * (180.0/pi) 
     return(degree) 
@@ -93,7 +103,7 @@ degrees <- function (radian) {
 #' 
 #' @param jd Julian Day.
 #' @return Declination in degrees and decimal fraction.
-#' @author Javier G. Corripio
+#' @author Javier G. Corripio <jgc@meteoexploration.com>
 #' @references
 #' \url{https://www.esrl.noaa.gov/gmd/grad/solcalc/calcdetails.html}
 #' 
@@ -105,16 +115,18 @@ degrees <- function (radian) {
 #' January 2008.  \url{https://www.nrel.gov/docs/fy08osti/34302.pdf}
 #' 
 #' @examples
-#' 
-#' declination(JDymd(2019,1,1))
-#' 
-#' jdays = JD(ISOdate(2019,1:12,21))
-#' declination(jdays)
-#' 
-#' ## Plot daily changes in declination from 2018 to 2020
-#' jdays=JD(seq(ISOdate(2018,1,1),ISOdate(2020,12,31),by='day'))
-#' plot(declination(jdays),xlab='days from 2018-01-01',ylab='declination')
 #'
+#' \dontrun{
+#' declination(120)
+#' 
+#' ## Plot daily changes in declination
+#' jdays=c(1:365)
+#' plot(declination(jdays), xlab="days of the year",
+#'      ylab="declination", type="l")
+#' }
+#' 
+#' @keywords internal 
+#' 
 declination <- function (jd) {
     if (nargs() < 1) {
         cat("USAGE: declination(jd) \n jd = Julian day \n")
@@ -159,7 +171,7 @@ declination <- function (jd) {
 #' 
 #' @param jd Julian Day.
 #' @return Equation of time in minutes.
-#' @author Javier G. Corripio
+#' @author Javier G. Corripio <jgc@meteoexploration.com>
 #' @references
 #' \url{https://www.esrl.noaa.gov/gmd/grad/solcalc/calcdetails.html}
 #' 
@@ -171,15 +183,14 @@ declination <- function (jd) {
 #' January 2008. \url{https://www.nrel.gov/docs/fy08osti/34302.pdf}
 #' 
 #' @examples
-#' 
-#' # plot the equation of time for 2013 at daily intervals
-#' jdays = seq(ISOdate(2013,1,1),ISOdate(2013,12,31),by='day')
-#' jd = JD(jdays)
-#' plot(eqtime(jd))
+#' \dontrun{
+#' # plot the equation of time at daily intervals
+#' jd = c(1:365)
+#' plot(eqtime(jd), type="l")
 #' abline(h=0,col=8)
 #' 
 #' # Analema
-#' plot(eqtime(jd),declination(jd))
+#' plot(eqtime(jd), declination(jd))
 #' 
 #' # Analema from Greenwich Observatory
 #' latGwch = 51.4791
@@ -194,12 +205,14 @@ declination <- function (jd) {
 #' summersolstice = which(decl==max(decl))
 #' ## spring equinox: when declination becomes zero in the first part of the year
 #' springeqx = uniroot(declination,jd[c(1,180)])$root
-#' springeqx = daydoy(JD(springeqx,inv=TRUE))
 #' autumeqx = uniroot(declination,jd[c(180,360)])$root
-#' autumeqx = daydoy(JD(autumeqx,inv=TRUE))
 #' nodeseqx = c(springeqx,summersolstice,autumeqx,wintersolstice)
 #' points(x[nodeseqx],y[nodeseqx],pch=19,col=3)
-#' abline(h=c(90-latGwch,90-latGwch+max(decl),90-latGwch+min(decl)),col=8)
+#' abline(h=c(90-latGwch,90-latGwch+max(decl),
+#'        90-latGwch+min(decl)),col=8)
+#' }
+#' 
+#' @keywords internal 
 #' 
 eqtime <- function(jd) {
   if (nargs() < 1 ) {cat("USAGE: eqtime(jd)\n"); return()}

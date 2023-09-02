@@ -1,3 +1,8 @@
+url: https://ecology.ghislainv.fr/gecevar/
+
+template:
+    assets: folders4website
+
 authors:
   Pierre Guillaumont:
   Jeanne Clément:
@@ -14,13 +19,13 @@ authors:
     href: "https://ecology.ghislainv.fr"
   CEBA:
     href: "https://www.labex-ceba.fr"
-    html: "<img src='https://ecology.ghislainv.fr/gecevar/articles/logos/Logo_CEBA_simple.jpg' height=24 style='height:24px;'>"
+    html: "<img src='https://ecology.ghislainv.fr/gecevar/logos/Logo_CEBA_simple.jpg' height=24 style='height:24px;'>"
   CNRT:
     href: "https://cnrt.nc"
-    html: "<img src='https://ecology.ghislainv.fr/gecevar/articles/logos/Logo_CNRT.png' height=24 style='height:24px;'>"
+    html: "<img src='https://ecology.ghislainv.fr/gecevar/logos/Logo_CNRT.png' height=24 style='height:24px;'>"
   Cirad:
     href: "https://www.cirad.fr"
-    html: "<img src='https://ecology.ghislainv.fr/gecevar/articles/logos/logo-cirad.svg' height=24 style='height:24px;'>"
+    html: "<img src='https://ecology.ghislainv.fr/gecevar/logos/logo-cirad.png' height=24 style='height:24px;'>"
 
 navbar:
   structure:

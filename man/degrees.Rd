@@ -17,9 +17,12 @@ Accessory function to transform radians into degrees.
 }
 \examples{
 
+\dontrun{
 degrees(seq(0,2*pi,pi/2))
+}
 
 }
 \seealso{
 \code{\link{radians}}
 }
+\keyword{internal}

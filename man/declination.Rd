@@ -17,14 +17,14 @@ Computes the declination of the Sun for a given Julian Day.
 }
 \examples{
 
-declination(JDymd(2019,1,1))
+\dontrun{
+declination(120)
 
-jdays = JD(ISOdate(2019,1:12,21))
-declination(jdays)
-
-## Plot daily changes in declination from 2018 to 2020
-jdays=JD(seq(ISOdate(2018,1,1),ISOdate(2020,12,31),by='day'))
-plot(declination(jdays),xlab='days from 2018-01-01',ylab='declination')
+## Plot daily changes in declination
+jdays=c(1:365)
+plot(declination(jdays), xlab="days of the year",
+     ylab="declination", type="l")
+}
 
 }
 \references{
@@ -38,5 +38,6 @@ Radiation Applications}. 55 pp.; NREL Report No. TP-560-34302, Revised
 January 2008.  \url{https://www.nrel.gov/docs/fy08osti/34302.pdf}
 }
 \author{
-Javier G. Corripio
+Javier G. Corripio \href{mailto:jgc@meteoexploration.com}{jgc@meteoexploration.com}
 }
+\keyword{internal}

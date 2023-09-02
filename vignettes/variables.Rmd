@@ -37,7 +37,7 @@ Protected area are extracted from [protectedplanet.net](https://www.protectedpla
 | pr               | $kg.m^{-2}$            | Precipitation amount | | [chelsa-climate.org](https://chelsa-climate.org) |
 | clt              | %                      | Cloud area fraction | | [chelsa-climate.org](https://chelsa-climate.org) |
 | pet_penman       | $kg.m^{-2}$            | Potential evapotranspiration calculated with the Penman-Monteith equation. | | [chelsa-climate.org](https://chelsa-climate.org) |
-| pet_thornthwaite | $kg.m^{-2}$            | Potential evapotranspiration calculated with the Thornthwaite equation. | geosphere | [chelsa-climate.org](https://chelsa-climate.org) |
+| pet_thornthwaite | $kg.m^{-2}$            | Potential evapotranspiration calculated with the Thornthwaite equation. | | [chelsa-climate.org](https://chelsa-climate.org) |
 | cwd_penman       | $kg.m^{-2}$            | Climatic Water Deficit calculated with pet_penman variable | | [chelsa-climate.org](https://chelsa-climate.org) |
 | cwd_thornthwaite | $kg.m^{-2}$            | Climatic Water Deficit calculated with pet_thornthwaite variable | | [chelsa-climate.org](https://chelsa-climate.org) |
 | ndm_penman       | month                  | Number of Dry Month calculated with cwd_penman variable | | [chelsa-climate.org](https://chelsa-climate.org) |

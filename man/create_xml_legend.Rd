@@ -14,5 +14,6 @@ create_xml_legend(unique_values, destination, name_file)
 \item{name_file}{character. Name of the file to create, \code{gecevar} or \code{environ}.}
 }
 \description{
-internal function.
+Create .tif.aux.xml legend for soilgrids layer
 }
+\keyword{internal}

@@ -7,11 +7,6 @@ r <- get_aoi_extent(EPSG = epsg,
 extent_latlon <- r$extent_latlon
 extent_proj <- r$extent_proj
 
-# for method="curl" in download.file
-# sudo apt-get install curl
-# Use downloader::download for portability ?
-# for Open street Maps
-# sudo apt-get install osmctools
 environ_path <- get_env_variables(extent_latlon = extent_latlon,
                                   extent_proj = extent_proj,
                                   EPSG = epsg,
