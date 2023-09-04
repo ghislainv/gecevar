@@ -1,7 +1,7 @@
 Package: gecevar
 Title: GEtting Climatic and other Environmental VARiables
 Version: 0.0.1
-SystemRequirements: GDAL, grass, osmfilter, osmconvert
+SystemRequirements: GDAL (>= 2.0.1), GRASS (>=7)
 Authors@R: c(
   person("Ghislain", "Vieilledent", role=c("aut", "cre"),
          email="ghislain.vieilledent@cirad.fr",
