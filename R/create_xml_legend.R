@@ -1,12 +1,12 @@
 #' Create .tif.aux.xml legend for soilgrids layer
 #'
 #' @param unique_values int vector. with unique values in soilgrids layer.
-#' @param destination character. absolute path where create .tif.aux.xml file.
-#' @param name_file character. Name of the file to create, `gecevar` or `environ`.
+#' @param output_dir character. Output directory
+#' @param file_name character. Name of the output file without .tif.aux.xml extension.
 #' @import rjson
 #' @keywords internal
-
-create_xml_legend <- function(unique_values, destination, name_file) {
+#' 
+create_xml_legend <- function(unique_values, output_dir, file_name) {
 
   json <- fromJSON(file = "https://files.isric.org/soilgrids/latest/data/wrb/MostProbable.rat.json")
   soil <- unlist(json)[-1]
@@ -20,7 +20,7 @@ create_xml_legend <- function(unique_values, destination, name_file) {
         <Usage>5</Usage>
       </FieldDefn>
       <FieldDefn index="1">
-        <Name>SoilType</Name>
+        <Name>soil_type</Name>
         <Type>2</Type>
         <Usage>2</Usage>
       </FieldDefn>'
@@ -38,7 +38,7 @@ create_xml_legend <- function(unique_values, destination, name_file) {
     header <- paste(header, row, sep = '\n')
   }
   header <- paste(header, footer, sep = '\n')
-  writeLines(header, paste(destination, paste0(name_file, ".tif.aux.xml"), sep = "/"))
+  writeLines(header, paste(output_dir, paste0(file_name, ".tif.aux.xml"), sep = "/"))
 }
 
 # End

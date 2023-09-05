@@ -15,6 +15,12 @@ jobs:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
+      - name: Install system requirements
+        run: |
+          sudo apt-get update
+          sudo apt-get install grass
+          sudo apt-get install curl
+      
       - uses: actions/checkout@v3
 
       - uses: r-lib/actions/setup-r@v2
@@ -25,17 +31,6 @@ jobs:
         with:
           extra-packages: any::covr, any::XML, local::.
           needs: coverage
-
-      - name: Install grass
-        run: |
-          sudo apt-get update
-          sudo apt-get install grass
-
-      - name: Install tools for Open Street Maps
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get install osmctools
-          sudo apt-get install curl
 
       - name: Test coverage
         run: |

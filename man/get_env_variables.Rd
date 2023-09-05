@@ -57,7 +57,7 @@ character. Absolute path to \code{environ.tif} file.
 Variables are type of soil, elevation, slope, aspect,
 roughness, solar radiation, distance to sea, protected areas,
 distance to roads, distance to cities and town, distance to
-rivers & lake.
+rivers and waterbodies.
 }
 \details{
 environ.tif.aux.xml is an extention of environ.tif, it

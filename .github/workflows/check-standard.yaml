@@ -26,14 +26,10 @@ jobs:
       R_KEEP_PKG_SOURCE: yes
 
     steps:
-      - name: Install grass
+      - name: Install system requirements
         run: |
           sudo apt-get update
           sudo apt-get install grass
-
-      - name: Install tools for Open Street Maps
-        run: |
-          sudo apt-get install osmctools
           sudo apt-get install curl
 
       - uses: actions/checkout@v3

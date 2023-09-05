@@ -4,14 +4,14 @@
 \alias{create_xml_legend}
 \title{Create .tif.aux.xml legend for soilgrids layer}
 \usage{
-create_xml_legend(unique_values, destination, name_file)
+create_xml_legend(unique_values, output_dir, file_name)
 }
 \arguments{
 \item{unique_values}{int vector. with unique values in soilgrids layer.}
 
-\item{destination}{character. absolute path where create .tif.aux.xml file.}
+\item{output_dir}{character. Output directory}
 
-\item{name_file}{character. Name of the file to create, \code{gecevar} or \code{environ}.}
+\item{file_name}{character. Name of the output file without .tif.aux.xml extension.}
 }
 \description{
 Create .tif.aux.xml legend for soilgrids layer
