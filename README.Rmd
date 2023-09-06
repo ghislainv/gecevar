@@ -1,7 +1,6 @@
 ---
 output: github_document
 ---
-
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # `gecevar` R Package <img src="https://ecology.ghislainv.fr/gecevar/logo.svg" align="right" alt="logo-gecevar" width="120" />

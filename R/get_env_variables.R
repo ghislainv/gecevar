@@ -95,7 +95,8 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
 
   options(warn=-1)
   dir.create(path=destination, recursive=TRUE, showWarnings=FALSE)
-  nodat <- -32768
+  nodata_Int16 <- nodata_INT2S <- -32768
+  nodata_Int32 <- nodata_INT4S <- -2147483648
   proj_s <- "EPSG:4326"
   proj_t <- paste0("EPSG:", EPSG)
   ISO_country_code <- countrycode::countryname(country_name, destination="iso3c")
@@ -139,8 +140,9 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
   # warp
   ofile <- file.path(destination, "data_raw", "soilgrids250_v2_0", "soilgrids_res.tif")
   opts <- glue("-tr {resol} {resol} -te {extent_proj_string} ",
-              "-s_srs {proj_s} -t_srs {proj_t} -overwrite ",
-              "-r mode")
+               "-s_srs {proj_s} -t_srs {proj_t} -overwrite ",
+               "-r mode ",
+               "-ot Byte -of GTiff -co COMPRESS=LZW -co PREDICTOR=2")
   sf::gdal_utils(util="warp", source=vrtfile, destination=ofile,
                  options=unlist(strsplit(opts, " ")),
                  quiet=TRUE)
@@ -181,14 +183,14 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
                            pattern="^srtm_.*\\.tif$", full.names=TRUE)
   vrtfile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "srtm.vrt")
   sf::gdal_utils(util="buildvrt", source=file_list, destination=vrtfile,
-                 options=c("-vrtnodata", nodat),
+                 options=c("-vrtnodata", nodata_Int16),
                  quiet=TRUE)
 
   # Resample with gdal_warp
   ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "elevation.tif")
   res_out <- 90 # resample at 90 m
   # /!\ Creation options (-co) must not be quoted for sf::gdal_utils as in GDAL command)
-  opts <- glue("-overwrite -t_srs {proj_t} -tap -r bilinear -dstnodata {nodat} ",
+  opts <- glue("-overwrite -t_srs {proj_t} -tap -r bilinear -dstnodata {nodata_Int16} ",
                "-te {extent_proj_string} -ot Int16 -of GTiff ",
                "-tr {res_out} {res_out} -co COMPRESS=LZW -co PREDICTOR=2")
   sf::gdal_utils(util="warp", source=vrtfile, destination=ofile,
@@ -223,7 +225,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
   ifile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "elevation.tif")
   ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "elevation_res.tif")
   opts <- glue("-overwrite -r bilinear -tr {resol} {resol} -te {extent_proj_string} ",
-               "-ot Int16 -of GTiff -dstnodata {nodat} ",
+               "-ot Int16 -of GTiff -dstnodata {nodata_Int16} ",
                "-co COMPRESS=LZW -co PREDICTOR=2")
   sf::gdal_utils(util="warp", source=ifile, destination=ofile,
                  options=unlist(strsplit(opts, " ")),
@@ -296,13 +298,13 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
   # Export
   ofile <- file.path(destination, 'data_raw', 'srtm_v1_4_90m', 'temp', 'srad.tif')
   cmd <- glue("r.out.gdal -f --verbose --overwrite input=global_rad ",
-              "createopt='COMPRESS=LZW' nodata={nodat} output={ofile} type=Int16")
+              "createopt='COMPRESS=LZW' nodata={nodata_Int16} output={ofile} type=Int16")
   system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
   
   # Resolution from 90m x 90m to chosen resolution using gdalwarp
   ifile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "srad.tif")
   ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "srad_res.tif")
-  opts <- glue("-overwrite -t_srs {proj_t} -dstnodata {nodat} ",
+  opts <- glue("-overwrite -t_srs {proj_t} -dstnodata {nodata_Int16} ",
                "-r bilinear -tr {resol} {resol} -te {extent_proj_string} ",
                "-ot Int16 -of GTiff ",
                "-co COMPRESS=LZW -co PREDICTOR=2")
@@ -336,9 +338,9 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
     
     ifile <- file.path(destination, "data_raw", "forestatrisk", "forest_nocrop.tif")
     ofile <- file.path(destination, "data_raw", "forestatrisk", "forest.tif")
-    opts <- glue("-overwrite -t_srs {proj_t} -dstnodata {nodat} ",
+    opts <- glue("-overwrite -t_srs {proj_t} -dstnodata 255 ",
                  "-r near -tr {resol} {resol} -te {extent_proj_string} ",
-                 "-ot Int16 -of GTiff ",
+                 "-ot Byte -of GTiff ",
                  "-co COMPRESS=LZW -co PREDICTOR=2")
     sf::gdal_utils(util="warp", source=ifile, destination=ofile,
                    options=unlist(strsplit(opts, " ")),
@@ -356,7 +358,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
         # 3 is forest in 2020
         forest_stars[[1]] <- forest_stars[[1]] == 3
     }
-    stars::write_stars(forest_stars, dsn=ofile, update=TRUE, type="Int16", options=c("COMPRESS=LZW", "PREDICTOR=2"))
+    stars::write_stars(forest_stars, dsn=ofile, update=TRUE, type="Byte", options=c("COMPRESS=LZW", "PREDICTOR=2"))
     forest <- TRUE
   } else{
     print("Forest layer is not available for your country")
@@ -372,8 +374,9 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
     dir.create(file.path(destination, "data_raw", "dist_forest"), showWarnings=FALSE)
     sourcefile <- file.path(destination, "data_raw", "forestatrisk", "forest.tif")
     destfile <- file.path(destination, "data_raw", "dist_forest", "dist_forest.tif")
-    cmd <- glue("gdal_proximity.py {sourcefile} {destfile} -ot Int16 -of GTiff -nodata {nodat} ",
-         "-values {1} -distunits GEO -use_input_nodata NO")
+    cmd <- glue("gdal_proximity.py {sourcefile} {destfile} ",
+                "-ot Int32 -of GTiff -nodata {nodata_Int32} ",
+                "-values {1} -distunits GEO -use_input_nodata NO")
     system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
   }
 
@@ -383,19 +386,28 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
   ##
   ##===========================
 
+  # Land area
   dir.create(file.path(destination, "data_raw", "dist_sea"), showWarnings=FALSE)
-  seaBool <- (stars::read_stars(file.path(destination, "data_raw", "srtm_v1_4_90m", "srad_res.tif")) == nodat)
-  stars::write_stars(seaBool, options=c("COMPRESS=LZW", "PREDICTOR=2"), NA_value=nodat,
+  # The following line should be modified as it implies loading the raster in memory.
+  seaBool <- (stars::read_stars(file.path(destination, "data_raw", "srtm_v1_4_90m", "srad_res.tif")) == nodata_Int16)
+  stars::write_stars(seaBool, options=c("COMPRESS=LZW", "PREDICTOR=2"), NA_value=,
                      dsn=file.path(destination, "data_raw", "dist_sea", "sea_res.tif"))
+
+  # Distance to sea
   sourcefile <- file.path(destination, "data_raw", "dist_sea", "sea_res.tif")
   destfile <- file.path(destination, "data_raw", "dist_sea", "dist_sea.tif")
-  cmd <- glue("gdal_proximity.py -ot Int16 -of GTiff -nodata {nodat} ",
-              "-values {nodat} -distunits GEO -use_input_nodata NO {sourcefile} {destfile}")
+  cmd <- glue("gdal_proximity.py -ot Int32 -of GTiff -nodata {nodata_Int32} ",
+              "-values {nodata_Int16} -distunits GEO -use_input_nodata NO {sourcefile} {destfile}")
   system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
-  dist_sea <- stars::read_stars(file.path(destination, "data_raw", "dist_sea", "dist_sea.tif"))
-  dist_sea[[1]][dist_sea[[1]] == 0] <- NA
-  stars::write_stars(dist_sea, file.path(destination, "data_raw", "dist_sea", "dist_sea.tif"), NA_value=nodat,
-                     options=c("COMPRESS=LZW", "PREDICTOR=2"))
+
+  # Replace 0 with NA
+  dist_sea <- terra::rast(file.path(destination, "data_raw", "dist_sea", "dist_sea.tif"))
+  values(dist_sea)[values(dist_sea) == 0] <- NA
+  ofile <- file.path(destination, "data_raw", "dist_sea", "dist_sea.tif")
+  terra::writeRaster(dist_sea, filename=ofile,
+                     gdal=c("COMPRESS=LZW","PREDICTOR=2"),
+                     progress=FALSE, overwrite=TRUE, datatype="INT4S")
+
 
   ##=========================
   ##
@@ -427,7 +439,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
   ## WDPA <- sf::st_transform(WDPA, EPSG)
   ## WDPA <- stars::st_rasterize(WDPA, dx=resol, dy=resol)
   ## WDPA[[1]] <- WDPA[[1]] != 0
-  ## stars::write_stars(WDPA, options=c("COMPRESS=LZW", "PREDICTOR=2"), NA_value=nodat,
+  ## stars::write_stars(WDPA, options=c("COMPRESS=LZW", "PREDICTOR=2"), NA_value=255,
   ##                    dsn=file.path(destination, "data_raw", "WDPA", "WDPA_resBool.tif"))
 
   # Temporary
@@ -508,9 +520,9 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
                             progress=0, overwrite=TRUE, datatype="INT4S")
                     
     # Resample at the requested resolution computing the average
-    opts <- glue("-overwrite -t_srs {proj_t} -dstnodata {nodat} ",
+    opts <- glue("-overwrite -t_srs {proj_t} -dstnodata {nodata_Int32} ",
                  "-r average -tr {resol} {resol} -te {extent_proj_string} ",
-                 "-ot Int16 -of GTiff ",
+                 "-ot Int32 -of GTiff ",
                  "-co COMPRESS=LZW -co PREDICTOR=2")
     sf::gdal_utils(util="warp", source=dist_file, destination=dist_file_res,
                    options=unlist(strsplit(opts, " ")),
@@ -558,7 +570,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
   ifile <- file.path(destination, "data_raw", "world_pop", "temp", paste0(ISO_country_code, "_pop_km.tif"))
   ofile <- file.path(destination, "data_raw", "world_pop", paste0(ISO_country_code, "_pop_res.tif"))
   opts <- glue("-overwrite -s_srs {proj_s} -t_srs {proj_t} ",
-               "-srcnodata -32768 -dstnodata -32768 ",
+               "-srcnodata {nodata_Int16} -dstnodata {nodata_Int16} ",
                "-r bilinear -tr {resol} {resol} -te {extent_proj_string} ",
                "-ot Int16 -of GTiff ",
                "-co COMPRESS=LZW -co PREDICTOR=2")
@@ -605,7 +617,8 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
   ofile <- file.path(destination, "data_raw", "environ.tif")
   terra::writeRaster(environ, filename=ofile,
                      gdal=c("COMPRESS=LZW", "PREDICTOR=2"),
-                     progress=0, overwrite=TRUE, datatype="INT2S")
+                     #NAflag=-2147483648,
+                     progress=FALSE, overwrite=TRUE, datatype="INT4S")
 
   # Modify legend for soil_type
   ifile <- file.path(destination, "data_raw", "environ.tif")

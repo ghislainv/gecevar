@@ -19,20 +19,19 @@ environ_path <- get_env_variables(extent_latlon = extent_latlon,
 
 env <- terra::rast(environ_path)
 ext_out <- terra::ext(env)
-names(ext) <- c("xmin", "ymin", "xmax", "ymax")
-names_env <- c("aspect", "elevation", "roughness", "slope", "srad", "soilgrids",
-               "forest", "dist_forest", "dist_sea", "dist_road", "dist_place",
-               "dist_water", "wdpa", "population")
+names_env <- c("aspect", "elevation", "roughness", "slope", "srad", "soil_type",
+               "dist_sea", "dist_road", "dist_place",
+               "dist_water", "wdpa", "population", "forest", "dist_forest")
 
 test_that("get_env_variables works", {
   # Layers number and names
-  # expect_equal(names(env), names_env) /!\ to be cheked
+  expect_equal(names(env), names_env)
   # Resolution
   expect_equal(terra::res(env), c(1000,1000))
   # EPSG
   expect_equal(as.numeric(terra::crs(env, describe=TRUE)$code), epsg)
   # extent (km)
-  # expect_equal(extent_proj, as.vector(ext_out)[c(1, 3, 2, 4)]) /!\ to be cheked
+  expect_equal(extent_proj, as.vector(ext_out)[c(1, 3, 2, 4)])
 })
 
 unlink(file.path(environ_path))
