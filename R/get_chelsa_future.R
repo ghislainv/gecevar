@@ -94,9 +94,9 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
                               rm_download = FALSE) {
 
   # Extent for gdal_translate
-  # /!\ with gdal_translate: (xmin, ymax, xmax, ymin) corresponding to <ulx> <uly> <lrx> <lry> 
-  extent_gdal_translate <- paste(extent_latlon[1], extent_latlon[4],
-                                 extent_latlon[3], extent_latlon[2], sep=" ")
+  # /!\ with gdal_translate: c(xmin, ymax, xmax, ymin) corresponding to <ulx> <uly> <lrx> <lry> 
+  extent_gdal_translate <- c(extent_latlon[1], extent_latlon[4],
+                             extent_latlon[3], extent_latlon[2])
 
   # Transform extent_proj from vector to string
   extent_proj_string <- paste(extent_proj, collapse=" ")
@@ -125,8 +125,9 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
       tasmin_file <- file.path(destination, 'data_raw', 'future_chelsa',
                                paste('climat', phase, model, 'ssp', SSP, sep = '_'),
                                'temp', paste0('tasmin', m, '.tif'))
-      system(glue("gdal_translate -projwin {extent_gdal_translate} -projwin_srs EPSG:4326 \\
-                /vsicurl/{url_tasmin} {tasmin_file}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
+      gdal_utils_translate(ifile=paste0("/vsicurl/", url_tasmin),
+                           ofile=tasmin_file,
+                           extent_gdal_translate)
       progress_bar <- progress_bar + 1
       setTxtProgressBar(pb, progress_bar)
 
@@ -137,8 +138,9 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
                            stringr::str_replace(phase, pattern = '-', '_'), '_norm.tif')
       tasmax_file <- file.path(destination, 'data_raw', 'future_chelsa', paste('climat', phase, model, 'ssp', SSP, sep = '_'),
                                'temp', paste0('tasmax', m, '.tif'))
-      system(glue("gdal_translate -projwin {extent_gdal_translate} -projwin_srs EPSG:4326 \\
-                /vsicurl/{url_tasmax} {tasmax_file}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
+      gdal_utils_translate(ifile=paste0("/vsicurl/", url_tasmax),
+                           ofile=tasmax_file,
+                           extent_gdal_translate)
       progress_bar <- progress_bar + 1
       setTxtProgressBar(pb, progress_bar)
 
@@ -148,8 +150,9 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
                         stringr::str_replace(phase, pattern = '-', '_'), '_norm.tif')
       tas_file <- file.path(destination, 'data_raw', 'future_chelsa', paste('climat', phase, model, 'ssp', SSP, sep = '_'),
                             'temp', paste0('tas', m, '.tif'))
-      system(glue("gdal_translate -projwin {extent_gdal_translate} -projwin_srs EPSG:4326 \\
-                /vsicurl/{url_tas} {tas_file}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
+      gdal_utils_translate(ifile=paste0("/vsicurl/", url_tas),
+                           ofile=tas_file,
+                           extent_gdal_translate)
       progress_bar <- progress_bar + 1
       setTxtProgressBar(pb, progress_bar)
 
@@ -159,8 +162,9 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
                        stringr::str_replace(phase, pattern = '-', '_'), '_norm.tif')
       pr_file <- file.path(destination, 'data_raw', 'future_chelsa', paste('climat', phase, model, 'ssp', SSP, sep = '_'),
                            'temp', paste0('pr', m, '.tif'))
-      system(glue("gdal_translate -projwin {extent_gdal_translate} -projwin_srs EPSG:4326 \\
-                /vsicurl/{url_pr} {pr_file}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
+      gdal_utils_translate(ifile=paste0("/vsicurl/", url_pr),
+                           ofile=pr_file,
+                           extent_gdal_translate)
       progress_bar <- progress_bar + 1
       setTxtProgressBar(pb, progress_bar)
     }
@@ -178,8 +182,9 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
       # See https://chelsa-climate.org/wp-admin/download-page/CHELSA_tech_specification_V2.pdf for details
       url_bio <- paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/', phase, '/', model, '/ssp', SSP, '/bio/CHELSA_bio', i, '_', phase, '_', tolower(model), '_ssp', SSP, '_V.2.1.tif')
       bio_file <- file.path(destination, 'data_raw', 'future_chelsa', paste('climat', phase, model, 'ssp', SSP, sep = '_'), 'temp', paste0('bio', i, '.tif'))
-      system(glue("gdal_translate -projwin {extent_gdal_translate} -projwin_srs EPSG:4326 \\
-                /vsicurl/{url_bio} {bio_file}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
+      gdal_utils_translate(ifile=paste0("/vsicurl/", url_bio),
+                           ofile=bio_file,
+                           extent_gdal_translate)
       progress_bar <- progress_bar + 1
       setTxtProgressBar(pb, progress_bar)
     }
@@ -192,8 +197,7 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
       files.tif <- list.files(file.path(destination, "data_raw", "future_chelsa",
                                         paste('climat', phase, model, 'ssp', SSP, sep = '_'), "temp"),
                               pattern = paste0(var, "[0-9]"), full.names = TRUE)
-      for(i in 1:length(files.tif))
-      {
+      for(i in 1:length(files.tif)) {
         sourcefile <- files.tif[i]
         destfile <- gsub(".tif", "_res.tif", files.tif[i])
         system(glue("gdalwarp -overwrite -s_srs {proj_s} -t_srs {proj_t} \\

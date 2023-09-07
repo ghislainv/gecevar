@@ -90,7 +90,12 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
   # Round extent_latlon to nearest degree
   extent_latlon_1d <- c(floor(extent_latlon["lonmin"]), floor(extent_latlon["latmin"]),
                         ceiling(extent_latlon["lonmax"]), ceiling(extent_latlon["latmax"]))
-    
+
+  # Extent for gdal_translate
+  # /!\ with gdal_translate: c(xmin, ymax, xmax, ymin) corresponding to <ulx> <uly> <lrx> <lry> 
+  extent_gdal_translate <- c(extent_latlon[1], extent_latlon[4],
+                             extent_latlon[3], extent_latlon[2])
+  
   # Transform extent_proj from vector to string
   extent_proj_string <- paste(extent_proj, collapse=" ")
 
@@ -331,11 +336,9 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
     dir.create(file.path(destination, "data_raw", "forestatrisk"), showWarnings=FALSE)
     url_far <- paste0("https://forestatrisk.cirad.fr/tropics/tif/fcc_123_", continent_short, "_aea.tif")
     ofile <- file.path(destination, "data_raw", "forestatrisk", "forest_nocrop.tif")
-    opts <- glue("-projwin {extent_latlon[1]} {extent_latlon[4]} {extent_latlon[3]} {extent_latlon[2]} ",
-                "-projwin_srs EPSG:4326 -co COMPRESS=LZW -co PREDICTOR=2")
-    sf::gdal_utils(util="translate", source=paste0("/vsicurl/", url_far), destination=ofile,
-                   options=unlist(strsplit(opts, " ")),
-                   quiet=TRUE)
+    gdal_utils_translate(ifile=paste0("/vsicurl/", url_far),
+                         ofile=ofile,
+                         extent_gdal_translate)
     
     ifile <- file.path(destination, "data_raw", "forestatrisk", "forest_nocrop.tif")
     ofile <- file.path(destination, "data_raw", "forestatrisk", "forest.tif")

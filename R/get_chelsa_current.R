@@ -91,7 +91,7 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   # Transform extent_proj from vector to string
   extent_proj_string <- paste(extent_proj, collapse=" ")
   
-  nodat <- -9999
+  nodata_Int16 <- -32768
   proj_s <- "EPSG:4326"
   proj_t <- paste0("EPSG:", EPSG_proj)
   dir.create(file.path(destination, "data_raw", "chelsa_v2_1", "temp"),
@@ -115,64 +115,83 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   for (m in stringr::str_pad(1:12, width = 2, pad = "0")) {
     
     ## Monthly minimum temperature (°C).
-    ifile <- glue::glue("/vsicurl/{url_base_chelsa}/tasmin/CHELSA_tasmin_{m}_1981-2010_V.2.1.tif")
+    ifile <- glue::glue("/vsicurl/{url_base_chelsa}/tasmin/",
+                        "CHELSA_tasmin_{m}_1981-2010_V.2.1.tif")
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0('tasmin', m, '.tif'))
-    gdal_utils_translate(ifile, ofile, extent_gdal_translate)
+    gdal_utils_translate(ifile, ofile, extent_gdal_translate, opts=c("-ot", "Int32"))
     progress_bar <- progress_bar + 1
     setTxtProgressBar(pb, progress_bar)
     
     ## Monthly maximum temperature (°C).
-    ifile <- glue::glue("/vsicurl/{url_base_chelsa}/tasmax/CHELSA_tasmax_{m}_1981-2010_V.2.1.tif")
+    ifile <- glue::glue("/vsicurl/{url_base_chelsa}/tasmax/",
+                        "CHELSA_tasmax_{m}_1981-2010_V.2.1.tif")
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0('tasmax', m, '.tif'))
-    gdal_utils_translate(ifile, ofile, extent_gdal_translate)
+    gdal_utils_translate(ifile, ofile, extent_gdal_translate, opts=c("-ot", "Int32"))
     progress_bar <- progress_bar + 1
     setTxtProgressBar(pb, progress_bar)
     
     ## Monthly average temperature (°C).
-    ifile <- glue::glue("/vsicurl/{url_base_chelsa}/tas/CHELSA_tas_{m}_1981-2010_V.2.1.tif")
+    ifile <- glue::glue("/vsicurl/{url_base_chelsa}/tas/",
+                        "CHELSA_tas_{m}_1981-2010_V.2.1.tif")
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0('tas', m, '.tif'))
-    gdal_utils_translate(ifile, ofile, extent_gdal_translate)
+    gdal_utils_translate(ifile, ofile, extent_gdal_translate, opts=c("-ot", "Int32"))
     progress_bar <- progress_bar + 1
     setTxtProgressBar(pb, progress_bar)
     
     ## Monthly precipitation (mm ~ kg/m2).
-    ifile <- glue::glue("/vsicurl/{url_base_chelsa}/pr/CHELSA_pr_{m}_1981-2010_V.2.1.tif")
+    ifile <- glue::glue("/vsicurl/{url_base_chelsa}/pr/",
+                        "CHELSA_pr_{m}_1981-2010_V.2.1.tif")
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0('pr', m, '.tif'))
-    gdal_utils_translate(ifile, ofile, extent_gdal_translate)
+    gdal_utils_translate(ifile, ofile, extent_gdal_translate, opts=c("-ot", "Int32"))
     progress_bar <- progress_bar + 1
     setTxtProgressBar(pb, progress_bar)
     
     ## Monthly cloud area fraction
-    ifile <- glue::glue("/vsicurl/{url_base_chelsa}/clt/CHELSA_clt_{m}_1981-2010_V.2.1.tif")
+    ifile <- glue::glue("/vsicurl/{url_base_chelsa}/clt/",
+                        "CHELSA_clt_{m}_1981-2010_V.2.1.tif")
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0('clt', m, '.tif'))
-    gdal_utils_translate(ifile, ofile, extent_gdal_translate)
+    gdal_utils_translate(ifile, ofile, extent_gdal_translate, opts=c("-ot", "Int32"))
     progress_bar <- progress_bar + 1
     setTxtProgressBar(pb, progress_bar)
     
     ## Monthly pet_penman
     # https://www.fao.org/3/x0490e/x0490e06.htm
-    ifile <- glue::glue("/vsicurl/{url_base_chelsa}/pet/CHELSA_pet_penman_{m}_1981-2010_V.2.1.tif")
+    ifile <- glue::glue("/vsicurl/{url_base_chelsa}/pet/",
+                        "CHELSA_pet_penman_{m}_1981-2010_V.2.1.tif")
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0('pet_penman', m, '.tif'))
-    gdal_utils_translate(ifile, ofile, extent_gdal_translate)
+    gdal_utils_translate(ifile, ofile, extent_gdal_translate, opts=c("-ot", "Int32"))
     progress_bar <- progress_bar + 1
     setTxtProgressBar(pb, progress_bar)
   }
   close(pb)
 
   ## Bioclimatic variables
-  ## See https://chelsa-climate.org/wp-admin/download-page/CHELSA_tech_specification_V2.pdf for details
+  ## See https://chelsa-climate.org/wp-admin/download-page/CHELSA_tech_specification_V2.pdf for details  
   cat("Downloading bioclimatic variables\n")
-  for(i in 1:19){
-    ifile <- glue::glue("/vsicurl/{url_base_chelsa}/bio/CHELSA_bio{i}_1981-2010_V.2.1.tif")
+  for (i in 1:19) {
+    ifile <- glue::glue("/vsicurl/{url_base_chelsa}/bio/",
+                        "CHELSA_bio{i}_1981-2010_V.2.1.tif")
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0('bio', stringr::str_pad(i, width = 2, pad = '0'), '.tif'))
-    gdal_utils_translate(ifile, ofile, extent_gdal_translate)
+    # Data type and nodata
+    # There are errors in Chelsa metadata as NoData and type do not correspond
+    # eg: UInt16 and -99999
+    metadata <- sf::gdal_utils("gdalinfo", ifile, quiet=TRUE)
+    # data_type <- regmatches(metadata, regexpr("Type=[[:graph:]]+", metadata))
+    # data_type <- sub("Type=", "", data_type)
+    nodata_val <- regmatches(metadata, regexpr("NoData[[:space:]]Value=[[:graph:]]+", metadata))
+    nodata_val <- as.numeric(sub("NoData Value=", "", nodata_val))
+    if (nodata_val == 65535) {dtype <- "UInt16"}
+    if (nodata_val == -99999) {dtype <- "Int32"}
+    if (nodata_val > 3.4e+38) {dtype <- "Float32"}
+    # Download
+    gdal_utils_translate(ifile, ofile, extent_gdal_translate, opts=c("-ot", dtype))
   }
 
   ## ================================
@@ -180,15 +199,23 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   ## ================================
 
   cat("Reprojecting rasters and stacking monthly rasters per variable\n")
-  for(var in c("tasmin", "tasmax", "tas", "pr", "bio", "clt", "pet_penman")) {
-    ifile <- file.path(destination, "data_raw", "chelsa_v2_1", "temp")
-    files.tif <- list.files(ifile, pattern = paste0(var, "[0-9]{2}\\.tif"), full.names = TRUE)
+  for (var in c("tasmin", "tasmax", "tas", "pr", "bio", "clt", "pet_penman")) {
+    
+    idir <- file.path(destination, "data_raw", "chelsa_v2_1", "temp")
+    files.tif <- list.files(idir, pattern = paste0(var, "[0-9]{2}\\.tif"), full.names = TRUE)
+    
     for (i in 1:length(files.tif)) {
-      sourcefile <- files.tif[i]
-      destfile <- gsub(".tif", "_res.tif", files.tif[i])
-      system(glue::glue("gdalwarp -overwrite -s_srs {proj_s} -t_srs {proj_t} \\
-        -r bilinear -tr {resol} {resol} -te {extent_proj_string} -ot Int16 -of GTiff -srcnodata 0 -dstnodata {nodat} \\
-        {sourcefile} {destfile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
+
+      ifile <- files.tif[i]
+      ofile <- gsub(".tif", "_res.tif", files.tif[i])
+      opts <- glue("-tr {resol} {resol} -te {extent_proj_string} ",
+                   "-s_srs {proj_s} -t_srs {proj_t} -overwrite ",
+                   "-r bilinear -dstnodata {nodata_Int16} ",
+                   "-ot Int16 -of GTiff -co COMPRESS=LZW -co PREDICTOR=2")
+      sf::gdal_utils(util="warp", source=ifile, destination=ofile,
+                     options=unlist(strsplit(opts, " ")),
+                     quiet=TRUE)
+      
       if (var %in% c("tasmin", "tasmax", "tas") | (var == "bio" & i <= 11)) {
         # Stock °C as integer to reduce size
         # °C * 10 to keep information
@@ -379,36 +406,6 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   }
 
   return(file.path(destination, "data_raw", "current_chelsa.tif"))
-}
-
-#' Download data with gdal_translate.
-#'
-#' Use gdal_translate to download raster data from a Cloud Optimized
-#' Geotiffs.
-#'
-#' @param ifile character. Input file
-#' @param ofile character. Output file
-#' @param ullr_extent vector. Extent c(ulx, uly, lrx, lry) which
-#'   corresponds to c(xmin, ymax, xmax, ymin).
-#' @param proj_s character. EPSG code of the input file. Default to
-#'   "EPSG:4326".
-#' @param overwite boolean. If FALSE, do not overwrite raster if it
-#'   exists. Default to TRUE.
-#'
-#' @return NULL
-#' @keywords internal
-#' 
-gdal_utils_translate <- function(ifile, ofile, ullr_extent,
-                                 proj_s="EPSG:4326",
-                                 overwrite=TRUE) {
-  
-  if (!file.exists(ofile) | overwrite) {
-    opts <- c("-projwin", ullr_extent, "-projwin_srs", proj_s,
-              "-co", "COMPRESS=LZW", "-co", "PREDICTOR=2")
-    sf::gdal_utils(util="translate", source=ifile, destination=ofile,
-                   options=opts,
-                   quiet=TRUE)
-  }
 }
 
 # End

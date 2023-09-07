@@ -16,7 +16,7 @@
 #' \item{daylen }{Duration of daylight in hours and decimal fraction.} It
 #' returns NA for sunrise and sunset during the polar night.
 #' @note You may like to double check at:
-#' \url{https://www.esrl.noaa.gov/gmd/grad/solcalc/azel.html}
+#' \url{https://gml.noaa.gov/gmd/grad/solcalc/azel.html}
 #' @author Javier G. Corripio <jgc@meteoexploration.com>
 #' @seealso \code{\link{declination}}, \code{\link{eqtime}}
 #' @references Corripio, J. G.: 2003, Vectorial algebra algorithms for
@@ -105,7 +105,7 @@ degrees <- function (radian) {
 #' @return Declination in degrees and decimal fraction.
 #' @author Javier G. Corripio <jgc@meteoexploration.com>
 #' @references
-#' \url{https://www.esrl.noaa.gov/gmd/grad/solcalc/calcdetails.html}
+#' \url{https://gml.noaa.gov/gmd/grad/solcalc/calcdetails.html}
 #' 
 #' Meeus, J. 1999.  \emph{Astronomical Algorithms}. Willmann-Bell, Richmond,
 #' Virginia, USA.
@@ -173,7 +173,7 @@ declination <- function (jd) {
 #' @return Equation of time in minutes.
 #' @author Javier G. Corripio <jgc@meteoexploration.com>
 #' @references
-#' \url{https://www.esrl.noaa.gov/gmd/grad/solcalc/calcdetails.html}
+#' \url{https://gml.noaa.gov/gmd/grad/solcalc/calcdetails.html}
 #' 
 #' Meeus, J. 1999.  \emph{Astronomical Algorithms}. Willmann-Bell, Richmond,
 #' Virginia, USA.

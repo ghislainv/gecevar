@@ -9,13 +9,13 @@ resol <- 1000
 
 clim_path <- get_chelsa_current(extent_latlon=extent_latlon,
                                 extent_proj=extent_proj,
-                                EPSG=epsg,
+                                EPSG_proj=epsg,
                                 destination=tempdir(),
                                 resol=resol,
                                 rm_download=TRUE)
 
 clim <- terra::rast(clim_path)
-ext_out <- terra::ext(clim)
+ext_clim <- terra::ext(clim)
 names_clim <- c(paste0(rep(c("tasmin","tasmax", "tas", "pr", "clt", "pet_penman"), each=12),
                                      rep(1:12,6)),
                               paste0("bio", 1:19),
@@ -31,7 +31,7 @@ test_that("get_chelsa_current works", {
   # EPSG
   expect_equal(as.numeric(terra::crs(clim, describe=TRUE)$code), epsg)
   # extent (km)
-  expect_equal(extent_proj, as.vector(ext_out)[c(1, 3, 2, 4)])
+  expect_equal(extent_proj, as.vector(ext_clim)[c(1, 3, 2, 4)])
 })
 
 unlink(file.path(clim_path))
