@@ -79,14 +79,14 @@
 #' @import terra
 #' @importFrom glue glue
 #' @export
-
+#' 
 get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destination,
                                resol = 1000, rm_download = FALSE) {
 
   # Extent for gdal_translate
-  # /!\ with gdal_translate: (xmin, ymax, xmax, ymin) corresponding to <ulx> <uly> <lrx> <lry> 
-  extent_gdal_translate <- paste(extent_latlon[1], extent_latlon[4],
-                                 extent_latlon[3], extent_latlon[2], sep=" ")
+  # /!\ with gdal_translate: c(xmin, ymax, xmax, ymin) corresponding to <ulx> <uly> <lrx> <lry> 
+  extent_gdal_translate <- c(extent_latlon[1], extent_latlon[4],
+                             extent_latlon[3], extent_latlon[2])
   
   # Transform extent_proj from vector to string
   extent_proj_string <- paste(extent_proj, collapse=" ")
@@ -113,65 +113,53 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   cat("Downloading tasmin, tasmax, tas, pr, clt, and pet_penman\n")
   pb = txtProgressBar(min = 0, max = nb_var_download, initial = 0)
   for (m in stringr::str_pad(1:12, width = 2, pad = "0")) {
+    
     ## Monthly minimum temperature (°C).
-    ifile <- glue::glue("{url_base_chelsa}/tasmin/CHELSA_tasmin_{m}_1981-2010_V.2.1.tif")
+    ifile <- glue::glue("/vsicurl/{url_base_chelsa}/tasmin/CHELSA_tasmin_{m}_1981-2010_V.2.1.tif")
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0('tasmin', m, '.tif'))
-    if (!file.exists(ofile)) {
-      system(glue::glue("gdal_translate -projwin {extent_gdal_translate} -projwin_srs {proj_s} \\
-                  /vsicurl/{ifile} {ofile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
-    }
+    gdal_utils_translate(ifile, ofile, extent_gdal_translate)
     progress_bar <- progress_bar + 1
     setTxtProgressBar(pb, progress_bar)
+    
     ## Monthly maximum temperature (°C).
-    ifile <- glue::glue("{url_base_chelsa}/tasmax/CHELSA_tasmax_{m}_1981-2010_V.2.1.tif")
+    ifile <- glue::glue("/vsicurl/{url_base_chelsa}/tasmax/CHELSA_tasmax_{m}_1981-2010_V.2.1.tif")
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0('tasmax', m, '.tif'))
-    if (!file.exists(ofile)) {
-      system(glue::glue("gdal_translate -projwin {extent_gdal_translate} -projwin_srs {proj_s} \\
-                  /vsicurl/{ifile} {ofile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
-    }
+    gdal_utils_translate(ifile, ofile, extent_gdal_translate)
     progress_bar <- progress_bar + 1
     setTxtProgressBar(pb, progress_bar)
+    
     ## Monthly average temperature (°C).
-    ifile <- glue::glue("{url_base_chelsa}/tas/CHELSA_tas_{m}_1981-2010_V.2.1.tif")
+    ifile <- glue::glue("/vsicurl/{url_base_chelsa}/tas/CHELSA_tas_{m}_1981-2010_V.2.1.tif")
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0('tas', m, '.tif'))
-    if (!file.exists(ofile)) {
-      system(glue::glue("gdal_translate -projwin {extent_gdal_translate} -projwin_srs {proj_s} \\
-                  /vsicurl/{ifile} {ofile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
-    }
+    gdal_utils_translate(ifile, ofile, extent_gdal_translate)
     progress_bar <- progress_bar + 1
     setTxtProgressBar(pb, progress_bar)
+    
     ## Monthly precipitation (mm ~ kg/m2).
-    ifile <- glue::glue("{url_base_chelsa}/pr/CHELSA_pr_{m}_1981-2010_V.2.1.tif")
+    ifile <- glue::glue("/vsicurl/{url_base_chelsa}/pr/CHELSA_pr_{m}_1981-2010_V.2.1.tif")
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0('pr', m, '.tif'))
-    if (!file.exists(ofile)) {
-      system(glue::glue("gdal_translate -projwin {extent_gdal_translate} -projwin_srs {proj_s} \\
-                  /vsicurl/{ifile} {ofile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
-    }
+    gdal_utils_translate(ifile, ofile, extent_gdal_translate)
     progress_bar <- progress_bar + 1
     setTxtProgressBar(pb, progress_bar)
+    
     ## Monthly cloud area fraction
-    ifile <- glue::glue("{url_base_chelsa}/clt/CHELSA_clt_{m}_1981-2010_V.2.1.tif")
+    ifile <- glue::glue("/vsicurl/{url_base_chelsa}/clt/CHELSA_clt_{m}_1981-2010_V.2.1.tif")
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0('clt', m, '.tif'))
-    if (!file.exists(ofile)) {
-      system(glue::glue("gdal_translate -projwin {extent_gdal_translate} -projwin_srs {proj_s} \\
-                  /vsicurl/{ifile} {ofile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
-    }
+    gdal_utils_translate(ifile, ofile, extent_gdal_translate)
     progress_bar <- progress_bar + 1
     setTxtProgressBar(pb, progress_bar)
+    
     ## Monthly pet_penman
     # https://www.fao.org/3/x0490e/x0490e06.htm
-    ifile <- glue::glue("{url_base_chelsa}/pet/CHELSA_pet_penman_{m}_1981-2010_V.2.1.tif")
+    ifile <- glue::glue("/vsicurl/{url_base_chelsa}/pet/CHELSA_pet_penman_{m}_1981-2010_V.2.1.tif")
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0('pet_penman', m, '.tif'))
-    if (!file.exists(ofile)) {
-      system(glue::glue("gdal_translate -projwin {extent_gdal_translate} -projwin_srs {proj_s} \\
-                  /vsicurl/{ifile} {ofile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
-    }
+    gdal_utils_translate(ifile, ofile, extent_gdal_translate)
     progress_bar <- progress_bar + 1
     setTxtProgressBar(pb, progress_bar)
   }
@@ -181,13 +169,10 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   ## See https://chelsa-climate.org/wp-admin/download-page/CHELSA_tech_specification_V2.pdf for details
   cat("Downloading bioclimatic variables\n")
   for(i in 1:19){
-    ifile <- glue::glue("{url_base_chelsa}/bio/CHELSA_bio{i}_1981-2010_V.2.1.tif")
+    ifile <- glue::glue("/vsicurl/{url_base_chelsa}/bio/CHELSA_bio{i}_1981-2010_V.2.1.tif")
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0('bio', stringr::str_pad(i, width = 2, pad = '0'), '.tif'))
-    if (!file.exists(ofile)) {
-      system(glue::glue("gdal_translate -projwin {extent_gdal_translate} -projwin_srs {proj_s} \\
-                  /vsicurl/{ifile} {ofile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
-    }
+    gdal_utils_translate(ifile, ofile, extent_gdal_translate)
   }
 
   ## ================================
@@ -394,6 +379,36 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   }
 
   return(file.path(destination, "data_raw", "current_chelsa.tif"))
+}
+
+#' Download data with gdal_translate.
+#'
+#' Use gdal_translate to download raster data from a Cloud Optimized
+#' Geotiffs.
+#'
+#' @param ifile character. Input file
+#' @param ofile character. Output file
+#' @param ullr_extent vector. Extent c(ulx, uly, lrx, lry) which
+#'   corresponds to c(xmin, ymax, xmax, ymin).
+#' @param proj_s character. EPSG code of the input file. Default to
+#'   "EPSG:4326".
+#' @param overwite boolean. If FALSE, do not overwrite raster if it
+#'   exists. Default to TRUE.
+#'
+#' @return NULL
+#' @keywords internal
+#' 
+gdal_utils_translate <- function(ifile, ofile, ullr_extent,
+                                 proj_s="EPSG:4326",
+                                 overwrite=TRUE) {
+  
+  if (!file.exists(ofile) | overwrite) {
+    opts <- c("-projwin", extent, "-projwin_srs", proj_s,
+              "-co", "COMPRESS=LZW", "-co", "PREDICTOR=2")
+    sf::gdal_utils(util="translate", source=ifile, destination=ofile,
+                   options=opts,
+                   quiet=TRUE)
+  }
 }
 
 # End
