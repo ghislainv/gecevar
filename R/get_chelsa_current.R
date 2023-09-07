@@ -202,12 +202,12 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   for (var in c("tasmin", "tasmax", "tas", "pr", "bio", "clt", "pet_penman")) {
     
     idir <- file.path(destination, "data_raw", "chelsa_v2_1", "temp")
-    files.tif <- list.files(idir, pattern = paste0(var, "[0-9]{2}\\.tif"), full.names = TRUE)
-    
+    tif_files <- list.files(idir, pattern = paste0(var, "[0-9]{2}\\.tif"), full.names = TRUE)
+   
     for (i in 1:length(files.tif)) {
-
+      
       ifile <- files.tif[i]
-      ofile <- gsub(".tif", "_res.tif", files.tif[i])
+      ofile <- gsub(".tif", "_res.tif", tif_files[i])
       opts <- glue("-tr {resol} {resol} -te {extent_proj_string} ",
                    "-s_srs {proj_s} -t_srs {proj_t} -overwrite ",
                    "-r bilinear -dstnodata {nodata_Int16} ",
@@ -215,23 +215,16 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
       sf::gdal_utils(util="warp", source=ifile, destination=ofile,
                      options=unlist(strsplit(opts, " ")),
                      quiet=TRUE)
-      
-      if (var %in% c("tasmin", "tasmax", "tas") | (var == "bio" & i <= 11)) {
-        # Stock °C as integer to reduce size
-        # °C * 10 to keep information
-        change_scale <- round(read_stars(destfile) * 10)
-        write_stars(obj = change_scale, options = c("COMPRESS=LZW", "PREDICTOR=2"), NA_value = nodat,
-                    type = "Int16", dsn = destfile)
-        rm(change_scale)
-      }
     }
-    ifile <- file.path(destination, "data_raw", "chelsa_v2_1", "temp")
-    files.tif <- list.files(ifile, pattern = paste0(var, "[0-9]{2}_res\\.tif"), full.names = TRUE)
-    r <- terra::rast(sort(files.tif))
-    r <- stats::setNames(r, paste0(var, 1:length(files.tif)))
+
+    # Exporting
+    idir <- file.path(destination, "data_raw", "chelsa_v2_1", "temp")
+    tif_files_res <- list.files(ifile, pattern = paste0(var, "[0-9]{2}_res\\.tif"), full.names = TRUE)
+    r <- terra::rast(sort(tif_files_res))
+    names(r) <- paste0(var, 1:length(tif_files_res))
     ofile <- file.path(destination, "data_raw", "chelsa_v2_1", paste0(var, "_res.tif"))
     terra::writeRaster(r, gdal = c("COMPRESS=LZW","PREDICTOR=2"), progress = 0, overwrite = TRUE,
-                datatype = "INT2S", filename = ofile)
+                       datatype = "INT2S", filename = ofile)
   }
 
   ## ==============================

@@ -203,15 +203,16 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
         system(glue("gdalwarp -overwrite -s_srs {proj_s} -t_srs {proj_t} \\
         -r bilinear -tr {resol} {resol} -te {extent_proj_string} -ot Int16 -of GTiff -srcnodata 0 -dstnodata {nodat} \\
         {sourcefile} {destfile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
-        if (var %in% c("tasmin", "tasmax", "tas") | (var == "bio" & i <= 11))
-        {
-          # stock °C as integer to reduce size
-          # °C * 10 to keep information
-          change_scale <- round(stars::read_stars(destfile) * 10)
-          stars::write_stars(obj = change_scale, options = c("COMPRESS=LZW","PREDICTOR=2"), NA_value = nodat,
-                             type = "Int16", dsn = destfile)
-          rm(change_scale)
-        }
+
+        # Remove the following if block as Chelsa use offset and scale=0.1 in raster metadata to avoid the problem
+        ## if (var %in% c("tasmin", "tasmax", "tas") | (var == "bio" & i <= 11)) {
+        ##   # stock °C as integer to reduce size
+        ##   # °C * 10 to keep information
+        ##   change_scale <- round(stars::read_stars(destfile) * 10)
+        ##   stars::write_stars(obj = change_scale, options = c("COMPRESS=LZW","PREDICTOR=2"), NA_value = nodat,
+        ##                      type = "Int16", dsn = destfile)
+        ##   rm(change_scale)
+        ## }
       }
       files.tif <- list.files(file.path(destination, "data_raw", "future_chelsa", paste('climat', phase, model, 'ssp', SSP, sep = '_'), "temp"),
                               pattern = paste0(var, "[0-9]"), full.names = TRUE)
