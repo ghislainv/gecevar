@@ -82,8 +82,9 @@
 #' @import retry
 #' @export
 
-get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, destination,
-                              resol=1000, rm_download=FALSE, forest_year=2010,
+get_env_variables <- function(extent_latlon, extent_proj, EPSG,
+                              country_name, destination, resol=1000,
+                              rm_download=FALSE, forest_year=2010,
                               gisBase=NULL) {
 
   # Round extent_latlon to nearest degree

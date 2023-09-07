@@ -403,7 +403,7 @@ gdal_utils_translate <- function(ifile, ofile, ullr_extent,
                                  overwrite=TRUE) {
   
   if (!file.exists(ofile) | overwrite) {
-    opts <- c("-projwin", extent, "-projwin_srs", proj_s,
+    opts <- c("-projwin", ullr_extent, "-projwin_srs", proj_s,
               "-co", "COMPRESS=LZW", "-co", "PREDICTOR=2")
     sf::gdal_utils(util="translate", source=ifile, destination=ofile,
                    options=opts,
