@@ -17,21 +17,21 @@ environ_path <- get_env_variables(extent_latlon = extent_latlon,
                                   rm_download = TRUE,
                                   gisBase = NULL)
 
-env <- terra::rast(environ_path)
-ext_out <- terra::ext(env)
-names_env <- c("aspect", "elevation", "roughness", "slope", "srad", "soil_type",
+environ <- terra::rast(environ_path)
+ext_environ <- terra::ext(environ)
+layer_names <- c("aspect", "elevation", "roughness", "slope", "srad", "soil_type",
                "dist_sea", "dist_road", "dist_place",
                "dist_water", "wdpa", "population", "forest", "dist_forest")
 
 test_that("get_env_variables works", {
   # Layers number and names
-  expect_equal(names(env), names_env)
+  expect_equal(names(environ), layer_names)
   # Resolution
-  expect_equal(terra::res(env), c(1000,1000))
+  expect_equal(terra::res(environ), c(1000,1000))
   # EPSG
-  expect_equal(as.numeric(terra::crs(env, describe=TRUE)$code), epsg)
+  expect_equal(as.numeric(terra::crs(environ, describe=TRUE)$code), epsg)
   # extent (km)
-  expect_equal(extent_proj, as.vector(ext_out)[c(1, 3, 2, 4)])
+  expect_equal(extent_proj, as.vector(ext_environ)[c(1, 3, 2, 4)])
 })
 
 unlink(file.path(environ_path))

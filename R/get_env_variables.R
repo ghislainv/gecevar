@@ -322,11 +322,11 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
   continent_name <- countrycode::countrycode(sourcevar=country_name,
                                              origin="country.name",
                                              destination="continent")
-  if (continent_name == "Oceania"){
+  if (continent_name == "Oceania") {
     continent_name="Asia"
   }
   continent_short <- substr(toupper(continent_name), 1, 3)
-  if (RCurl::url.exists(paste0("https://forestatrisk.cirad.fr/tropics/tif/fcc_123_", continent_short, "_aea.tif"))){
+  if (RCurl::url.exists(paste0("https://forestatrisk.cirad.fr/tropics/tif/fcc_123_", continent_short, "_aea.tif"))) {
     dir.create(file.path(destination, "data_raw", "forestatrisk"), showWarnings=FALSE)
     url_far <- paste0("https://forestatrisk.cirad.fr/tropics/tif/fcc_123_", continent_short, "_aea.tif")
     ofile <- file.path(destination, "data_raw", "forestatrisk", "forest_nocrop.tif")
@@ -360,7 +360,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
     }
     stars::write_stars(forest_stars, dsn=ofile, update=TRUE, type="Byte", options=c("COMPRESS=LZW", "PREDICTOR=2"))
     forest <- TRUE
-  } else{
+  } else {
     print("Forest layer is not available for your country")
   }
 
@@ -602,7 +602,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG, country_name, de
   environ <- c(aspect, elevation, roughness, slope, srad, soilgrids,
                dist_sea, dist_road, dist_place, dist_water, wdpa, population)
   layer_names <- c("aspect", "elevation", "roughness", "slope", "srad", "soil_type",
-                      "dist_sea", "dist_road", "dist_place", "dist_water", "wdpa", "population")
+                   "dist_sea", "dist_road", "dist_place", "dist_water", "wdpa", "population")
   names(environ) <- layer_names
                             
   # Update if forest
