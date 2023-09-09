@@ -64,10 +64,16 @@
     <loc>https://ecology.ghislainv.fr/gecevar/reference/get_extents_from_e_latlon.html</loc>
   </url>
   <url>
+    <loc>https://ecology.ghislainv.fr/gecevar/reference/get_nodata_dtype_chelsa.html</loc>
+  </url>
+  <url>
     <loc>https://ecology.ghislainv.fr/gecevar/reference/index.html</loc>
   </url>
   <url>
     <loc>https://ecology.ghislainv.fr/gecevar/reference/merge_files.html</loc>
+  </url>
+  <url>
+    <loc>https://ecology.ghislainv.fr/gecevar/reference/nodata_chelsa.html</loc>
   </url>
   <url>
     <loc>https://ecology.ghislainv.fr/gecevar/reference/radians.html</loc>
