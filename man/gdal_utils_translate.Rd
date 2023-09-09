@@ -9,7 +9,8 @@ gdal_utils_translate(
   ofile,
   ullr_extent,
   proj_s = "EPSG:4326",
-  overwrite = TRUE
+  overwrite = TRUE,
+  opts = NULL
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ corresponds to c(xmin, ymax, xmax, ymin).}
 
 \item{proj_s}{character. EPSG code of the input file. Default to
 "EPSG:4326".}
+
+\item{opts}{vector. Additional GDAL options.}
 
 \item{overwite}{boolean. If FALSE, do not overwrite raster if it
 exists. Default to TRUE.}

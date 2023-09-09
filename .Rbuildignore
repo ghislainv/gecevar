@@ -10,3 +10,4 @@
 ^codecov\.yml$
 ^folders4website$
 ^cran-comments.md$
+^data-raw$

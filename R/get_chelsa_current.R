@@ -92,6 +92,9 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   extent_proj_string <- paste(extent_proj, collapse=" ")
   
   nodata_Int16 <- -32768
+  nodata_Int32 <- -2147483648
+  nodata_UInt16 <- 65535
+  
   proj_s <- "EPSG:4326"
   proj_t <- paste0("EPSG:", EPSG_proj)
   dir.create(file.path(destination, "data_raw", "chelsa_v2_1", "temp"),
@@ -187,11 +190,13 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
     # data_type <- sub("Type=", "", data_type)
     nodata_val <- regmatches(metadata, regexpr("NoData[[:space:]]Value=[[:graph:]]+", metadata))
     nodata_val <- as.numeric(sub("NoData Value=", "", nodata_val))
+    # cat(data_type, nodata_val, "\n")
     if (nodata_val == 65535) {dtype <- "UInt16"}
     if (nodata_val == -99999) {dtype <- "Int32"}
     if (nodata_val > 3.4e+38) {dtype <- "Float32"}
     # Download
-    gdal_utils_translate(ifile, ofile, extent_gdal_translate, opts=c("-ot", dtype))
+    gdal_utils_translate(ifile, ofile, extent_gdal_translate,
+                         opts=c("-ot", dtype))
   }
 
   ## ================================
@@ -204,9 +209,9 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
     idir <- file.path(destination, "data_raw", "chelsa_v2_1", "temp")
     tif_files <- list.files(idir, pattern = paste0(var, "[0-9]{2}\\.tif"), full.names = TRUE)
    
-    for (i in 1:length(files.tif)) {
+    for (i in 1:length(tif_files)) {
       
-      ifile <- files.tif[i]
+      ifile <- tif_files[i]
       ofile <- gsub(".tif", "_res.tif", tif_files[i])
       opts <- glue("-tr {resol} {resol} -te {extent_proj_string} ",
                    "-s_srs {proj_s} -t_srs {proj_t} -overwrite ",
@@ -217,11 +222,13 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
                      quiet=TRUE)
     }
 
-    # Exporting
+    # Stack per variable
     idir <- file.path(destination, "data_raw", "chelsa_v2_1", "temp")
-    tif_files_res <- list.files(ifile, pattern = paste0(var, "[0-9]{2}_res\\.tif"), full.names = TRUE)
+    tif_files_res <- list.files(idir, pattern = paste0(var, "[0-9]{2}_res\\.tif"), full.names = TRUE)
     r <- terra::rast(sort(tif_files_res))
     names(r) <- paste0(var, 1:length(tif_files_res))
+
+    # Export
     ofile <- file.path(destination, "data_raw", "chelsa_v2_1", paste0(var, "_res.tif"))
     terra::writeRaster(r, gdal = c("COMPRESS=LZW","PREDICTOR=2"), progress = 0, overwrite = TRUE,
                        datatype = "INT2S", filename = ofile)

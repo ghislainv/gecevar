@@ -47,7 +47,7 @@ abline(h=c(90-latGwch,90-latGwch+max(decl),
 
 }
 \references{
-\url{https://www.esrl.noaa.gov/gmd/grad/solcalc/calcdetails.html}
+\url{https://gml.noaa.gov/gmd/grad/solcalc/calcdetails.html}
 
 Meeus, J. 1999.  \emph{Astronomical Algorithms}. Willmann-Bell, Richmond,
 Virginia, USA.

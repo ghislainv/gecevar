@@ -32,7 +32,7 @@ G. Corripio \href{mailto:jgc@meteoexploration.com}{jgc@meteoexploration.com}.
 }
 \note{
 You may like to double check at:
-\url{https://www.esrl.noaa.gov/gmd/grad/solcalc/azel.html}
+\url{https://gml.noaa.gov/gmd/grad/solcalc/azel.html}
 }
 \examples{
 
