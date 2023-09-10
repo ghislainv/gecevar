@@ -111,106 +111,63 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
     "envicloud/chelsa/chelsa_V2/GLOBAL/",
     "climatologies/1981-2010")
 
-  progress_bar <- 0
-  nb_var_download <- 12 * 6
-  cat("Downloading tasmin, tasmax, tas, pr, clt, and pet_penman\n")
-  pb = txtProgressBar(min = 0, max = nb_var_download, initial = 0)
-  for (m in stringr::str_pad(1:12, width = 2, pad = "0")) {
-    
-    ## Monthly minimum temperature (°C).
-    ifile <- glue::glue("/vsicurl/{url_base_chelsa}/tasmin/",
-                        "CHELSA_tasmin_{m}_1981-2010_V.2.1.tif")
-    ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
-                       paste0('tasmin', m, '.tif'))
-    gdal_utils_translate(ifile, ofile, extent_gdal_translate, opts=c("-ot", "Int32"))
-    progress_bar <- progress_bar + 1
-    setTxtProgressBar(pb, progress_bar)
-    
-    ## Monthly maximum temperature (°C).
-    ifile <- glue::glue("/vsicurl/{url_base_chelsa}/tasmax/",
-                        "CHELSA_tasmax_{m}_1981-2010_V.2.1.tif")
-    ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
-                       paste0('tasmax', m, '.tif'))
-    gdal_utils_translate(ifile, ofile, extent_gdal_translate, opts=c("-ot", "Int32"))
-    progress_bar <- progress_bar + 1
-    setTxtProgressBar(pb, progress_bar)
-    
-    ## Monthly average temperature (°C).
-    ifile <- glue::glue("/vsicurl/{url_base_chelsa}/tas/",
-                        "CHELSA_tas_{m}_1981-2010_V.2.1.tif")
-    ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
-                       paste0('tas', m, '.tif'))
-    gdal_utils_translate(ifile, ofile, extent_gdal_translate, opts=c("-ot", "Int32"))
-    progress_bar <- progress_bar + 1
-    setTxtProgressBar(pb, progress_bar)
-    
-    ## Monthly precipitation (mm ~ kg/m2).
-    ifile <- glue::glue("/vsicurl/{url_base_chelsa}/pr/",
-                        "CHELSA_pr_{m}_1981-2010_V.2.1.tif")
-    ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
-                       paste0('pr', m, '.tif'))
-    gdal_utils_translate(ifile, ofile, extent_gdal_translate, opts=c("-ot", "Int32"))
-    progress_bar <- progress_bar + 1
-    setTxtProgressBar(pb, progress_bar)
-    
-    ## Monthly cloud area fraction
-    ifile <- glue::glue("/vsicurl/{url_base_chelsa}/clt/",
-                        "CHELSA_clt_{m}_1981-2010_V.2.1.tif")
-    ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
-                       paste0('clt', m, '.tif'))
-    gdal_utils_translate(ifile, ofile, extent_gdal_translate, opts=c("-ot", "Int32"))
-    progress_bar <- progress_bar + 1
-    setTxtProgressBar(pb, progress_bar)
-    
-    ## Monthly pet_penman
-    # https://www.fao.org/3/x0490e/x0490e06.htm
-    ifile <- glue::glue("/vsicurl/{url_base_chelsa}/pet/",
-                        "CHELSA_pet_penman_{m}_1981-2010_V.2.1.tif")
-    ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
-                       paste0('pet_penman', m, '.tif'))
-    gdal_utils_translate(ifile, ofile, extent_gdal_translate, opts=c("-ot", "Int32"))
-    progress_bar <- progress_bar + 1
-    setTxtProgressBar(pb, progress_bar)
+  ## Climatic variables
+  var <- c("clt", "pet", "pr", "tas", "tasmax", "tasmin")
+  varr <- c("clt", "pet_penman", "pr", "tas", "tasmax", "tasmin")
+  nvar <- length(var)
+
+  iter_bar <- 0
+  nb_var_download <- nvar * 12
+  cat("Downloading clt, pet_penman, pr, tas, tasmax, tasmin", "\n")
+  pb = txtProgressBar(min = 1, max = nb_var_download, width=30, style=3)
+  ## Loop on variables
+  for (v in 1:nvar) {
+    ## Loop on months
+    for (m in stringr::str_pad(1:12, width = 2, pad = "0")) {
+      ifile <- glue::glue("/vsicurl/{url_base_chelsa}/{var[v]}/",
+                          "CHELSA_{varr[v]}_{m}_1981-2010_V.2.1.tif")
+      ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "temp",
+                         paste0(varr[v], m, ".tif"))
+      gdal_utils_translate(ifile, ofile, extent_gdal_translate,
+                           opts=c("-ot", "Int32"))
+      iter_bar <- iter_bar + 1
+      setTxtProgressBar(pb, iter_bar)
+    }
   }
   close(pb)
 
   ## Bioclimatic variables
-  ## See https://chelsa-climate.org/wp-admin/download-page/CHELSA_tech_specification_V2.pdf for details  
-  cat("Downloading bioclimatic variables\n")
+  ## https://chelsa-climate.org/wp-admin/download-page/CHELSA_tech_specification_V2.pdf
+  cat("Downloading bioclimatic variables", "\n")
+  pb = txtProgressBar(min = 1, max = 19, width=30, style=3)
   for (i in 1:19) {
     ifile <- glue::glue("/vsicurl/{url_base_chelsa}/bio/",
                         "CHELSA_bio{i}_1981-2010_V.2.1.tif")
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0('bio', stringr::str_pad(i, width = 2, pad = '0'), '.tif'))
     # Data type and nodata
-    # There are errors in Chelsa metadata as NoData and type do not correspond
-    # eg: UInt16 and -99999
-    metadata <- sf::gdal_utils("gdalinfo", ifile, quiet=TRUE)
-    # data_type <- regmatches(metadata, regexpr("Type=[[:graph:]]+", metadata))
-    # data_type <- sub("Type=", "", data_type)
-    nodata_val <- regmatches(metadata, regexpr("NoData[[:space:]]Value=[[:graph:]]+", metadata))
-    nodata_val <- as.numeric(sub("NoData Value=", "", nodata_val))
-    # cat(data_type, nodata_val, "\n")
-    if (nodata_val == 65535) {dtype <- "UInt16"}
-    if (nodata_val == -99999) {dtype <- "Int32"}
-    if (nodata_val > 3.4e+38) {dtype <- "Float32"}
+    if (i %in% c(8:11, 16:19)) {dtype <- "UInt16"}  # nodata_val == 65535
+    if (i %in% c(1, 2, 4:7, 12:14)) {dtype <- "Int32"}  # nodata_val == -99999
+    if (i %in% c(3, 15)) {dtype <- "Float32"}  # nodata_val == 3.4028234663852886e+38
     # Download
     gdal_utils_translate(ifile, ofile, extent_gdal_translate,
                          opts=c("-ot", dtype))
+    setTxtProgressBar(pb, i)
   }
+  close(pb)
 
   ## ================================
-  ## Reproject and stack per variable
+  ## Reproject
   ## ================================
 
-  cat("Reprojecting rasters and stacking monthly rasters per variable\n")
-  for (var in c("tasmin", "tasmax", "tas", "pr", "bio", "clt", "pet_penman")) {
-    
+  cat("Reprojecting rasters", "\n")
+
+  var_list <- c("tas", "tasmin", "tasmax", "pr", "pet_penman", "clt", "bio")
+  for (var in var_list) {
     idir <- file.path(destination, "data_raw", "chelsa_v2_1", "temp")
-    tif_files <- list.files(idir, pattern = paste0(var, "[0-9]{2}\\.tif"), full.names = TRUE)
-   
+    tif_files <- list.files(idir, pattern = paste0(var, "[0-9]{2}\\.tif"),
+                            full.names = TRUE)
     for (i in 1:length(tif_files)) {
-      
       ifile <- tif_files[i]
       ofile <- gsub(".tif", "_res.tif", tif_files[i])
       opts <- glue("-tr {resol} {resol} -te {extent_proj_string} ",
@@ -221,16 +178,24 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
                      options=unlist(strsplit(opts, " ")),
                      quiet=TRUE)
     }
+  }
 
-    # Stack per variable
+  ## ================================
+  ## Stack per variable
+  ## ================================
+
+  cat("Stack per variable", "\n")
+  for (var in var_list) {
     idir <- file.path(destination, "data_raw", "chelsa_v2_1", "temp")
-    tif_files_res <- list.files(idir, pattern = paste0(var, "[0-9]{2}_res\\.tif"), full.names = TRUE)
+    tif_files_res <- list.files(idir, pattern = paste0(var, "[0-9]{2}_res\\.tif"),
+                                full.names = TRUE)
     r <- terra::rast(sort(tif_files_res))
     names(r) <- paste0(var, 1:length(tif_files_res))
 
     # Export
     ofile <- file.path(destination, "data_raw", "chelsa_v2_1", paste0(var, "_res.tif"))
-    terra::writeRaster(r, gdal = c("COMPRESS=LZW","PREDICTOR=2"), progress = 0, overwrite = TRUE,
+    terra::writeRaster(r, gdal = c("COMPRESS=LZW","PREDICTOR=2"),
+                       progress = 0, overwrite = TRUE,
                        datatype = "INT2S", filename = ofile)
   }
 
@@ -238,16 +203,15 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   ## Create raster stack
   ## ==============================
 
-  cat("Create raster stack of monthly variables and bioclimatic variables\n")
+  cat("Create raster stack of monthly variables and bioclimatic variables", "\n")
   # Stack tasmin, tasmax, tas, pr, clt, pet_penman, and bio
-  files.tif <- file.path(destination, "data_raw", "chelsa_v2_1",
-                         paste0(c("tasmin", "tasmax", "tas", "pr", "clt", "pet_penman", "bio"), "_res.tif"))
-  r <- c(read_stars(files.tif[1]), read_stars(files.tif[2]), read_stars(files.tif[3]), read_stars(files.tif[4]),
-         read_stars(files.tif[5]), read_stars(files.tif[6]), read_stars(files.tif[7]), along = "band")
+  tif_files <- file.path(destination, "data_raw", "chelsa_v2_1",
+                         paste0(var_list, "_res.tif"))
+  r <- terra::rast(tif_files)
   ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "clim_res.tif")
-  write_stars(obj = r, options = c("COMPRESS=LZW", "PREDICTOR=2"), NA_value = nodat,
-              type = "Int16", dsn = ofile)
-  rm(r)
+  terra::writeRaster(r, gdal = c("COMPRESS=LZW","PREDICTOR=2"),
+                     progress = 0, overwrite = TRUE,
+                     datatype = "INT2S", filename = ofile)
 
   ## ===================================================
   ## Compute water deficit (cwd and ndw) with Penman ETP

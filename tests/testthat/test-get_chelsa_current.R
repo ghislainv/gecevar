@@ -2,7 +2,8 @@ library(gecevar)
 iso <- "REU"
 epsg <- 32740
 r <- get_aoi_extent(EPSG_proj=epsg,
-                    country_iso=iso)
+                    country_iso=iso,
+                    rm_output_dir=FALSE)
 extent_latlon <- r$extent_latlon
 extent_proj <- r$extent_proj
 resol <- 1000

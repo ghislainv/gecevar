@@ -46,6 +46,7 @@ get_nodata_dtype_chelsa <- function (nmonths=1, biovar=TRUE, verbose=TRUE) {
   # Climatic variables
   var <- c("clt", "pet", "pr", "tas", "tasmax", "tasmin", bio)
   varr <- c("clt", "pet_penman", "pr", "tas", "tasmax", "tasmin", bioo)
+  nvar <- length(var)
 
   # Base url for Chelsa
   url_base_chelsa <- paste0(
@@ -55,9 +56,9 @@ get_nodata_dtype_chelsa <- function (nmonths=1, biovar=TRUE, verbose=TRUE) {
 
   # Dataframe to store results
   df <- data.frame()
-   
+ 
   # Loop on variables
-  for (v in 1:length(var)) {
+  for (v in 1:nvar) {
     # Message
     if (verbose) {
       cat(glue("Get nodata value and data type for: \"{varr[v]}\"."), "\n")
@@ -69,13 +70,15 @@ get_nodata_dtype_chelsa <- function (nmonths=1, biovar=TRUE, verbose=TRUE) {
         ifile <- glue::glue("/vsicurl/{url_base_chelsa}/{var[v]}/",
                             "CHELSA_{varr[v]}_{m}_1981-2010_V.2.1.tif")
         # Get metadata using gdalinfo and regular expressions
-        metadata <- sf::gdal_utils("gdalinfo", ifile, quiet=TRUE)
-        data_type <- regmatches(metadata, regexpr("Type=[[:graph:]]+", metadata))
+        metadata <- sf::gdal_utils("gdalinfo", ifile,
+                                   config_options=c(GTIFF_SRS_SOURCE="EPSG"),
+                                   quiet=TRUE)
+        data_type <- regmatches(metadata, regexpr("Type=[[:alnum:]]+", metadata))
         data_type <- sub("Type=", "", data_type)
         reg_expr <- regexpr("NoData[[:space:]]Value=[[:graph:]]+", metadata)
         nodata_val <- regmatches(metadata, reg_expr)
-        nodata_val <- as.numeric(sub("NoData Value=", "", nodata_val))
-        df <- rbind(df, c(varr[v], as.numeric(m), data_type, nodata_val))
+        nodata_val <- sub("NoData Value=", "", nodata_val)
+        df <- rbind(df, c(varr[v], m, data_type, nodata_val))
       }
     }
     if (varr[v] %in% bioo) {
@@ -83,17 +86,21 @@ get_nodata_dtype_chelsa <- function (nmonths=1, biovar=TRUE, verbose=TRUE) {
       ifile <- glue::glue("/vsicurl/{url_base_chelsa}/{var[v]}/",
                           "CHELSA_{varr[v]}_1981-2010_V.2.1.tif")
       # Get metadata using gdalinfo and regular expressions
-      metadata <- sf::gdal_utils("gdalinfo", ifile, quiet=TRUE)
-      data_type <- regmatches(metadata, regexpr("Type=[[:graph:]]+", metadata))
+      metadata <- sf::gdal_utils("gdalinfo", ifile,
+                                 config_options=c(GTIFF_SRS_SOURCE="EPSG"),
+                                 quiet=TRUE)
+      data_type <- regmatches(metadata, regexpr("Type=[[:alnum:]]+", metadata))
       data_type <- sub("Type=", "", data_type)
       reg_expr <- regexpr("NoData[[:space:]]Value=[[:graph:]]+", metadata)
       nodata_val <- regmatches(metadata, reg_expr)
-      nodata_val <- as.numeric(sub("NoData Value=", "", nodata_val))
+      nodata_val <- sub("NoData Value=", "", nodata_val)
       df <- rbind(df, c(varr[v], NA, data_type, nodata_val))
     }
   }
   # Rename columns
   names(df) <- c("var", "month", "dtype", "nodata")
+  df$m <- as.numeric(df$m)
+  df$nodata <- as.numeric(df$nodata)
   
   # Return dataframe with results
   return(df)
