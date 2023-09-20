@@ -602,7 +602,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
   wdpa <- terra::rast(file.path(destination, "data_raw", "WDPA", "WDPA_resBool.tif"))
   population <- terra::rast(file.path(destination, "data_raw", "world_pop", paste0(ISO_country_code, "_pop_res.tif")))
 
-  # Create envrion raster with all layers                         
+  # Create environ raster with all layers                         
   environ <- c(aspect, elevation, roughness, slope, srad, soilgrids,
                dist_sea, dist_road, dist_place, dist_water, wdpa, population)
   layer_names <- c("aspect", "elevation", "roughness", "slope", "srad", "soil_type",

@@ -217,7 +217,7 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   ## Compute water deficit (cwd and ndw) with Penman ETP
   ## ===================================================
 
-  cat("Compute water deficit (cwd and ndm) with Penman ETP\n")
+  cat("Compute water deficit (cwd and ndm) with Penman ETP", "\n")
   ## cwd: climatic water deficit
   ## ndm: number of dry months
   pr_file <- file.path(destination, "data_raw", "chelsa_v2_1", "pr_res.tif")
@@ -229,7 +229,7 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
     # CWD is positive and indicates a deficit of water
     cwd_file <- file.path(destination, "data_raw", "chelsa_v2_1", paste0("cwd", i, "_res.tif"))
     system(glue::glue('gdal_calc.py -A {pet_penman_file} --A_band={i} -B {pr_file} --B_band={i} --quiet --type=Int16 \\
-                --creation-option="COMPRESS=LZW" --creation-option="PREDICTOR=2"  --calc="A-B" --NoDataValue={nodat} \\
+                --creation-option="COMPRESS=LZW" --creation-option="PREDICTOR=2"  --calc="A-B" --NoDataValue={nodata_Int16} \\
                 --outfile={cwd_file} --overwrite')
                ,ignore.stdout = TRUE, ignore.stderr = TRUE)
     # Number of dry months, ie sum(CWD > 0)
@@ -237,7 +237,7 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
                           paste0("ndm", i, "_res.tif"))
     system(glue::glue('gdal_calc.py -A {cwd_file} --A_band={1} --quiet --type=Int16 \\
                 --creation-option="COMPRESS=LZW" --creation-option="PREDICTOR=2" \\
-                --outfile={ndm_file} --calc="A>0" --overwrite --NoDataValue={nodat}')
+                --outfile={ndm_file} --calc="A>0" --overwrite --NoDataValue={nodata_Int16}')
               ,ignore.stdout = TRUE, ignore.stderr = TRUE)
   }
 
@@ -247,7 +247,7 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   system(glue::glue('gdal_calc.py -A {ndm_files[1]} -B {ndm_files[2]} -C {ndm_files[3]} -D {ndm_files[4]}  -E {ndm_files[5]} \\
             -F {ndm_files[6]} -G {ndm_files[7]} -H {ndm_files[8]} -I {ndm_files[9]} -J {ndm_files[10]} -K {ndm_files[11]} \\
             -L {ndm_files[12]} --quiet --type=Int16 --creation-option="COMPRESS=LZW" --creation-option="PREDICTOR=2" \\
-            --outfile={ofile} --NoDataValue={nodat} \\
+            --outfile={ofile} --NoDataValue={nodata_Int16} \\
             --calc="A+B+C+D+E+F+G+H+I+J+K+L" --overwrite'), ignore.stdout = TRUE, ignore.stderr = TRUE)
 
   ifile <- file.path(destination, "data_raw", "chelsa_v2_1")
@@ -256,7 +256,7 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   system(glue::glue('gdal_calc.py -A {cwd_files[1]} -B {cwd_files[2]} -C {cwd_files[3]} -D {cwd_files[4]} -E {cwd_files[5]} \\
             -F {cwd_files[6]} -G {cwd_files[7]} -H {cwd_files[8]} -I {cwd_files[9]} -J {cwd_files[10]} -K {cwd_files[11]} \\
             -L {cwd_files[12]} --quiet --type=Int16 --creation-option="COMPRESS=LZW" --creation-option="PREDICTOR=2" \\
-            --outfile={ofile} --NoDataValue={nodat} \\
+            --outfile={ofile} --NoDataValue={nodata_Int16} \\
             --calc="numpy.maximum(A,0)+numpy.maximum(B,0)+numpy.maximum(C,0)+numpy.maximum(D,0)+numpy.maximum(E,0)+numpy.maximum(F,0) \\
             +numpy.maximum(G,0)+numpy.maximum(H,0)+numpy.maximum(I,0)+numpy.maximum(J,0)+numpy.maximum(K,0)+numpy.maximum(L,0)" --overwrite'),
          ignore.stdout = TRUE, ignore.stderr = TRUE)
@@ -265,7 +265,7 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   ## Compute water deficit (cwd and ndw) with Thornthwaite ETP
   ## =========================================================
 
-  cat("Compute water deficit and number of dry months (cwd and ndm) with Thornthwaite ETP\n")
+  cat("Compute water deficit and number of dry months (cwd and ndm) with Thornthwaite ETP", "\n")
   ## PET with Thornthwaite formula
   tas <- read_stars(file.path(destination, "data_raw", "chelsa_v2_1", "tas_res.tif"))
   # Keep only latitude coordinates
@@ -335,36 +335,40 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   ## Creating final raster stack
   ## =========================================================
 
-  cat("Creating final raster stack\n")
+  # Message
+  cat("Creating final raster stack", "\n")
+  
+  # Output file
   ofile <- file.path(destination, "data_raw", "current_chelsa_no_name.tif")
-  clim_file <- file.path(destination, "data_raw", "chelsa_v2_1", "clim_res.tif")
-  cwd_file <- file.path(destination, "data_raw", "chelsa_v2_1", "cwd_res.tif")
-  ndm_file <- file.path(destination, "data_raw", "chelsa_v2_1", "ndm_res.tif")
-  pet_t_file <- file.path(destination, "data_raw", "chelsa_v2_1", "pet_thornthwaite_res.tif")
-  cwd_t_file <- file.path(destination, "data_raw", "chelsa_v2_1", "cwd_thornthwaite_res.tif")
-  ndm_t_file <- file.path(destination, "data_raw", "chelsa_v2_1", "ndm_thornthwaite_res.tif")
-  system(glue::glue('gdal_merge.py -o {ofile} -of GTiff -ot Int16 -co "COMPRESS=LZW" \\
-            -co "PREDICTOR=2" -separate -a_nodata {nodat} \\
-            {clim_file} {cwd_file} {ndm_file} {pet_t_file} {cwd_t_file} {ndm_t_file}'),
-         ignore.stdout = TRUE, ignore.stderr = TRUE)
-  current <- terra::rast(file.path(destination, "data_raw",  "current_chelsa_no_name.tif"))
-  clim_res_file <- file.path(destination, "data_raw", "chelsa_v2_1", "clim_res.tif")
-  names(current) <- c(names(terra::rast(clim_res_file)), "cwd_penman", "ndm_penman",
-                      paste0("pet_thornthwaite_", 1:12), "cwd_thornthwaite", "ndm_thornthwaite")
+
+  # Load all files
+  clim <- terra::rast(file.path(destination, "data_raw", "chelsa_v2_1", "clim_res.tif"))
+  cwd <- terra::rast(file.path(destination, "data_raw", "chelsa_v2_1", "cwd_res.tif"))
+  ndm <- terra::rast(file.path(destination, "data_raw", "chelsa_v2_1", "ndm_res.tif"))
+  pet_t <- terra::rast(file.path(destination, "data_raw", "chelsa_v2_1", "pet_thornthwaite_res.tif"))
+  cwd_t <- terra::rast(file.path(destination, "data_raw", "chelsa_v2_1", "cwd_thornthwaite_res.tif"))
+  ndm_t <- terra::rast(file.path(destination, "data_raw", "chelsa_v2_1", "ndm_thornthwaite_res.tif"))
+
+  # Create current raster with all climatic layers
+  current <- c(clim, cwd, ndm, pet_t, cwd_t, ndm_t)
+  layer_names <- c(names(clim), "cwd_penman", "ndm_penman",
+                   paste0("pet_thornthwaite_", 1:12), "cwd_thornthwaite", "ndm_thornthwaite")
+  names(current) <- layer_names
+
+  # Write to disk
   ofile <- file.path(destination, "data_raw", "current_chelsa.tif")
-  writeRaster(current, datatype = "INT2S", filename = ofile,
-              overwrite = TRUE, gdal = c("COMPRESS=LZW","PREDICTOR=2"), progress = 0)
-  rm(current)
-  cat("File ", ofile, " has been created\n")
-  unlink(file.path(destination, "data_raw",  "current_chelsa_no_name.tif"))
+  terra::writeRaster(current, filename=ofile,
+                     gdal=c("COMPRESS=LZW", "PREDICTOR=2"),
+                     progress=FALSE, overwrite=TRUE, datatype="INT4S")  
+  cat("File ", ofile, " has been created", "\n")
 
   ## ========================================
   ## Clean and return results
   ## ========================================
 
   if (rm_download) {
-    ifile <- file.path(destination, "data_raw", "chelsa_v2_1")
-    cat("Removing folder ", ifile, "\n")
+    input_dir <- file.path(destination, "data_raw", "chelsa_v2_1")
+    cat("Removing folder ", input_dir, "\n")
     unlink(file.path(destination, "data_raw", "chelsa_v2_1"), recursive = TRUE)
     unlink(file.path(destination, "data_raw", "current_chelsa_no_name.tif"))
   }
