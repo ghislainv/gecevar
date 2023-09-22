@@ -200,9 +200,14 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
       for(i in 1:length(files.tif)) {
         sourcefile <- files.tif[i]
         destfile <- gsub(".tif", "_res.tif", files.tif[i])
-        system(glue("gdalwarp -overwrite -s_srs {proj_s} -t_srs {proj_t} \\
-        -r bilinear -tr {resol} {resol} -te {extent_proj_string} -ot Int16 -of GTiff -srcnodata 0 -dstnodata {nodat} \\
-        {sourcefile} {destfile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
+        opts <- glue("-overwrite -s_srs {proj_s} -t_srs {proj_t} -r bilinear -tr {resol} {resol} 
+                     -te {extent_proj_string} -ot Int16 -of GTiff -srcnodata 0 -dstnodata {nodat}")
+        sf::gdal_utils(util = "warp", source = sourcefile, destination = destfile,
+                       options = unlist(strsplit(opts, " ")), quiet = TRUE)
+        
+        # system(glue("gdalwarp -overwrite -s_srs {proj_s} -t_srs {proj_t} \\
+        # -r bilinear -tr {resol} {resol} -te {extent_proj_string} -ot Int16 -of GTiff -srcnodata 0 -dstnodata {nodat} \\
+        # {sourcefile} {destfile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
 
         # Remove the following if block as Chelsa use offset and scale=0.1 in raster metadata to avoid the problem
         ## if (var %in% c("tasmin", "tasmax", "tas") | (var == "bio" & i <= 11)) {
