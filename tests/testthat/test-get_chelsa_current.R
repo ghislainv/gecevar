@@ -17,7 +17,7 @@ clim_path <- get_chelsa_current(extent_latlon=extent_latlon,
 
 clim <- terra::rast(clim_path)
 ext_clim <- terra::ext(clim)
-names_clim <- c(paste0(rep(c("tasmin","tasmax", "tas", "pr", "clt", "pet_penman"), each=12),
+names_clim <- c(paste0(rep(c("tas", "tasmin","tasmax", "pr", "pet_penman", "clt"), each=12),
                                      rep(1:12,6)),
                               paste0("bio", 1:19),
                               "cwd_penman", "ndm_penman",

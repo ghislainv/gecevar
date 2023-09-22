@@ -225,41 +225,30 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   r_pet_penman <- stars::read_stars(pet_penman_file)
   r_pr <- stars::read_stars(pr_file)
 
-  r_cwd_monthly = list()
-  ndm_value = list()
-  
-  ## Monthly values of cdw and ndm
-  for (i in 1:12) {
-    # CWD = min(pet_penman_i - pr_i, 0)
-    # CWD is positive and indicates a deficit of water
- 
-    cwd_value <- - pmin(r_pet_penman$pet_penman_res.tif[,,i] - r_pr$pr_res.tif[,,i] , 0)
-    r_cwd_monthly[[i]] <- stars::st_as_stars(x = cwd_value, dimensions = st_dimensions(split(r_pet_penman)))
-
-    # Number of dry months, ie sum(CWD > 0)
-    ndm_value[[i]] <- ifelse(cwd_value > 0, 1, 0)
-  }
-  
-  r_cwd <- do.call("c", r_cwd_monthly)
-  r_cwd <- st_redimension(r_cwd)
-  
+  # CWD = min(pet_penman_i - pr_i, 0)
+  # CWD is positive and indicates a deficit of water
+  cwd <- r_pet_penman
+  cwd[[1]] <- pmax(r_pet_penman[[1]] - r_pr[[1]], 0)
   ## Set attribute name and dimension values
-  r_cwd <- r_cwd |>
+  cwd <- cwd |>
     stats::setNames("cwd_res.tif") |>
-    st_set_dimensions(3, values = paste0("cwd", 1:12), names = "band")
+    st_set_dimensions(3, values = paste0("cwd", 1:12))
+  cwd_annual <- split(r_pet_penman)[1,,]
+  cwd_annual[[1]] <- rowSums(cwd[[1]], dims = 2)
+  names(cwd_annual) <- "cwd"
   ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "cwd_res.tif")
-  write_stars(pet_stars, dsn = ofile,
+  write_stars(cwd_annual, dsn = ofile,
               options = c("COMPRESS=LZW","PREDICTOR=2"), type = "Int16")
-  
-
-  ndm <- apply(simplify2array(ndm_value), c(1,2), sum)
-  r_ndm <- stars::st_as_stars(x = ndm, dimensions = st_dimensions(split(r_pet_penman)))
-  names(r_ndm) <- "ndm"
+  rm(cwd_annual)
+ 
+  ndm_value <- ifelse(cwd[[1]] > 0, 1, 0)
+  ndm_value <- apply(simplify2array(ndm_value), c(1,2), sum)
+  ndm <- stars::st_as_stars(x = ndm_value, dimensions = st_dimensions(split(r_pet_penman)))
+  names(ndm) <- "ndm"
   ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "ndm_res.tif")
-  write_stars(r_ndm , dsn = ofile, options = c("COMPRESS=LZW","PREDICTOR=2"),
+  write_stars(ndm , dsn = ofile, options = c("COMPRESS=LZW","PREDICTOR=2"),
               NA_value = nodata_Int16,)
-  
-  rm(r_cwd_monthly, cwd_value, ndm_value, r_cwd, ndm, r_ndm)
+  rm(ndm_value, ndm, cwd)
 
   ## =========================================================
   ## Compute water deficit (cwd and ndw) with Thornthwaite ETP
