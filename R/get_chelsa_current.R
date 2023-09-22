@@ -222,44 +222,44 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   ## ndm: number of dry months
   pr_file <- file.path(destination, "data_raw", "chelsa_v2_1", "pr_res.tif")
   pet_penman_file <- file.path(destination, "data_raw", "chelsa_v2_1", "pet_penman_res.tif")
+  r_pet_penman <- stars::read_stars(pet_penman_file)
+  r_pr <- stars::read_stars(pr_file)
 
+  r_cwd_monthly = list()
+  ndm_value = list()
+  
   ## Monthly values of cdw and ndm
   for (i in 1:12) {
     # CWD = min(pet_penman_i - pr_i, 0)
     # CWD is positive and indicates a deficit of water
-    cwd_file <- file.path(destination, "data_raw", "chelsa_v2_1", paste0("cwd", i, "_res.tif"))
-    system(glue::glue('gdal_calc.py -A {pet_penman_file} --A_band={i} -B {pr_file} --B_band={i} --quiet --type=Int16 \\
-                --creation-option="COMPRESS=LZW" --creation-option="PREDICTOR=2"  --calc="A-B" --NoDataValue={nodata_Int16} \\
-                --outfile={cwd_file} --overwrite')
-               ,ignore.stdout = TRUE, ignore.stderr = TRUE)
+ 
+    cwd_value <- - pmin(r_pet_penman$pet_penman_res.tif[,,i] - r_pr$pr_res.tif[,,i] , 0)
+    r_cwd_monthly[[i]] <- stars::st_as_stars(x = cwd_value, dimensions = st_dimensions(split(r_pet_penman)))
+
     # Number of dry months, ie sum(CWD > 0)
-    ndm_file <- file.path(destination, "data_raw", "chelsa_v2_1", "temp",
-                          paste0("ndm", i, "_res.tif"))
-    system(glue::glue('gdal_calc.py -A {cwd_file} --A_band={1} --quiet --type=Int16 \\
-                --creation-option="COMPRESS=LZW" --creation-option="PREDICTOR=2" \\
-                --outfile={ndm_file} --calc="A>0" --overwrite --NoDataValue={nodata_Int16}')
-              ,ignore.stdout = TRUE, ignore.stderr = TRUE)
+    ndm_value[[i]] <- ifelse(cwd_value > 0, 1, 0)
   }
-
-  ifile <- file.path(destination, "data_raw", "chelsa_v2_1", "temp")
-  ndm_files <- list.files(ifile, pattern = "ndm[0-9]{1,2}_res.tif", full.names = TRUE)
-  ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "ndm_res.tif")
-  system(glue::glue('gdal_calc.py -A {ndm_files[1]} -B {ndm_files[2]} -C {ndm_files[3]} -D {ndm_files[4]}  -E {ndm_files[5]} \\
-            -F {ndm_files[6]} -G {ndm_files[7]} -H {ndm_files[8]} -I {ndm_files[9]} -J {ndm_files[10]} -K {ndm_files[11]} \\
-            -L {ndm_files[12]} --quiet --type=Int16 --creation-option="COMPRESS=LZW" --creation-option="PREDICTOR=2" \\
-            --outfile={ofile} --NoDataValue={nodata_Int16} \\
-            --calc="A+B+C+D+E+F+G+H+I+J+K+L" --overwrite'), ignore.stdout = TRUE, ignore.stderr = TRUE)
-
-  ifile <- file.path(destination, "data_raw", "chelsa_v2_1")
-  cwd_files <- list.files(ifile, pattern = "cwd[0-9]{1,2}_res.tif", full.names = TRUE)
+  
+  r_cwd <- do.call("c", r_cwd_monthly)
+  r_cwd <- st_redimension(r_cwd)
+  
+  ## Set attribute name and dimension values
+  r_cwd <- r_cwd |>
+    stats::setNames("cwd_res.tif") |>
+    st_set_dimensions(3, values = paste0("cwd", 1:12), names = "band")
   ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "cwd_res.tif")
-  system(glue::glue('gdal_calc.py -A {cwd_files[1]} -B {cwd_files[2]} -C {cwd_files[3]} -D {cwd_files[4]} -E {cwd_files[5]} \\
-            -F {cwd_files[6]} -G {cwd_files[7]} -H {cwd_files[8]} -I {cwd_files[9]} -J {cwd_files[10]} -K {cwd_files[11]} \\
-            -L {cwd_files[12]} --quiet --type=Int16 --creation-option="COMPRESS=LZW" --creation-option="PREDICTOR=2" \\
-            --outfile={ofile} --NoDataValue={nodata_Int16} \\
-            --calc="numpy.maximum(A,0)+numpy.maximum(B,0)+numpy.maximum(C,0)+numpy.maximum(D,0)+numpy.maximum(E,0)+numpy.maximum(F,0) \\
-            +numpy.maximum(G,0)+numpy.maximum(H,0)+numpy.maximum(I,0)+numpy.maximum(J,0)+numpy.maximum(K,0)+numpy.maximum(L,0)" --overwrite'),
-         ignore.stdout = TRUE, ignore.stderr = TRUE)
+  write_stars(pet_stars, dsn = ofile,
+              options = c("COMPRESS=LZW","PREDICTOR=2"), type = "Int16")
+  
+
+  ndm <- apply(simplify2array(ndm_value), c(1,2), sum)
+  r_ndm <- stars::st_as_stars(x = ndm, dimensions = st_dimensions(split(r_pet_penman)))
+  names(r_ndm) <- "ndm"
+  ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "ndm_res.tif")
+  write_stars(r_ndm , dsn = ofile, options = c("COMPRESS=LZW","PREDICTOR=2"),
+              NA_value = nodata_Int16,)
+  
+  rm(r_cwd_monthly, cwd_value, ndm_value, r_cwd, ndm, r_ndm)
 
   ## =========================================================
   ## Compute water deficit (cwd and ndw) with Thornthwaite ETP
