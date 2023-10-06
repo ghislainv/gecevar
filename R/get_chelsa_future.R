@@ -114,8 +114,8 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
   progress_bar <- 0
   nb_var_download <- 12 * 5 * length(GCM)
   cat("Downloading tasmin, tasmax, tas and pr\n")
-  pb = txtProgressBar(min = 0, max = nb_var_download, initial = 0)
-  for(m in stringr::str_pad(1:12, width = 2, pad = "0")) {
+  pb = txtProgressBar(min = 0, max = nb_var_download, initial = 0, width=30, style=3)
+  for (m in stringr::str_pad(1:12, width = 2, pad = "0")) {
     for (model in GCM) {
       ## Monthly minimum temperature (°C).
       url_tasmin <- paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/',
@@ -174,7 +174,7 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
   progress_bar <- 0
   nb_var_download <- 19 *  length(GCM)
   cat("Downloading bioclimatic variables\n")
-  pb = txtProgressBar(min = 0, max = nb_var_download, initial = 0)
+  pb = txtProgressBar(min=0, max=nb_var_download, initial=0, width=30, style=3)
   for(i in 1:19){
     for(model in GCM){
 
@@ -200,8 +200,8 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
       for(i in 1:length(files.tif)) {
         sourcefile <- files.tif[i]
         destfile <- gsub(".tif", "_res.tif", files.tif[i])
-        opts <- glue("-overwrite -s_srs {proj_s} -t_srs {proj_t} -r bilinear -tr {resol} {resol} 
-                     -te {extent_proj_string} -ot Int16 -of GTiff -srcnodata 0 -dstnodata {nodat}")
+        opts <- glue("-overwrite -s_srs {proj_s} -t_srs {proj_t} -r bilinear -tr {resol} {resol} ", 
+                     "-te {extent_proj_string} -ot Int16 -of GTiff -srcnodata 0 -dstnodata {nodat}")
         sf::gdal_utils(util = "warp", source = sourcefile, destination = destfile,
                        options = unlist(strsplit(opts, " ")), quiet = TRUE)
         
