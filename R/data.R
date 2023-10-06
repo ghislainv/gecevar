@@ -13,3 +13,10 @@
 #' }
 #' @source <https://chelsa-climate.org/> 
 "nodata_chelsa"
+
+#' Borders of the Réunion Island.
+#'
+#' Geopackage file for borders of the Réunion Island.
+#'
+#' @source <https://gadm.org/> 
+"REU_borders"
