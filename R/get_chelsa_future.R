@@ -78,7 +78,6 @@
 #' | bio 19                                | kg.m^{-2}.month^{-1} |
 #' @md
 #'
-#' @import stars
 #' @import stringr
 #' @importFrom utils txtProgressBar setTxtProgressBar
 #' @importFrom glue glue
@@ -204,10 +203,6 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
                      "-te {extent_proj_string} -ot Int16 -of GTiff -srcnodata 0 -dstnodata {nodat}")
         sf::gdal_utils(util = "warp", source = sourcefile, destination = destfile,
                        options = unlist(strsplit(opts, " ")), quiet = TRUE)
-        
-        # system(glue("gdalwarp -overwrite -s_srs {proj_s} -t_srs {proj_t} \\
-        # -r bilinear -tr {resol} {resol} -te {extent_proj_string} -ot Int16 -of GTiff -srcnodata 0 -dstnodata {nodat} \\
-        # {sourcefile} {destfile}"), ignore.stdout = TRUE, ignore.stderr = TRUE)
 
         # Remove the following if block as Chelsa use offset and scale=0.1 in raster metadata to avoid the problem
         ## if (var %in% c("tasmin", "tasmax", "tas") | (var == "bio" & i <= 11)) {
@@ -231,18 +226,27 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
                                               paste0(var,"_res.tif")))
     }
   }
+  rm(r)
 
   cat("Create raster stack of monthly variables and bioclimatic variables\n")
   for (model in GCM){
     # Stack Tasmin, Tasmax, Tas, Pr & bio
     files.tif <- file.path(destination, "data_raw", "future_chelsa", paste('climat', phase, model, 'ssp', SSP, sep = '_'),
                            paste0(c("tasmin","tasmax","tas","pr", "bio"), "_res.tif"))
-    r <- c(stars::read_stars(files.tif[1]), stars::read_stars(files.tif[2]),
-           stars::read_stars(files.tif[3]), stars::read_stars(files.tif[4]),
-           stars::read_stars(files.tif[5]), along = "band")
-    stars::write_stars(obj = r, options = c("COMPRESS=LZW","PREDICTOR=2"), NA_value = nodat,
-                       type = "Int16", dsn = file.path(destination, "data_raw","future_chelsa", paste('climat', phase, model, 'ssp', SSP, sep = '_'), "clim_res.tif"))
-    rm(r)
+    
+    r <- terra::rast(files.tif)
+ 
+    # r <- c(stars::read_stars(files.tif[1]), stars::read_stars(files.tif[2]),
+    #        stars::read_stars(files.tif[3]), stars::read_stars(files.tif[4]),
+    #        stars::read_stars(files.tif[5]), along = "band")
+    # stars::write_stars(obj = r, options = c("COMPRESS=LZW","PREDICTOR=2"), NA_value = nodat,
+    #                    type = "Int16", dsn = file.path(destination, "data_raw","future_chelsa", paste('climat', phase, model, 'ssp', SSP, sep = '_'), "clim_res.tif"))
+ 
+    terra::writeRaster(x = r, overwrite = TRUE, 
+                       filename = file.path(destination, "data_raw","future_chelsa", 
+                                            paste('climat', phase, model, 'ssp', SSP, sep = '_'), "clim_res.tif"),
+                       gdal = c("COMPRESS=LZW","PREDICTOR=2"), datatype = "Int16")
+     rm(r)
   }
 
   ## PET with Thornthwaite formula
@@ -264,7 +268,7 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
     # Mid-month julian day: 15 of each month for a regular year
     mid_month_jday <- c(15, 46, 74, 105, 135, 166, 196, 227, 258, 288, 319, 349)
     for (i in 1:12){
-      day_lengths <- daylength(lat=lat, long=0, jd=mid_month_jday[i], tmz=0)[, 3]
+      day_lengths <- daylength(lat = lat, long = 0, jd = mid_month_jday[i], tmz = 0)[, 3]
       L <- cbind(L, day_lengths)
     }
     PET_Thornthwaite <- 16 * (L / 12) * (10 * tas_matrix / I)^alpha
@@ -274,8 +278,8 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
     }
     rm(PET_Thornthwaite, tas_matrix, alpha, I, L, lat)
     names(pet) <- paste0("pet_thornthwaite", 1:12)
-    terra::writeRaster(x=pet, overwrite=TRUE,
-                       filename= file.path(destination, "data_raw", "future_chelsa",
+    terra::writeRaster(x = pet, overwrite=TRUE,
+                       filename = file.path(destination, "data_raw", "future_chelsa",
                                            paste('climat', phase, model, 'ssp', SSP, sep = '_'), "pet_thornthwaite_res.tif"),
                        gdal = c("COMPRESS=LZW","PREDICTOR=2"), datatype = "INT2S")
 
@@ -291,8 +295,8 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
     terra::values(cwd_annual) <- rowSums(terra::values(cwd_thornthwaite))
     names(cwd_annual) <- "cwd_thornthwaite"
 
-    terra::writeRaster(x=cwd_annual, overwrite=TRUE,
-                       filename= file.path(destination, "data_raw", "future_chelsa",
+    terra::writeRaster(x = cwd_annual, overwrite=TRUE,
+                       filename = file.path(destination, "data_raw", "future_chelsa",
                                            paste('climat', phase, model, 'ssp', SSP, sep = '_'), "cwd_thornthwaite_res.tif"),
                        gdal = c("COMPRESS=LZW","PREDICTOR=2"), datatype = "INT2S")
     rm(cwd_annual)
@@ -302,7 +306,7 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
     ndm <- sum(cwd_thornthwaite > 0)
     rm(cwd_thornthwaite)
     names(ndm) <- "ndm_thornthwaite"
-    terra::writeRaster(x=ndm,
+    terra::writeRaster(x = ndm,
                        filename = file.path(destination, "data_raw", "future_chelsa",
                                             paste('climat', phase, model, 'ssp', SSP, sep = '_'),
                                             "ndm_thornthwaite_res.tif"),
@@ -322,12 +326,16 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
                             paste("climat", phase, model, "ssp", SSP, sep = "_"), "ndm_thornthwaite_res.tif")
     destfile <- file.path(destination, "data_raw", "future_chelsa",
                           paste("climat", phase, model, "ssp", SSP, sep = "_"), "future_chelsa_no_name.tif")
-    system(glue('gdal_merge.py -o {destfile} -of GTiff -ot Int16 -co "COMPRESS=LZW" \\
-                -co "PREDICTOR=2" -separate -a_nodata {nodat} \\
-                {clim_file} {pet_t_file} {cwd_t_file} {ndm_t_file}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
+  
+    # system(glue('gdal_merge.py -o {destfile} -of GTiff -ot Int16 -co "COMPRESS=LZW" \\
+    #             -co "PREDICTOR=2" -separate -a_nodata {nodat} \\
+    #             {clim_file} {pet_t_file} {cwd_t_file} {ndm_t_file}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
 
-    future <- terra::rast(file.path(destination, "data_raw", "future_chelsa", paste("climat", phase, model, "ssp", SSP, sep = "_"),
-                                    "future_chelsa_no_name.tif"))
+    future <- c(terra::rast(clim_file), terra::rast(pet_t_file), terra::rast(cwd_t_file), terra::rast(ndm_t_file))
+
+    # future <- terra::rast(file.path(destination, "data_raw", "future_chelsa", paste("climat", phase, model, "ssp", SSP, sep = "_"),
+    #                                 "future_chelsa_no_name.tif"))
+    
     names(future) <- c(names(terra::rast(file.path(destination, "data_raw", "future_chelsa",
                                                    paste("climat", phase, model, "ssp", SSP, sep = "_"),
                                                    "clim_res.tif"))), paste0("pet_thornthwaite_", 1:12), "cwd_thornthwaite", "ndm_thornthwaite")
@@ -335,6 +343,7 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
                                                     paste("climat", phase, model, "ssp", SSP, sep = "_"),
                                                     paste0(paste("climat", phase, model, "ssp", SSP, sep = "_"),".tif")),
                        overwrite = TRUE, datatype = "INT2S", gdal = c("COMPRESS=LZW","PREDICTOR=2"), progress = 0)
+
     rm(future)
   }
   if (rm_download) {
