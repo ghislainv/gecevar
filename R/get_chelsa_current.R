@@ -73,7 +73,6 @@
 #' | bio19                                 | kg.m^{-2}.month^{-1} |
 #' @md
 #'
-#' @import stars
 #' @import stringr
 #' @importFrom utils txtProgressBar setTxtProgressBar
 #' @import terra
@@ -222,33 +221,30 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   ## ndm: number of dry months
   pr_file <- file.path(destination, "data_raw", "chelsa_v2_1", "pr_res.tif")
   pet_penman_file <- file.path(destination, "data_raw", "chelsa_v2_1", "pet_penman_res.tif")
-  r_pet_penman <- stars::read_stars(pet_penman_file)
-  r_pr <- stars::read_stars(pr_file)
+  r_pet_penman <- terra::rast(pet_penman_file)
+  r_pr <- terra::rast(pr_file)
 
   # CWD = min(pet_penman_i - pr_i, 0)
   # CWD is positive and indicates a deficit of water
   cwd <- r_pet_penman
-  cwd[[1]] <- pmax(r_pet_penman[[1]] - r_pr[[1]], 0)
-  ## Set attribute name and dimension values
-  cwd <- cwd |>
-    stats::setNames("cwd_res.tif") |>
-    st_set_dimensions(3, values = paste0("cwd", 1:12))
-  cwd_annual <- split(r_pet_penman)[1,,]
-  cwd_annual[[1]] <- rowSums(cwd[[1]], dims = 2)
+  values(cwd) <- pmax(values(r_pet_penman) - values(r_pr), 0)
+  names(cwd) <- paste0("cwd", 1:12)
+  
+  cwd_annual <- cwd[[1,]]
+  values(cwd_annual) <- rowSums(values(cwd))
   names(cwd_annual) <- "cwd"
   ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "cwd_res.tif")
-  write_stars(cwd_annual, dsn = ofile,
-              options = c("COMPRESS=LZW","PREDICTOR=2"), type = "Int16")
-  rm(cwd_annual)
+  terra::writeRaster(cwd_annual, gdal = c("COMPRESS=LZW","PREDICTOR=2"),
+                     overwrite = TRUE, datatype = "Int16", filename = ofile)
  
-  ndm_value <- ifelse(cwd[[1]] > 0, 1, 0)
-  ndm_value <- apply(simplify2array(ndm_value), c(1,2), sum)
-  ndm <- stars::st_as_stars(x = ndm_value, dimensions = st_dimensions(split(r_pet_penman)))
+  ndm <- cwd_annual
+  ndm_per_month <- ifelse(values(cwd) > 0, 1, 0)
+  values(ndm) <- rowSums(ndm_per_month)
   names(ndm) <- "ndm"
   ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "ndm_res.tif")
-  write_stars(ndm , dsn = ofile, options = c("COMPRESS=LZW","PREDICTOR=2"),
-              NA_value = nodata_Int16,)
-  rm(ndm_value, ndm, cwd)
+  terra::writeRaster(ndm, gdal = c("COMPRESS=LZW","PREDICTOR=2"),
+                     overwrite = TRUE, datatype = "Int16", filename = ofile)
+  rm(ndm_per_month, ndm, cwd, cwd_annual)
 
   ## =========================================================
   ## Compute water deficit (cwd and ndw) with Thornthwaite ETP
@@ -256,19 +252,16 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
 
   cat("Compute water deficit and number of dry months (cwd and ndm) with Thornthwaite ETP", "\n")
   ## PET with Thornthwaite formula
-  tas <- read_stars(file.path(destination, "data_raw", "chelsa_v2_1", "tas_res.tif"))
+  tas <- terra::rast(file.path(destination, "data_raw", "chelsa_v2_1", "tas_res.tif"))
   # Keep only latitude coordinates
-  extent_tas <- st_bbox(tas)
+  extent_tas <- sf::st_bbox(tas)
   e <- terra::ext(extent_tas[1], extent_tas[3], extent_tas[2], extent_tas[4])
   e <- terra::as.polygons(e)
   terra::crs(e) <- paste0("epsg:", EPSG_proj)
-  ext_ll <- st_bbox(terra::project(e, "epsg:4326"))
-  lat <- seq(ext_ll[4], ext_ll[2], length.out = dim(tas)[2])
-  lat <- rep(lat, each = dim(tas)[1])
-  tas_matrix <- NULL
-  for (month in 1:12) {
-    tas_matrix <- cbind(tas_matrix, c(tas[[1]][,, month] / 10))
-  }
+  ext_ll <- sf::st_bbox(terra::project(e, "epsg:4326"))
+  lat <- seq(ext_ll[4], ext_ll[2], length.out = dim(tas)[1])
+  lat <- rep(lat, each = dim(tas)[2])
+  tas_matrix <- values(tas)/10
   I <- (tas_matrix / 5)^1.514
   alpha <- (6.75e-7) * I^3 - (7.71e-5) * I^2 + (1.792e-2) * I + 0.49239
   L <- NULL
@@ -280,45 +273,40 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
     L <- cbind(L, day_lengths)
   }
   PET_Thornthwaite <- 16 * (L / 12) * (10 * tas_matrix / I)^alpha
-  pet_stars <- tas
+  pet <- tas
   for (i in 1:12) {
-    pet_stars[[1]][,, i] <- PET_Thornthwaite[, i] * (month_length[i] / 30)
+    values(pet)[, i] <- PET_Thornthwaite[, i] * (month_length[i] / 30)
   }
   rm(PET_Thornthwaite, tas_matrix, lat, I, L)
   ## Set attribute name and dimension values
-  pet_stars <- pet_stars |>
-    stats::setNames("pet_thornthwaite_res.tif") |>
-    st_set_dimensions(3, values = paste0("pet_thornthwaite", 1:12))
+  names(pet) <- paste0("pet_thornthwaite", 1:12)
   ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "pet_thornthwaite_res.tif")
-  write_stars(pet_stars, dsn = ofile,
-              options = c("COMPRESS=LZW","PREDICTOR=2"), type = "Int16")
+  terra::writeRaster(pet, gdal = c("COMPRESS=LZW","PREDICTOR=2"),
+                     overwrite = TRUE, datatype = "Int16", filename = ofile)
 
   ## CWD with Thornthwaite PET
   ifile <- file.path(destination, "data_raw", "chelsa_v2_1", "pr_res.tif")
-  pr <- read_stars(ifile)
-  cwd_thornthwaite <- pet_stars
-  cwd_thornthwaite[[1]] <- pmax(pet_stars[[1]] - pr[[1]], 0)
-  ## Set attribute name and dimension values
-  cwd_thornthwaite <- cwd_thornthwaite |>
-    stats::setNames("cwd_thornthwaite_res.tif") |>
-    st_set_dimensions(3, values = paste0("cwd_thornthwaite", 1:12))
-  cwd_annual <- split(tas)[1,,]
-  cwd_annual[[1]] <- rowSums(cwd_thornthwaite[[1]], dims = 2)
+  pr <- terra::rast(ifile)
+  cwd_thornthwaite <- pet
+  values(cwd_thornthwaite) <- pmax(values(pet) - values(pr), 0)
+  names(cwd_thornthwaite) <- paste0("cwd_thornthwaite", 1:12)
+  
+  cwd_annual <- cwd_thornthwaite[[1,]]
+  values(cwd_annual) <- rowSums(values(cwd_thornthwaite))
   names(cwd_annual) <- "cwd_thornthwaite"
   ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "cwd_thornthwaite_res.tif")
-  write_stars(cwd_annual, dsn = ofile,
-              options = c("COMPRESS=LZW","PREDICTOR=2"), type = "Int16")
-  rm(cwd_annual)
-
+  terra::writeRaster(cwd_annual, gdal = c("COMPRESS=LZW","PREDICTOR=2"),
+                     overwrite = TRUE, datatype = "Int16", filename = ofile)
+  
   ## NDM with Thornthwaite
-  ndm_stars <- split(tas)[1,,]
-  ndm_stars[[1]] <- rowSums(cwd_thornthwaite[[1]] > 0, dims = 2)
-  rm(cwd_thornthwaite)
-  names(ndm_stars) <- "ndm_thornthwaite"
+  ndm <- cwd_annual
+  ndm_per_month <- ifelse(values(cwd_thornthwaite) > 0, 1, 0)
+  values(ndm) <- rowSums(ndm_per_month)
+  names(ndm) <- "ndm_thornthwaite"
   ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "ndm_thornthwaite_res.tif")
-  write_stars(ndm_stars , dsn = ofile,
-              options = c("COMPRESS=LZW","PREDICTOR=2"))
-  rm(ndm_stars)
+  terra::writeRaster(ndm, gdal = c("COMPRESS=LZW","PREDICTOR=2"),
+                     overwrite = TRUE, datatype = "Int16", filename = ofile)
+  rm(ndm_per_month, ndm, cwd_thornthwaite, cwd_annual)
 
   ## =========================================================
   ## Creating final raster stack
