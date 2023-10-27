@@ -235,13 +235,6 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
                            paste0(c("tasmin","tasmax","tas","pr", "bio"), "_res.tif"))
     
     r <- terra::rast(files.tif)
- 
-    # r <- c(stars::read_stars(files.tif[1]), stars::read_stars(files.tif[2]),
-    #        stars::read_stars(files.tif[3]), stars::read_stars(files.tif[4]),
-    #        stars::read_stars(files.tif[5]), along = "band")
-    # stars::write_stars(obj = r, options = c("COMPRESS=LZW","PREDICTOR=2"), NA_value = nodat,
-    #                    type = "Int16", dsn = file.path(destination, "data_raw","future_chelsa", paste('climat', phase, model, 'ssp', SSP, sep = '_'), "clim_res.tif"))
- 
     terra::writeRaster(x = r, overwrite = TRUE, 
                        filename = file.path(destination, "data_raw","future_chelsa", 
                                             paste('climat', phase, model, 'ssp', SSP, sep = '_'), "clim_res.tif"),
