@@ -72,7 +72,6 @@
 #' @importFrom utils download.file unzip
 #' @importFrom RCurl url.exists
 #' @import sf
-#' @import stars
 #' @import rgrass
 #' @import osmextract
 #' @import RCurl
@@ -351,18 +350,20 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
                    quiet=TRUE)
     
     unlink(file.path(destination, "data_raw", "forestatrisk", "forest_nocrop.tif"))
-    forest_stars <- stars::read_stars(ofile)
+  
+    forest_rast <- terra::rast(ofile)
     if (forest_year == 2000) {
       # 1 is deforestation during 2000-2010
-      forest_stars[[1]] <- forest_stars[[1]] >= 1
+      values(forest_rast) <- values(forest_rast) >= 1
     } else if (forest_year == 2010) {
         # 2 is deforestation during 2010-2020
-        forest_stars[[1]] <- forest_stars[[1]] >= 2
+      values(forest_rast) <- values(forest_rast) >= 2
     } else {
         # 3 is forest in 2020
-        forest_stars[[1]] <- forest_stars[[1]] == 3
+      values(forest_rast) <- values(forest_rast) == 3
     }
-    stars::write_stars(forest_stars, dsn=ofile, update=TRUE, type="Byte", options=c("COMPRESS=LZW", "PREDICTOR=2"))
+    terra::writeRaster(forest_rast, gdal = c("COMPRESS=LZW", "PREDICTOR=2"),
+                       overwrite = TRUE, datatype = "Byte", filename = ofile)
     forest <- TRUE
   } else {
     print("Forest layer is not available for your country")
@@ -393,9 +394,13 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
   # Land area
   dir.create(file.path(destination, "data_raw", "dist_sea"), showWarnings=FALSE)
   # The following line should be modified as it implies loading the raster in memory.
-  seaBool <- (stars::read_stars(file.path(destination, "data_raw", "srtm_v1_4_90m", "srad_res.tif")) == nodata_Int16)
-  stars::write_stars(seaBool, options=c("COMPRESS=LZW", "PREDICTOR=2"), NA_value=,
-                     dsn=file.path(destination, "data_raw", "dist_sea", "sea_res.tif"))
+  seaBool <- (terra::rast(file.path(destination, "data_raw", 
+                                    "srtm_v1_4_90m", "srad_res.tif")) == nodata_Int16)
+  #datatype arg missing ?
+  terra::writeRaster(seaBool, gdal = c("COMPRESS=LZW", "PREDICTOR=2"), overwrite = TRUE, 
+                     filename = file.path(destination, "data_raw", "dist_sea", "sea_res.tif"))
+  # stars::write_stars(seaBool, options=c("COMPRESS=LZW", "PREDICTOR=2"), NA_value=,
+  #                    dsn=file.path(destination, "data_raw", "dist_sea", "sea_res.tif"))
 
   # Distance to sea
   sourcefile <- file.path(destination, "data_raw", "dist_sea", "sea_res.tif")
@@ -534,13 +539,15 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
   }
 
   # Minimal distance to water (to be improved, see average distance computation in preceding step...).
-  # Also, remove dependence to stars here.
   water_files <- list.files(file.path(destination, "data_raw","OSM"),
                             pattern="^(river|waterbody)_distance_res\\.tif$", full.names=TRUE)
-  water_dist <- stars::read_stars(water_files[1])
-  water_dist[[1]] <- pmin(stars::read_stars(water_files[1])[[1]],
-                          stars::read_stars(water_files[2])[[1]])
-  stars::write_stars(water_dist, file.path(destination, "data_raw", "OSM", "water_distance_res.tif"))
+  water_dist <- terra::rast(water_files[1])
+  values(water_dist) <- pmin(values(terra::rast(water_files[1])),
+                             values(terra::rast(water_files[2])))
+  ##datatype arg missing ?
+  terra::writeRaster(water_dist, gdal=c("COMPRESS=LZW","PREDICTOR=2"),
+                     file.path(destination, "data_raw", "OSM", "water_distance_res.tif"),
+                     progress=FALSE, overwrite=TRUE)
 
   ##===================
   ##
