@@ -76,6 +76,7 @@
 #' @import stringr
 #' @importFrom utils txtProgressBar setTxtProgressBar
 #' @import terra
+#' @import httr
 #' @importFrom glue glue
 #' @export
 #' 
@@ -109,7 +110,7 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
     "https://os.zhdk.cloud.switch.ch/",
     "envicloud/chelsa/chelsa_V2/GLOBAL/",
     "climatologies/1981-2010")
-
+ 
   ## Climatic variables
   var <- c("clt", "pet", "pr", "tas", "tasmax", "tasmin")
   varr <- c("clt", "pet_penman", "pr", "tas", "tasmax", "tasmin")

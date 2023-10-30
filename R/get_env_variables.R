@@ -128,6 +128,11 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
     for (j in extent_latlon_1d[2]:extent_latlon_1d[4]) {
       url=paste0(soilgrid_base_url, i, ".0000,", i + 1, ".0000)&SUBSET=lat(", j, ".0000,", j + 1, soilgrid_end_url)
       
+      if (httr::http_error(url)) {
+        message("There appears to be a problem reaching the website.")
+        return(invisible(NULL))
+      }
+      
       dest=file.path(destination, "data_raw", "soilgrids250_v2_0", "temp", paste0("soilgrids_", j, "_", i, ".tif"))
       download.file(url=url, destfile=dest, quiet=TRUE)
     }
@@ -178,6 +183,12 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
     options(warn=-1)
     dst <- paste0(file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "srtm_"), i, ".zip")
     url.tile <- paste0("https://srtm.csi.cgiar.org/wp-content/uploads/files/srtm_5x5/TIFF/srtm_", i, ".zip")
+    
+    if (httr::http_error(url.tile)) {
+      message("There appears to be a problem reaching the website.")
+      return(invisible(NULL))
+    }
+    
     download.file(url=url.tile, destfile=dst, quiet=TRUE,
                   method="curl", extra="-k")
     unzip(dst, exdir=file.path(destination, "data_raw", "srtm_v1_4_90m", "temp"), overwrite=TRUE)
@@ -334,6 +345,12 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
   if (RCurl::url.exists(paste0("https://forestatrisk.cirad.fr/tropics/tif/fcc_123_", continent_short, "_aea.tif"))) {
     dir.create(file.path(destination, "data_raw", "forestatrisk"), showWarnings=FALSE)
     url_far <- paste0("https://forestatrisk.cirad.fr/tropics/tif/fcc_123_", continent_short, "_aea.tif")
+    
+    if (httr::http_error(url_far)) {
+      message("There appears to be a problem reaching the website.")
+      return(invisible(NULL))
+    }
+    
     ofile <- file.path(destination, "data_raw", "forestatrisk", "forest_nocrop.tif")
     gdal_utils_translate(ifile=paste0("/vsicurl/", url_far),
                          ofile=ofile,
@@ -465,6 +482,12 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
   # Download data with osmextract
   dir.create(file.path(destination, "data_raw", "OSM", "temp"), recursive=TRUE, showWarnings=FALSE)
   osm_country <- osmextract::oe_match(country_name, quiet=TRUE)
+  
+  if (httr::http_error(osm_country$url)) {
+    message("There appears to be a problem reaching the website.")
+    return(invisible(NULL))
+  }
+  
   osmpbf_file <- osmextract::oe_download(
     file_url=osm_country$url,
     file_size=osm_country$file_size,
@@ -567,8 +590,20 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
   URL_BSGM <- paste0("https://data.worldpop.org/GIS/Population/Global_2000_2020_Constrained/2020/BSGM/",
                      ISO_country_code, "/",tolower(ISO_country_code),"_ppp_2020_UNadj_constrained.tif")
   if (RCurl::url.exists(URL_maxar_v1)) {
+    
+    if (httr::http_error(URL_maxar_v1)) {
+      message("There appears to be a problem reaching the website.")
+      return(invisible(NULL))
+    }
+    
     download.file(URL_maxar_v1, destfile=dest, quiet=TRUE)
   } else {
+    
+    if (httr::http_error(URL_BSGM)) {
+      message("There appears to be a problem reaching the website.")
+      return(invisible(NULL))
+    }
+    
     download.file(URL_BSGM, destfile=dest, quiet=TRUE)
   }
 

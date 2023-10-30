@@ -60,6 +60,7 @@
 #' @import sf
 #' @importFrom utils download.file
 #' @import terra
+#' @import httr
 #' @export
 #' 
 get_aoi_extent <- function(country_iso=NULL,
@@ -88,6 +89,12 @@ get_aoi_extent <- function(country_iso=NULL,
     options(timeout=300)
     dir.create(output_dir, showWarnings=FALSE)
     URL <- paste0("https://geodata.ucdavis.edu/gadm/gadm4.1/gpkg/gadm41_", country_iso, ".gpkg")
+ 
+    if (httr::http_error(URL)) {
+      message("There appears to be a problem reaching the website.")
+      return(invisible(NULL))
+    }
+   
     gpkg_file <- file.path(output_dir, paste0("gadm41_", country_iso, ".gpkg"))
     download.file(URL, quiet=TRUE, destfile=gpkg_file)
     # Read vector file (level 0 for country borders)

@@ -82,6 +82,7 @@
 #' @importFrom utils txtProgressBar setTxtProgressBar
 #' @importFrom glue glue
 #' @import terra
+#' @import httr
 #' @export
 #' 
 get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
@@ -121,6 +122,12 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
                            phase, '/', model, '/ssp', SSP, '/tasmin/CHELSA_',
                            tolower(model), '_r1i1p1f1_w5e5_ssp', SSP, '_tasmin_',
                            m, '_', stringr::str_replace(phase, pattern = '-', '_'), '_norm.tif')
+      
+      if (httr::http_error(url_tasmin)) {
+        message("There appears to be a problem reaching the website.")
+        return(invisible(NULL))
+      }
+      
       tasmin_file <- file.path(destination, 'data_raw', 'future_chelsa',
                                paste('climat', phase, model, 'ssp', SSP, sep = '_'),
                                'temp', paste0('tasmin', m, '.tif'))
@@ -135,6 +142,12 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
                            phase, '/', model, '/ssp', SSP, '/tasmax/CHELSA_', tolower(model),
                            '_r1i1p1f1_w5e5_ssp', SSP, '_tasmax_', m, '_',
                            stringr::str_replace(phase, pattern = '-', '_'), '_norm.tif')
+      
+      if (httr::http_error(url_tasmax)) {
+        message("There appears to be a problem reaching the website.")
+        return(invisible(NULL))
+      }
+      
       tasmax_file <- file.path(destination, 'data_raw', 'future_chelsa', paste('climat', phase, model, 'ssp', SSP, sep = '_'),
                                'temp', paste0('tasmax', m, '.tif'))
       gdal_utils_translate(ifile=paste0("/vsicurl/", url_tasmax),
@@ -147,6 +160,12 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
       url_tas <- paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/',
                         phase, '/', model, '/ssp', SSP, '/tas/CHELSA_', tolower(model), '_r1i1p1f1_w5e5_ssp', SSP, '_tas_', m, '_',
                         stringr::str_replace(phase, pattern = '-', '_'), '_norm.tif')
+      
+      if (httr::http_error(url_tas)) {
+        message("There appears to be a problem reaching the website.")
+        return(invisible(NULL))
+      }
+      
       tas_file <- file.path(destination, 'data_raw', 'future_chelsa', paste('climat', phase, model, 'ssp', SSP, sep = '_'),
                             'temp', paste0('tas', m, '.tif'))
       gdal_utils_translate(ifile=paste0("/vsicurl/", url_tas),
@@ -159,6 +178,12 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
       url_pr <- paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/',
                        phase, '/', model, '/ssp', SSP, '/pr/CHELSA_', tolower(model), '_r1i1p1f1_w5e5_ssp', SSP, '_pr_', m, '_',
                        stringr::str_replace(phase, pattern = '-', '_'), '_norm.tif')
+      
+      if (httr::http_error(url_pr)) {
+        message("There appears to be a problem reaching the website.")
+        return(invisible(NULL))
+      }
+      
       pr_file <- file.path(destination, 'data_raw', 'future_chelsa', paste('climat', phase, model, 'ssp', SSP, sep = '_'),
                            'temp', paste0('pr', m, '.tif'))
       gdal_utils_translate(ifile=paste0("/vsicurl/", url_pr),
@@ -180,6 +205,12 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
       # 19 Bioclimatic variables
       # See https://chelsa-climate.org/wp-admin/download-page/CHELSA_tech_specification_V2.pdf for details
       url_bio <- paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/', phase, '/', model, '/ssp', SSP, '/bio/CHELSA_bio', i, '_', phase, '_', tolower(model), '_ssp', SSP, '_V.2.1.tif')
+      
+      if (httr::http_error(url_bio)) {
+        message("There appears to be a problem reaching the website.")
+        return(invisible(NULL))
+      }
+      
       bio_file <- file.path(destination, 'data_raw', 'future_chelsa', paste('climat', phase, model, 'ssp', SSP, sep = '_'), 'temp', paste0('bio', i, '.tif'))
       gdal_utils_translate(ifile=paste0("/vsicurl/", url_bio),
                            ofile=bio_file,

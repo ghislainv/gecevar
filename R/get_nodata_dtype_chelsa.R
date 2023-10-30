@@ -22,6 +22,7 @@
 #' @importFrom glue glue
 #' @importFrom sf gdal_utils
 #' @importFrom stringr str_pad
+#' @import httr
 #' @export
 #' @examples
 #' \dontrun{
