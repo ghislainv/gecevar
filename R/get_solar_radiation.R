@@ -1,0 +1,297 @@
+#' Create multilayer Tiff file with 1 environmental variable
+#'
+#' @description Variable is solar radiation.
+#'
+#' @param extent_latlon vector. First output of `get_aoi_extent()`
+#'   function.
+#' 
+#' @param extent_proj vector. Second output of `get_aoi_extent()`
+#'   function.
+#' 
+#' @param EPSG int. to consider for this country/area.
+#' 
+#' @param country_name character. country name (in English) which be
+#'   use to collect protected areas. This country must be available in
+#'   `https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA`.
+#' 
+#' @param destination character. absolute path where to download files
+#'   like `here()` output.
+#' 
+#' @param resol int. Resolution. If in meters, recommended resolutions
+#'   are 250m, 500m, 1km, 2km or 5km. The resolution needs to be
+#'   carefully chosen. If set too small (e.g. < 250m), raster file
+#'   will be too big to fit in memory and R will crash. Default is
+#'   1km.
+#' 
+#' @param rm_download boolean. If TRUE remove download files and
+#'   folders. Keep only environ.tif in `data_raw` folder, default is
+#'   FALSE.
+#' 
+#' @param gisBase NULL or character. Parameter `gisBase` for
+#'   `rgrass::initGRASS()`. The directory path to GRASS binaries and
+#'   libraries, containing bin and lib subdirectories among others; if
+#'   NULL, system("grass --config path") is tried.
+#' 
+#' @return character. Absolute path to `environ.tif` file.
+#' 
+#' @details environ.tif.aux.xml is an extention of environ.tif, it
+#'   allows to classify soilgrid variable with QGIS with
+#'   RasterAttributeTable extension. Nevertheless it's cause problems
+#'   to open it with `stars` package but not with `terra`. If you have
+#'   any problems to open environ.tif, you can remove
+#'   environ.tif.aux.xml. This solve all accessibility problems with
+#'   `stars` and `terra` packages.
+#'
+#' Unit of each environ variable :
+#'
+#' | Name                                 | Unit          |
+#' | ------------------------------------ | ------------- |
+#' | Solar radiation                      | Wh.m^{-2}.day |
+#' @md
+#'
+#' @importFrom glue glue
+#' @importFrom utils download.file unzip
+#' @importFrom RCurl url.exists
+#' @import sf
+#' @import rgrass
+#' @import osmextract
+#' @import RCurl
+#' @import countrycode
+#' @import stringr
+#' @import httr
+#' @import retry
+#' @export
+
+get_env_variables <- function(extent_latlon, extent_proj, EPSG,
+                              country_name, destination, resol=1000,
+                              rm_download=FALSE, gisBase=NULL) {
+  
+  # Round extent_latlon to nearest degree
+  extent_latlon_1d <- c(floor(extent_latlon["lonmin"]), floor(extent_latlon["latmin"]),
+                        ceiling(extent_latlon["lonmax"]), ceiling(extent_latlon["latmax"]))
+  
+  # Extent for gdal_translate
+  # /!\ with gdal_translate: c(xmin, ymax, xmax, ymin) corresponding to <ulx> <uly> <lrx> <lry> 
+  extent_gdal_translate <- c(extent_latlon[1], extent_latlon[4],
+                             extent_latlon[3], extent_latlon[2])
+  
+  # Transform extent_proj from vector to string
+  extent_proj_string <- paste(extent_proj, collapse=" ")
+  
+  options(warn=-1)
+  dir.create(path=destination, recursive=TRUE, showWarnings=FALSE)
+  nodata_Int16 <- nodata_INT2S <- -32768
+  nodata_Int32 <- nodata_INT4S <- -2147483648
+  proj_s <- "EPSG:4326"
+  proj_t <- paste0("EPSG:", EPSG)
+  ISO_country_code <- countrycode::countryname(country_name, destination="iso3c")
+  options(download.file.method="auto")
+  
+  ##==============================
+  ##
+  ## SRTM at 90m resolution from
+  ## Elevation, slope aspect, roughness
+  ##
+  ## https://dwtkns.com/srtm/ version 4.1
+  ##
+  ##==============================
+  
+  # Compute tiles
+  dir.create(file.path(destination, "data_raw", "srtm_v1_4_90m"), showWarnings=FALSE)
+  dir.create(file.path(destination, "data_raw", "srtm_v1_4_90m", "temp"), showWarnings=FALSE)
+  tiles_srtm <- c(floor(extent_latlon[1] / 5) * 5, ceiling(extent_latlon[2] / 5) * 5,
+                  floor(extent_latlon[3] / 5) * 5, ceiling(extent_latlon[4] / 5) * 5)
+  lat <- stringr::str_pad(seq(tiles_srtm[1], tiles_srtm[3], 5) / 5 + 37, width=2, pad="0")
+  lon <- stringr::str_pad(-seq(tiles_srtm[2], tiles_srtm[4], 5) / 5 + 13, width=2, pad="0")
+  tiles <- NULL
+  for (i in lon) {
+    tiles <- c(tiles, paste(lat, i, sep="_"))
+  }
+  
+  # Donwload tiles and unzip
+  for (i in tiles) {
+    options(warn=-1)
+    dst <- paste0(file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "srtm_"), i, ".zip")
+    url.tile <- paste0("https://srtm.csi.cgiar.org/wp-content/uploads/files/srtm_5x5/TIFF/srtm_", i, ".zip")
+    
+    if (httr::http_error(url.tile)) {
+      message("There appears to be a problem reaching the website.")
+      return(invisible(NULL))
+    }
+    
+    download.file(url=url.tile, destfile=dst, quiet=TRUE,
+                  method="curl", extra="-k")
+    unzip(dst, exdir=file.path(destination, "data_raw", "srtm_v1_4_90m", "temp"), overwrite=TRUE)
+  }
+  
+  # Build vrt
+  file_list <- list.files(file.path(destination, "data_raw", "srtm_v1_4_90m", "temp"),
+                          pattern="^srtm_.*\\.tif$", full.names=TRUE)
+  vrtfile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "srtm.vrt")
+  sf::gdal_utils(util="buildvrt", source=file_list, destination=vrtfile,
+                 options=c("-vrtnodata", nodata_Int16),
+                 quiet=TRUE)
+  
+  # Resample with gdal_warp
+  ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "elevation.tif")
+  res_out <- 90 # resample at 90 m
+  # /!\ Creation options (-co) must not be quoted for sf::gdal_utils as in GDAL command)
+  opts <- glue("-overwrite -t_srs {proj_t} -tap -r bilinear -dstnodata {nodata_Int16} ",
+               "-te {extent_proj_string} -ot Int16 -of GTiff ",
+               "-tr {res_out} {res_out} -co COMPRESS=LZW -co PREDICTOR=2")
+  sf::gdal_utils(util="warp", source=vrtfile, destination=ofile,
+                 options=unlist(strsplit(opts, " ")),
+                 quiet=TRUE)
+  
+  ## Compute slope, aspect and roughness using gdaldem
+  # compute slope
+  ifile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "elevation.tif")
+  ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "slope.tif")
+  opts <- glue("-co COMPRESS=LZW -co PREDICTOR=2 -compute_edges")
+  sf::gdal_utils(util="demprocessing", processing="slope", source=ifile, destination=ofile,
+                 options=unlist(strsplit(opts, " ")),
+                 quiet=TRUE)
+  
+  # compute aspect
+  ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "aspect.tif")
+  opts <- glue("-co COMPRESS=LZW -co PREDICTOR=2 -compute_edges")
+  sf::gdal_utils(util="demprocessing", processing="aspect", source=ifile, destination=ofile,
+                 options=unlist(strsplit(opts, " ")),
+                 quiet=TRUE)
+  
+  # compute roughness
+  ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "roughness.tif")
+  opts <- glue("-co COMPRESS=LZW -co PREDICTOR=2 -compute_edges")
+  sf::gdal_utils(util="demprocessing", processing="roughness", source=ifile, destination=ofile,
+                 options=unlist(strsplit(opts, " ")),
+                 quiet=TRUE)
+  
+  # Resolution from res_out to chosen resolution using gdalwarp
+  # elevation
+  ifile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "elevation.tif")
+  ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "elevation_res.tif")
+  opts <- glue("-overwrite -r bilinear -tr {resol} {resol} -te {extent_proj_string} ",
+               "-ot Int16 -of GTiff -dstnodata {nodata_Int16} ",
+               "-co COMPRESS=LZW -co PREDICTOR=2")
+  sf::gdal_utils(util="warp", source=ifile, destination=ofile,
+                 options=unlist(strsplit(opts, " ")),
+                 quiet=TRUE)
+  
+  # aspect
+  ifile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "aspect.tif")
+  ofile <-file.path(destination, "data_raw", "srtm_v1_4_90m", "aspect_res.tif")
+  sf::gdal_utils(util="warp", source=ifile, destination=ofile,
+                 options=unlist(strsplit(opts, " ")),
+                 quiet=TRUE)
+  
+  # slope
+  ifile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "slope.tif")
+  ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "slope_res.tif")
+  sf::gdal_utils(util="warp", source=ifile, destination=ofile,
+                 options=unlist(strsplit(opts, " ")),
+                 quiet=TRUE)
+  
+  # roughness
+  ifile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "roughness.tif")
+  ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "roughness_res.tif")
+  sf::gdal_utils(util="warp", source=ifile, destination=ofile,
+                 options=unlist(strsplit(opts, " ")),
+                 quiet=TRUE)
+  
+  ##==============================
+  ##
+  ## Solar radiation
+  ##
+  ## with r.sun at 90m resolution
+  ## Solar radiation (in Wh.m-2.day-1) was computed from altitude,
+  ## slope and aspect using the function r.sun from the GRASS GIS software.
+  ## We incorporated the shadowing effect of terrain to compute the solar radiation.
+  ## Solar radiation was computed for the Julian day 79 (20th of March for regular years=equinox).
+  ##
+  ##==============================
+  
+  ## Initialize GRASS
+  # get gisBase directory
+  if (is.null(gisBase)) {
+    gisBase <- system("grass --config path", intern=TRUE)
+  }
+  # Set library path
+  Sys.setenv(LD_LIBRARY_PATH=paste(file.path(gisBase, "lib"), Sys.getenv("LD_LIBRARY_PATH"), sep=":"))
+  # use a georeferenced raster
+  elevation <- file.path(destination, "data_raw/srtm_v1_4_90m/temp/elevation.tif")
+  cmd <- glue('grass -c {elevation} -e {destination}/data_raw/grassdata/environ')
+  system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
+  # connect to grass database
+  rgrass::initGRASS(gisBase=gisBase,
+                    gisDbase=file.path(destination, "data_raw", "grassdata"), home=file.path(destination, "data_raw"),
+                    location="environ", mapset="PERMANENT",
+                    override=TRUE)
+  
+  ## Import raster in grass
+  cmd <- glue("r.in.gdal -e -o input={elevation} output=elevation")
+  system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
+  slope <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "slope.tif")
+  cmd <- glue("r.in.gdal -e --o input={slope} output=slope")
+  system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
+  aspect <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "aspect.tif")
+  cmd <- glue("r.in.gdal -e --o input={aspect} output=aspect")
+  system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
+  
+  # Compute radiation
+  cmd <- glue("r.sun --overwrite --verbose elevation=elevation aspect=aspect ",
+              "slope=slope day=79 glob_rad=global_rad")
+  system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
+  # Export
+  ofile <- file.path(destination, 'data_raw', 'srtm_v1_4_90m', 'temp', 'srad.tif')
+  cmd <- glue("r.out.gdal -f --verbose --overwrite input=global_rad ",
+              "createopt='COMPRESS=LZW' nodata={nodata_Int16} output={ofile} type=Int16")
+  system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
+  
+  # Resolution from 90m x 90m to chosen resolution using gdalwarp
+  ifile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "srad.tif")
+  ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "srad_res.tif")
+  opts <- glue("-overwrite -t_srs {proj_t} -dstnodata {nodata_Int16} ",
+               "-r bilinear -tr {resol} {resol} -te {extent_proj_string} ",
+               "-ot Int16 -of GTiff ",
+               "-co COMPRESS=LZW -co PREDICTOR=2")
+  sf::gdal_utils(util="warp", source=ifile, destination=ofile,
+                 options=unlist(strsplit(opts, " ")),
+                 quiet=TRUE)
+  
+ 
+  ##=====================================
+  ##
+  ## Merge environmental variables in one .tif
+  ##
+  ##=====================================
+  
+  # Load all rasters
+  #aspect <- terra::rast(file.path(destination, "data_raw", "srtm_v1_4_90m", "aspect_res.tif"))
+  #elevation <- terra::rast(file.path(destination, "data_raw", "srtm_v1_4_90m", "elevation_res.tif"))
+  #roughness <- terra::rast(file.path(destination, "data_raw", "srtm_v1_4_90m", "roughness_res.tif"))
+  #slope <- terra::rast(file.path(destination, "data_raw", "srtm_v1_4_90m", "slope_res.tif"))
+  srad <- terra::rast(file.path(destination, "data_raw", "srtm_v1_4_90m", "srad_res.tif"))
+
+  # Create environ raster with all layers                         
+  environ <- c(srad)
+  layer_names <- c("srad")
+  names(environ) <- layer_names
+  
+  # Write to disk
+  ofile <- file.path(destination, "data_raw", "environ.tif")
+  terra::writeRaster(environ, filename=ofile,
+                     gdal=c("COMPRESS=LZW", "PREDICTOR=2"),
+                     #NAflag=-2147483648,
+                     progress=FALSE, overwrite=TRUE, datatype="INT4S")
+  
+  
+  if (rm_download) {
+    unlink(file.path(destination, "data_raw", "srtm_v1_4_90m"), recursive=TRUE)
+  }
+  
+  # Return absolute path of environ.tif 
+  return(file.path(destination, "data_raw", "environ.tif"))
+  
+}
+
+# End

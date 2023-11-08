@@ -447,27 +447,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
   ## /!\ This needs to be rewritten using a wdpa token and something like worlpa https://frbcesab.github.io/worldpa/
   
   dir.create(file.path(destination, "data_raw", "WDPA"), showWarnings=FALSE)
-  ## dir.create(file.path(destination, "data_raw", "WDPA", "temp"), showWarnings=FALSE)
-  ## # Date in english
-  ## Sys.setlocale("LC_TIME", "C")
-  ## date <- stringr::str_remove(stringr::str_to_title(format(Sys.Date(), format="%b%Y")), "\\.")
-  ## Sys.setlocale("LC_TIME", "")
-  ## httr::POST(url="https://www.protectedplanet.net/downloads", encode="json", body=list("domain"="general", "format"="gdb", "token"=ISO_country_code))
-  ## retry::wait_until(RCurl::url.exists(paste0("https://d1gam3xoknrgr2.cloudfront.net/current/WDPA_WDOECM_", date, "_Public_", ISO_country_code, ".zip")), timeout=60)
-  ## download.file(paste0("https://d1gam3xoknrgr2.cloudfront.net/current/WDPA_WDOECM_", date, "_Public_", ISO_country_code, ".zip"),
-  ##               destfile=file.path(destination, "data_raw", "WDPA","temp", paste0("WDPA_WDOECM_", date,"_Public_", ISO_country_code, ".zip")),
-  ##               method='auto', mode="wb", quiet=TRUE)
-  ## unzip(file.path(destination, "data_raw", "WDPA","temp", paste0("WDPA_WDOECM_", date,"_Public_", ISO_country_code, ".zip")),
-  ##       exdir=file.path(destination, 'data_raw', 'WDPA', 'temp'))
-  ## WDPA <- terra::vect(file.path(destination, "data_raw", "WDPA", "temp", paste0("WDPA_WDOECM_", date, "_Public_", ISO_country_code, ".gdb/")),
-  ##                     layer=paste0("WDPA_WDOECM_poly_", date, "_", ISO_country_code))
-  ## WDPA <- sf::st_as_sf(WDPA)[3]
-  ## WDPA <- sf::st_transform(WDPA, EPSG)
-  ## WDPA <- stars::st_rasterize(WDPA, dx=resol, dy=resol)
-  ## WDPA[[1]] <- WDPA[[1]] != 0
-  ## stars::write_stars(WDPA, options=c("COMPRESS=LZW", "PREDICTOR=2"), NA_value=255,
-  ##                    dsn=file.path(destination, "data_raw", "WDPA", "WDPA_resBool.tif"))
-
+  
   # Temporary
   ifile <- file.path(destination, "data_raw", "soilgrids250_v2_0", "soilgrids_res.tif")
   ofile <- file.path(destination, "data_raw", "WDPA", "WDPA_resBool.tif")
