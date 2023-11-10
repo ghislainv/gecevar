@@ -120,11 +120,12 @@ get_forest_var <- function(extent_latlon, extent_proj, EPSG,
     gdal_utils_translate(ifile=paste0("/vsicurl/", url_far),
                          ofile=ofile,
                          extent_gdal_translate)
+    raw_resol <- res(terra::rast(ofile))
     
     ifile <- file.path(destination, "data_raw", "forestatrisk", "forest_nocrop.tif")
-    ofile <- file.path(destination, "data_raw", "forestatrisk", "forest.tif")
+    ofile <- file.path(destination, "data_raw", "forestatrisk", "forest_crop_raw_resol.tif")
     opts <- glue("-overwrite -t_srs {proj_t} -dstnodata 255 ",
-                 "-r near -tr {resol} {resol} -te {extent_proj_string} ",
+                 "-r near -tr {raw_resol[1]} {raw_resol[2]} -te {extent_proj_string} ",
                  "-ot Byte -of GTiff ",
                  "-co COMPRESS=LZW -co PREDICTOR=2")
     sf::gdal_utils(util="warp", source=ifile, destination=ofile,
@@ -133,19 +134,31 @@ get_forest_var <- function(extent_latlon, extent_proj, EPSG,
     
     unlink(file.path(destination, "data_raw", "forestatrisk", "forest_nocrop.tif"))
     
-    forest_rast <- terra::rast(ofile)
+    forest_crop_raw_resol <- terra::rast(ofile)
     if (forest_year == 2000) {
       # 1 is deforestation during 2000-2010
-      values(forest_rast) <- values(forest_rast) >= 1
+      values(forest_crop_raw_resol) <- values(forest_crop_raw_resol) >= 1
     } else if (forest_year == 2010) {
       # 2 is deforestation during 2010-2020
-      values(forest_rast) <- values(forest_rast) >= 2
+      values(forest_crop_raw_resol) <- values(forest_crop_raw_resol) >= 2
     } else {
       # 3 is forest in 2020
-      values(forest_rast) <- values(forest_rast) == 3
+      values(forest_crop_raw_resol) <- values(forest_crop_raw_resol) == 3
     }
-    terra::writeRaster(forest_rast, gdal = c("COMPRESS=LZW", "PREDICTOR=2"),
+    terra::writeRaster(forest_crop_raw_resol,gdal = c("COMPRESS=LZW", "PREDICTOR=2"),
                        overwrite = TRUE, datatype = "Byte", filename = ofile)
+    
+    ifile <- file.path(destination, "data_raw", "forestatrisk", "forest_crop_raw_resol.tif")
+    ofile <- file.path(destination, "data_raw", "forestatrisk", "forest.tif")
+    opts <- glue("-overwrite -t_srs {proj_t} -dstnodata 255 ",
+                 "-r average -tr {resol} {resol} -te {extent_proj_string} ",
+                 "-ot Byte -of GTiff ",
+                 "-co COMPRESS=LZW -co PREDICTOR=2")
+    sf::gdal_utils(util="warp", source=ifile, destination=ofile,
+                   options=unlist(strsplit(opts, " ")),
+                   quiet=TRUE)
+    unlink(file.path(destination, "data_raw", "forestatrisk", "forest_crop_raw_resol.tif"))
+    
     forest <- TRUE
   } else {
     print("Forest layer is not available for your country")
