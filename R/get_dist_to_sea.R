@@ -98,8 +98,7 @@ get_dist_to_sea <- function(extent_latlon, extent_proj, EPSG,
   ##==============================
   
   # Compute tiles
-  dir.create(file.path(destination, "data_raw", "srtm_v1_4_90m"), showWarnings=FALSE)
-  dir.create(file.path(destination, "data_raw", "srtm_v1_4_90m", "temp"), showWarnings=FALSE)
+  dir.create(file.path(destination, "data_raw", "srtm_v1_4_90m", "temp"), showWarnings=FALSE, recursive=TRUE)
   tiles_srtm <- c(floor(extent_latlon[1] / 5) * 5, ceiling(extent_latlon[2] / 5) * 5,
                   floor(extent_latlon[3] / 5) * 5, ceiling(extent_latlon[4] / 5) * 5)
   lat <- stringr::str_pad(seq(tiles_srtm[1], tiles_srtm[3], 5) / 5 + 37, width=2, pad="0")
@@ -251,6 +250,10 @@ get_dist_to_sea <- function(extent_latlon, extent_proj, EPSG,
   # Resolution from 90m x 90m to chosen resolution using gdalwarp
   ifile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "srad.tif")
   ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "srad_res.tif")
+  
+  #terra::aggregate(terra::rast(ifile), fact = resol/90)
+  
+  
   opts <- glue("-overwrite -t_srs {proj_t} -dstnodata {nodata_Int16} ",
                "-r bilinear -tr {resol} {resol} -te {extent_proj_string} ",
                "-ot Int16 -of GTiff ",
@@ -259,8 +262,7 @@ get_dist_to_sea <- function(extent_latlon, extent_proj, EPSG,
                  options=unlist(strsplit(opts, " ")),
                  quiet=TRUE)
   
- 
-  
+
   ##===========================
   ##
   ## Distance to Sea
@@ -279,9 +281,11 @@ get_dist_to_sea <- function(extent_latlon, extent_proj, EPSG,
   # Distance to sea
   sourcefile <- file.path(destination, "data_raw", "dist_sea", "sea_res.tif")
   destfile <- file.path(destination, "data_raw", "dist_sea", "dist_sea.tif")
-  cmd <- glue("gdal_proximity.py -ot Int32 -of GTiff -nodata {nodata_Int32} ",
-              "-values {nodata_Int16} -distunits GEO -use_input_nodata NO {sourcefile} {destfile}")
-  system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
+  # cmd <- glue("gdal_proximity.py -ot Int32 -of GTiff -nodata {nodata_Int32} ",
+  #             "-values {nodata_Int16} -distunits GEO -use_input_nodata NO {sourcefile} {destfile}")
+  distance(terra::rast(sourcefile), target = nodata_Int16,  unit = "m", filename = destfile, 
+           overwrite = TRUE, gdal=c("COMPRESS=LZW", "PREDICTOR=2"))
+  
   
   # Replace 0 with NA
   dist_sea <- terra::rast(file.path(destination, "data_raw", "dist_sea", "dist_sea.tif"))

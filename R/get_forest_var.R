@@ -153,10 +153,11 @@ get_forest_var <- function(extent_latlon, extent_proj, EPSG,
     opts <- glue("-overwrite -t_srs {proj_t} -dstnodata 255 ",
                  "-r average -tr {resol} {resol} -te {extent_proj_string} ",
                  "-ot Byte -of GTiff ",
-                 "-co COMPRESS=LZW -co PREDICTOR=2")
+                 "-co COMPRESS=LZW -co PREDICTOR=2 ")
     sf::gdal_utils(util="warp", source=ifile, destination=ofile,
                    options=unlist(strsplit(opts, " ")),
                    quiet=TRUE)
+    
     unlink(file.path(destination, "data_raw", "forestatrisk", "forest_crop_raw_resol.tif"))
     
     forest <- TRUE
@@ -172,13 +173,17 @@ get_forest_var <- function(extent_latlon, extent_proj, EPSG,
   ##===========================
   
   if (forest) {
+    
     dir.create(file.path(destination, "data_raw", "dist_forest"), showWarnings=FALSE)
     sourcefile <- file.path(destination, "data_raw", "forestatrisk", "forest.tif")
     destfile <- file.path(destination, "data_raw", "dist_forest", "dist_forest.tif")
-    cmd <- glue("gdal_proximity.py {sourcefile} {destfile} ",
-                "-ot Int32 -of GTiff -nodata {nodata_Int32} ",
-                "-values {1} -distunits GEO -use_input_nodata NO")
-    system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
+    dist_forest <- distance(terra::rast(sourcefile), exclude = 0,  unit = "m", 
+                            filename = destfile, overwrite = TRUE, 
+                            datatype = nodata_Int32, gdal=c("COMPRESS=LZW", "PREDICTOR=2"))
+   
+    # cmd <- glue("gdal_proximity.py {sourcefile} {destfile} ",
+    #             "-ot Int32 -of GTiff -nodata {nodata_Int32} ",
+    #             "-values {1} -distunits GEO -use_input_nodata NO")
   }
   
   ##=====================================
