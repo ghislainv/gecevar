@@ -143,28 +143,6 @@ get_dist_to_sea <- function(extent_latlon, extent_proj, EPSG,
                  options=unlist(strsplit(opts, " ")),
                  quiet=TRUE)
   
-  ## Compute slope, aspect and roughness using gdaldem
-  # compute slope
-  ifile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "elevation.tif")
-  ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "slope.tif")
-  opts <- glue("-co COMPRESS=LZW -co PREDICTOR=2 -compute_edges")
-  sf::gdal_utils(util="demprocessing", processing="slope", source=ifile, destination=ofile,
-                 options=unlist(strsplit(opts, " ")),
-                 quiet=TRUE)
-  
-  # compute aspect
-  ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "aspect.tif")
-  opts <- glue("-co COMPRESS=LZW -co PREDICTOR=2 -compute_edges")
-  sf::gdal_utils(util="demprocessing", processing="aspect", source=ifile, destination=ofile,
-                 options=unlist(strsplit(opts, " ")),
-                 quiet=TRUE)
-  
-  # compute roughness
-  ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "roughness.tif")
-  opts <- glue("-co COMPRESS=LZW -co PREDICTOR=2 -compute_edges")
-  sf::gdal_utils(util="demprocessing", processing="roughness", source=ifile, destination=ofile,
-                 options=unlist(strsplit(opts, " ")),
-                 quiet=TRUE)
   
   # Resolution from res_out to chosen resolution using gdalwarp
   # elevation
@@ -177,92 +155,7 @@ get_dist_to_sea <- function(extent_latlon, extent_proj, EPSG,
                  options=unlist(strsplit(opts, " ")),
                  quiet=TRUE)
   
-  # aspect
-  ifile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "aspect.tif")
-  ofile <-file.path(destination, "data_raw", "srtm_v1_4_90m", "aspect_res.tif")
-  sf::gdal_utils(util="warp", source=ifile, destination=ofile,
-                 options=unlist(strsplit(opts, " ")),
-                 quiet=TRUE)
   
-  # slope
-  ifile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "slope.tif")
-  ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "slope_res.tif")
-  sf::gdal_utils(util="warp", source=ifile, destination=ofile,
-                 options=unlist(strsplit(opts, " ")),
-                 quiet=TRUE)
-  
-  # roughness
-  ifile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "roughness.tif")
-  ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "roughness_res.tif")
-  sf::gdal_utils(util="warp", source=ifile, destination=ofile,
-                 options=unlist(strsplit(opts, " ")),
-                 quiet=TRUE)
-  
-  ##==============================
-  ##
-  ## Solar radiation
-  ##
-  ## with r.sun at 90m resolution
-  ## Solar radiation (in Wh.m-2.day-1) was computed from altitude,
-  ## slope and aspect using the function r.sun from the GRASS GIS software.
-  ## We incorporated the shadowing effect of terrain to compute the solar radiation.
-  ## Solar radiation was computed for the Julian day 79 (20th of March for regular years=equinox).
-  ##
-  ##==============================
-  
-  ## Initialize GRASS
-  # get gisBase directory
-  if (is.null(gisBase)) {
-    gisBase <- system("grass --config path", intern=TRUE)
-  }
-  # Set library path
-  Sys.setenv(LD_LIBRARY_PATH=paste(file.path(gisBase, "lib"), Sys.getenv("LD_LIBRARY_PATH"), sep=":"))
-  # use a georeferenced raster
-  elevation <- file.path(destination, "data_raw/srtm_v1_4_90m/temp/elevation.tif")
-  cmd <- glue('grass -c {elevation} -e {destination}/data_raw/grassdata/environ')
-  system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
-  # connect to grass database
-  rgrass::initGRASS(gisBase=gisBase,
-                    gisDbase=file.path(destination, "data_raw", "grassdata"), home=file.path(destination, "data_raw"),
-                    location="environ", mapset="PERMANENT",
-                    override=TRUE)
-  
-  ## Import raster in grass
-  cmd <- glue("r.in.gdal -e -o input={elevation} output=elevation")
-  system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
-  slope <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "slope.tif")
-  cmd <- glue("r.in.gdal -e --o input={slope} output=slope")
-  system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
-  aspect <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "aspect.tif")
-  cmd <- glue("r.in.gdal -e --o input={aspect} output=aspect")
-  system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
-  
-  # Compute radiation
-  cmd <- glue("r.sun --overwrite --verbose elevation=elevation aspect=aspect ",
-              "slope=slope day=79 glob_rad=global_rad")
-  system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
-  # Export
-  ofile <- file.path(destination, 'data_raw', 'srtm_v1_4_90m', 'temp', 'srad.tif')
-  cmd <- glue("r.out.gdal -f --verbose --overwrite input=global_rad ",
-              "createopt='COMPRESS=LZW' nodata={nodata_Int16} output={ofile} type=Int16")
-  system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
-  
-  # Resolution from 90m x 90m to chosen resolution using gdalwarp
-  ifile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "srad.tif")
-  ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "srad_res.tif")
-  
-  #terra::aggregate(terra::rast(ifile), fact = resol/90)
-  
-  
-  opts <- glue("-overwrite -t_srs {proj_t} -dstnodata {nodata_Int16} ",
-               "-r bilinear -tr {resol} {resol} -te {extent_proj_string} ",
-               "-ot Int16 -of GTiff ",
-               "-co COMPRESS=LZW -co PREDICTOR=2")
-  sf::gdal_utils(util="warp", source=ifile, destination=ofile,
-                 options=unlist(strsplit(opts, " ")),
-                 quiet=TRUE)
-  
-
   ##===========================
   ##
   ## Distance to Sea
@@ -273,7 +166,7 @@ get_dist_to_sea <- function(extent_latlon, extent_proj, EPSG,
   dir.create(file.path(destination, "data_raw", "dist_sea"), showWarnings=FALSE)
   # The following line should be modified as it implies loading the raster in memory.
   seaBool <- (terra::rast(file.path(destination, "data_raw", 
-                                    "srtm_v1_4_90m", "srad_res.tif")) == nodata_Int16)
+                                    "srtm_v1_4_90m", "elevation_res.tif")) == nodata_Int16)
   #datatype arg missing ?
   terra::writeRaster(seaBool, gdal = c("COMPRESS=LZW", "PREDICTOR=2"), overwrite = TRUE, 
                      filename = file.path(destination, "data_raw", "dist_sea", "sea_res.tif"))

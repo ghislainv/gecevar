@@ -141,13 +141,30 @@ get_soil_grid <- function(extent_latlon, extent_proj, EPSG,
   #                options=unlist(strsplit(opts, " ")),
   #                quiet=TRUE)
   
+  sg_url="https://files.isric.org/soilgrids/latest/data/"
+  if (httr::http_error(sg_url)) {
+           message("There appears to be a problem reaching the website.")
+           return(invisible(NULL))
+         }
   
-  gdalwarp("./crop_roi_igh_r.vrt",
-           "./crop_roi_ll_r.vrt", 
-           s_srs=igh, 
-           t_srs="EPSG:4326", 
+  
+  gdal_translate(paste0(sg_url,'ocs/ocs_0-30cm_mean.vrt'),
+                 "/home/lamonica/Documents/crop_roi_igh_r.vrt",
+                 of="VRT",tr=c(resol,resol),
+                 projwin=extent_proj,
+                 projwin_srs=igh)
+  
+  
+  gdalwarp("/home/lamonica/Documents/crop_roi_igh_r.vrt",
+           "/home/lamonica/Documents/crop_roi_ll_r.vrt", 
+           s_srs=proj_s, 
+           t_srs=proj_t, 
            of="VRT",
            overwrite = TRUE)
+  
+  gdal_translate("./crop_roi_ll_r.vrt",  
+                 "./crop_roi_ll_r.tif", 
+                 co=c("TILED=YES","COMPRESS=DEFLATE","PREDICTOR=2","BIGTIFF=YES"))
   
   
   ##=====================================

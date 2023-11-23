@@ -92,8 +92,8 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   extent_proj_string <- paste(extent_proj, collapse=" ")
   
   nodata_Int16 <- -32768
-  nodata_Int32 <- -2147483648
-  nodata_UInt16 <- 65535
+#  nodata_Int32 <- -2147483648
+#  nodata_UInt16 <- 65535
   
   proj_s <- "EPSG:4326"
   proj_t <- paste0("EPSG:", EPSG_proj)
