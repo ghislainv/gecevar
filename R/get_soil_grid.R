@@ -87,33 +87,79 @@ get_soil_grid <- function(extent_latlon, extent_proj, EPSG,
   ISO_country_code <- countrycode::countryname(country_name, destination="iso3c")
   options(download.file.method="auto")
 
-  ##==============================
-  ##
-  ## Soilgrids
-  ##
-  ##==============================
 
   dir.create(file.path(destination, "data_raw"), showWarnings=FALSE)
   dir.create(file.path(destination, "data_raw", "soilgrids250_v2_0"), showWarnings=FALSE)
   sg_url <- "https://files.isric.org/soilgrids/latest/data/"
   if (httr::http_error(sg_url)) {
-           message("There appears to be a problem reaching the website.")
-           return(invisible(NULL))
+    message("There appears to be a problem reaching the website.")
+    return(invisible(NULL))
   }
 
-  ofile <- file.path(destination, "data_raw", "soilgrids250_v2_0", "crop_init_proj.vrt")
-  gdal_utils_translate(ifile=paste0(sg_url,'ocs/ocs_0-30cm_mean.vrt'),
-                       ofile=ofile, proj_s = proj_s,
-                       extent_gdal_translate)
+  ##==============================
+  ##
+  ## Soil texture
+  ##
+  ##==============================
 
   opts <- glue("-tr {resol} {resol} -te {extent_proj_string} ",
                "-t_srs {proj_t} -s_srs {proj_s} -overwrite ",
                "-ot Byte -of GTiff -co COMPRESS=LZW -co PREDICTOR=2")
+
+  # clay
+  ofile <- file.path(destination, "data_raw", "soilgrids250_v2_0", "crop_clay.vrt")
+  gdal_utils_translate(ifile=paste0(sg_url,'clay/clay_0-5cm_mean.vrt'),
+                       ofile=ofile, proj_s = proj_s,
+                       extent_gdal_translate)
+
   sf::gdal_utils(util="warp",
-                 source = file.path(destination, "data_raw", "soilgrids250_v2_0", "crop_init_proj.vrt"),
-                 destination = file.path(destination, "data_raw", "soilgrids250_v2_0", "soilgrids_res.tif"),
+                 source = ofile,
+                 destination = file.path(destination, "data_raw", "soilgrids250_v2_0", "soilclay_res.tif"),
                  options = unlist(strsplit(opts, " ")))
 
+  # sand
+  ofile <- file.path(destination, "data_raw", "soilgrids250_v2_0", "crop_sand.vrt")
+  gdal_utils_translate(ifile=paste0(sg_url,'sand/sand_0-5cm_mean.vrt'),
+                       ofile=ofile, proj_s = proj_s,
+                       extent_gdal_translate)
+
+  sf::gdal_utils(util="warp",
+                 source = ofile,
+                 destination = file.path(destination, "data_raw", "soilgrids250_v2_0", "soilsand_res.tif"),
+                 options = unlist(strsplit(opts, " ")))
+
+  # silt
+  ofile <- file.path(destination, "data_raw", "soilgrids250_v2_0", "crop_silt.vrt")
+  gdal_utils_translate(ifile=paste0(sg_url,'silt/silt_0-5cm_mean.vrt'),
+                       ofile=ofile, proj_s = proj_s,
+                       extent_gdal_translate)
+
+  sf::gdal_utils(util="warp",
+                 source = ofile,
+                 destination = file.path(destination, "data_raw", "soilgrids250_v2_0", "soilsilt_res.tif"),
+                 options = unlist(strsplit(opts, " ")))
+
+
+  ##==============================
+  ##
+  ## Soil category
+  ##
+  ##==============================
+
+  #####fonctionne pas !!!!!
+  opts <- glue("-tr {resol} {resol} -te {extent_proj_string} ",
+               "-t_srs {proj_t} -s_srs {proj_s} -overwrite ",
+               "-ot Byte -of GTiff -co COMPRESS=LZW -co PREDICTOR=2")
+
+  ofile <- file.path(destination, "data_raw", "soilgrids250_v2_0", "crop_most_probable_scat.vrt")
+  gdal_utils_translate(ifile=paste0(sg_url,'wrb/MostProbable.vrt'),
+                       ofile=ofile, proj_s = proj_s,
+                       extent_gdal_translate)
+
+  sf::gdal_utils(util="warp",
+                 source = ofile,
+                 destination = file.path(destination, "data_raw", "soilgrids250_v2_0", "soilcategory_res.tif"),
+                 options = unlist(strsplit(opts, " ")))
 
 
   ##=====================================
