@@ -163,7 +163,7 @@ get_soil_grid <- function(extent_latlon, extent_proj, EPSG,
   ## Soil category
   ##
   ##==============================
- ##fichiers pe corrompus
+  ##fichiers pe corrompus
   ofile <- file.path(destination, "data_raw", "soilgrids250_v2_0", "crop_most_probable_soil_cat.vrt")
 
   if (httr::http_error(paste0(sg_url,'wrb/MostProbable.vrt'))) {

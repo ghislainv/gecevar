@@ -60,11 +60,12 @@
 #' @import stringr
 #' @import httr
 #' @import retry
+#' @import wdpar
 #' @export
 
 get_protected_area <- function(extent_latlon, extent_proj, EPSG,
                               country_name, destination, resol=1000,
-                              rm_download=FALSE, gisBase=NULL) {
+                              rm_download=FALSE, gisBase=NULL){
 
   # Round extent_latlon to nearest degree
   extent_latlon_1d <- c(floor(extent_latlon["lonmin"]), floor(extent_latlon["latmin"]),
@@ -96,30 +97,62 @@ get_protected_area <- function(extent_latlon, extent_proj, EPSG,
   ##
   ##=========================
 
-  ## /!\ This needs to be rewritten using a wdpa token and something like worlpa https://frbcesab.github.io/worldpa/
-
   dir.create(file.path(destination, "data_raw", "WDPA"), showWarnings=FALSE)
 
-  # Temporary
-  ifile <- file.path(destination, "data_raw", "soilgrids250_v2_0", "soilgrids_res.tif")
-  ofile <- file.path(destination, "data_raw", "WDPA", "WDPA_resBool.tif")
-  file.copy(ifile, ofile)
+  raw_data <- wdpar::wdpa_fetch(country_name, wait = TRUE,
+                                download_dir = file.path(destination, "data_raw", "WDPA"))
 
+  ##issue in cleaning data : reprojecting in EPSG:4326 gives the following error :
+  ##"Erreur dans st_snap_to_grid.sfc(st_geometry(x), size, origin) :
+  ##!isTRUE(st_is_longlat(x)) n'est pas TRUE"
 
-  ##=====================================
+  # clean_data <- wdpar::wdpa_clean(x = raw_data, erase_overlaps = F,
+  #               crs = st_crs(proj_s)$proj4string
+  #    #,crs = paste("+proj=cea +lon_0=0 +lat_ts=0 +x_0=0 +y_0=0 +datum=WGS84 +ellps=WGS84 +units=m +no_defs")
+  #    #,crs = paste("+proj=cea +datum=WGS84 +ellps=WGS84 +units=m +no_defs")
+  #     )
+
+  clean_data <- raw_data
+  #from "sf" to SpatVector
+  v1 <- terra::vect(clean_data)
+  #create an "empty" raster
+  r1 <- terra::rast(v1)
+  rast_marin <- terra::rasterize(v1, r1, field = as.factor(clean_data$MARINE),
+                                 touches = F, background = NA)
+  terra::values(rast_marin) <- replace(x = terra::values(rast_marin),
+                                       list = is.na(terra::values(rast_marin)),
+                                       values = NA)
+  ifile <- file.path(destination, "data_raw", "WDPA", "WDPA_raw.tif")
+  terra::writeRaster(rast_marin, filename=ifile,
+                     gdal=c("COMPRESS=LZW", "PREDICTOR=2"),
+                     progress=FALSE, overwrite=TRUE, datatype="INT2S")
+
+  ofile <- file.path(destination, "data_raw", "WDPA", "WDPA_raw_resol.tif")
+  gdal_utils_translate(ifile=ifile,
+                       ofile=ofile, proj_s = proj_s,
+                       extent_gdal_translate)
+
+  opts <- glue("-tr {resol} {resol} -te {extent_proj_string} ",
+               "-t_srs {proj_t} -s_srs {proj_s} -overwrite -r near -dstnodata {nodata_Int16} ",
+               "-ot Int16 -of GTiff -co COMPRESS=LZW -co PREDICTOR=2")
+  sf::gdal_utils(util="warp",
+                 source = ofile,
+                 destination = file.path(destination, "data_raw", "WDPA", "WDPA_res.tif"),
+                 options = unlist(strsplit(opts, " ")))
+
+   ##=====================================
   ##
   ## Merge environmental variables in one .tif
   ##
   ##=====================================
 
   # Load all rasters
-  wdpa <- terra::rast(file.path(destination, "data_raw", "WDPA", "WDPA_resBool.tif"))
+  wdpa <- terra::rast(file.path(destination, "data_raw", "WDPA", "WDPA_res.tif"))
 
   # Create environ raster with all layers
   environ <- c(wdpa)
   layer_names <- c("wdpa")
   names(environ) <- layer_names
-
 
   # Write to disk
   ofile <- file.path(destination, "data_raw", "environ.tif")
