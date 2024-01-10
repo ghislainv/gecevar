@@ -27,11 +27,6 @@
 #'   folders. Keep only environ.tif in `data_raw` folder, default is
 #'   FALSE.
 #'
-#' @param gisBase NULL or character. Parameter `gisBase` for
-#'   `rgrass::initGRASS()`. The directory path to GRASS binaries and
-#'   libraries, containing bin and lib subdirectories among others; if
-#'   NULL, system("grass --config path") is tried.
-#'
 #' @return character. Absolute path to `environ.tif` file.
 #'
 #' @details environ.tif.aux.xml is an extention of environ.tif, it
@@ -53,7 +48,6 @@
 #' @importFrom utils download.file unzip
 #' @importFrom RCurl url.exists
 #' @import sf
-#' @import rgrass
 #' @import osmextract
 #' @import RCurl
 #' @import countrycode
@@ -65,7 +59,7 @@
 
 get_protected_area <- function(extent_latlon, extent_proj, EPSG,
                               country_name, destination, resol=1000,
-                              rm_download=FALSE, gisBase=NULL){
+                              rm_download=FALSE){
 
   # Round extent_latlon to nearest degree
   extent_latlon_1d <- c(floor(extent_latlon["lonmin"]), floor(extent_latlon["latmin"]),
@@ -122,6 +116,8 @@ get_protected_area <- function(extent_latlon, extent_proj, EPSG,
   terra::values(rast_marin) <- replace(x = terra::values(rast_marin),
                                        list = is.na(terra::values(rast_marin)),
                                        values = NA)
+  names(rast_marin) <- "wdpa"
+
   ifile <- file.path(destination, "data_raw", "WDPA", "WDPA_raw.tif")
   terra::writeRaster(rast_marin, filename=ifile,
                      gdal=c("COMPRESS=LZW", "PREDICTOR=2"),
@@ -137,36 +133,15 @@ get_protected_area <- function(extent_latlon, extent_proj, EPSG,
                "-ot Int16 -of GTiff -co COMPRESS=LZW -co PREDICTOR=2")
   sf::gdal_utils(util="warp",
                  source = ofile,
-                 destination = file.path(destination, "data_raw", "WDPA", "WDPA_res.tif"),
+                 destination = file.path(destination, "data_raw", "WDPA.tif"),
                  options = unlist(strsplit(opts, " ")))
-
-   ##=====================================
-  ##
-  ## Merge environmental variables in one .tif
-  ##
-  ##=====================================
-
-  # Load all rasters
-  wdpa <- terra::rast(file.path(destination, "data_raw", "WDPA", "WDPA_res.tif"))
-
-  # Create environ raster with all layers
-  environ <- c(wdpa)
-  layer_names <- c("wdpa")
-  names(environ) <- layer_names
-
-  # Write to disk
-  ofile <- file.path(destination, "data_raw", "environ.tif")
-  terra::writeRaster(environ, filename=ofile,
-                     gdal=c("COMPRESS=LZW", "PREDICTOR=2"),
-                     progress=FALSE, overwrite=TRUE, datatype="INT4S")
-
 
   if (rm_download) {
     unlink(file.path(destination, "data_raw", "WDPA"), recursive=TRUE)
   }
 
-  # Return absolute path of environ.tif
-  return(file.path(destination, "data_raw", "environ.tif"))
+  # Return absolute path of .tif
+  return(file.path(destination, "data_raw", "WDPA.tif"))
 
 }
 

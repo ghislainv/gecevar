@@ -27,11 +27,6 @@
 #'   folders. Keep only environ.tif in `data_raw` folder, default is
 #'   FALSE.
 #'
-#' @param gisBase NULL or character. Parameter `gisBase` for
-#'   `rgrass::initGRASS()`. The directory path to GRASS binaries and
-#'   libraries, containing bin and lib subdirectories among others; if
-#'   NULL, system("grass --config path") is tried.
-#'
 #' @return character. Absolute path to `environ.tif` file.
 #'
 #' @details environ.tif.aux.xml is an extention of environ.tif, it
@@ -53,7 +48,6 @@
 #' @importFrom utils download.file unzip
 #' @importFrom RCurl url.exists
 #' @import sf
-#' @import rgrass
 #' @import osmextract
 #' @import RCurl
 #' @import countrycode
@@ -64,7 +58,7 @@
 
 get_dist_to_sea <- function(extent_latlon, extent_proj, EPSG,
                               country_name, destination, resol=1000,
-                              rm_download=FALSE, gisBase=NULL) {
+                              rm_download=FALSE) {
 
   # Round extent_latlon to nearest degree
   extent_latlon_1d <- c(floor(extent_latlon["lonmin"]), floor(extent_latlon["latmin"]),
@@ -174,12 +168,6 @@ get_dist_to_sea <- function(extent_latlon, extent_proj, EPSG,
                      gdal=c("COMPRESS=LZW","PREDICTOR=2"),
                      progress=FALSE, overwrite=TRUE, datatype="INT4S")
 
-  ##=====================================
-  ##
-  ## Merge environmental variables in one .tif
-  ##
-  ##=====================================
-
   # Load all rasters
   dist_sea <- terra::rast(file.path(destination, "data_raw", "dist_sea", "dist_sea.tif"))
 
@@ -189,7 +177,7 @@ get_dist_to_sea <- function(extent_latlon, extent_proj, EPSG,
   names(environ) <- layer_names
 
   # Write to disk
-  ofile <- file.path(destination, "data_raw", "environ.tif")
+  ofile <- file.path(destination, "data_raw", "dist_sea.tif")
   terra::writeRaster(environ, filename=ofile,
                      gdal=c("COMPRESS=LZW", "PREDICTOR=2"),
                      progress=FALSE, overwrite=TRUE, datatype="INT4S")
@@ -200,7 +188,7 @@ get_dist_to_sea <- function(extent_latlon, extent_proj, EPSG,
   }
 
   # Return absolute path of environ.tif
-  return(file.path(destination, "data_raw", "environ.tif"))
+  return(file.path(destination, "data_raw", "dist_sea.tif"))
 
 }
 
