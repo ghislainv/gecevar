@@ -150,7 +150,7 @@ Otherwise leave <code>country_name = NULL</code>.</p>
 <p>We can look at the variable names in the raster.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">r_env</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">environ_path</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">r_env</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">r_env</span><span class="op">)</span></span></code></pre></div>
 <p>We can plot some data, eg. the elevation.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">r_env</span><span class="op">$</span><span class="va">elevation</span>, range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">2000</span><span class="op">)</span>, main <span class="op">=</span> <span class="st">"Elevation (m)"</span>,</span>
@@ -174,7 +174,7 @@ Variables give the average value on the data recovered between 1981 and
 <p>We can look at the variable names in the raster.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">r_clim</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">climate_path</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">r_clim</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">r_clim</span><span class="op">)</span></span></code></pre></div>
 <p>We can plot some data, eg. the climatic water deficit computed from
 the Thornthwaite equation.</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(r_clim<span class="sc">$</span>cwd_thornthwaite), range <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">500</span>), main <span class="ot">=</span> <span class="st">"CWD Thornthwaite (m)"</span>,</span>
