@@ -52,10 +52,6 @@ jobs:
             python3-matplotlib,python3-numpy,python3-ply,python3-pywin32,\
             python3-wxpython,regex-devel,zstd-devel"
 
-      - name: Install Windows system requirements (Compile GRASS GIS)
-        if: runner.os == 'Windows'
-        run: D:\msys64\usr\bin\bash.exe -l (''+(Get-Location)+'\.github\workflows\build_osgeo4w.sh') (Get-Location)
-
      - name: Install macOS system requirements (gdal)
         if: runner.os == 'macOS'
         run: brew install gdal proj
