@@ -19,10 +19,7 @@ jobs:
       matrix:
         config:
           - {os: macos-latest,   r: 'release'}
-          - {os: windows-latest, r: 'release'}
-          - {os: ubuntu-latest,   r: 'devel', http-user-agent: 'release'}
           - {os: ubuntu-latest,   r: 'release'}
-          - {os: ubuntu-latest,   r: 'oldrel-1'}
 
 
     env:
@@ -33,34 +30,19 @@ jobs:
       - name: Install Ubuntu system requirements
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get update
-          sudo apt-get install grass
-          sudo apt-get install curl
+          sudo apt update
+          sudo apt install grass
+          sudo apt install curl
+          sudo apt install gdal-bin
+          sudo apt install libgdal-dev
 
-      - name: Install Windows system requirements (OSGeo4W)
-        if: runner.os == 'Windows'
-        run: |
-          $exe = 'osgeo4w-setup.exe'
-          $url = 'http://download.osgeo.org/osgeo4w/v2/' + $exe
-          (New-Object System.Net.WebClient).DownloadFile($url, $exe)
-          Start-Process ('.\'+$exe) -ArgumentList '-A -g -k -q \
-            -s http://download.osgeo.org/osgeo4w/v2/ -P ${{ env.Deps }}' -Wait
-        env:
-          Deps: "proj-devel,gdal-devel,geos-devel,libtiff-devel,libpng-devel,\
-            pdal-devel,netcdf-devel,cairo-devel,fftw,freetype-devel,gdal-ecw,\
-            gdal-mrsid,liblas-devel,libxdr,libpq-devel,pdcurses,\
-            python3-matplotlib,python3-numpy,python3-ply,python3-pywin32,\
-            python3-wxpython,regex-devel,zstd-devel"
 
-     - name: Install macOS system requirements (gdal)
-        if: runner.os == 'macOS'
-        run: brew install gdal proj
-
-     - name: Install macOS system requirements (grass)
+     - name: Install macOS system requirements
         if: runner.os == 'macOS'
         run: |
           brew tap osgeo/osgeo4mac
           brew install osgeo-grass
+          brew install gdal proj
 
       - uses: actions/checkout@v3
 
