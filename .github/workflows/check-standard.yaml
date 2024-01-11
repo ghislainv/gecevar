@@ -18,32 +18,44 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {os: macos-latest,   r: 'release'}
-          - {os: ubuntu-latest,   r: 'release'}
-
+        #  - {os: macos-latest,   r: 'release'}
+        #  - {os: ubuntu-latest,   r: 'release'}
+          - {os: windows-latest, r: 'release'}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
 
     steps:
-      - name: Install Ubuntu system requirements
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt update
-          sudo apt install curl
-          sudo apt install gdal-bin
-          sudo apt install libgdal-dev
-          sudo apt install grass
+     # - name: Install Ubuntu system requirements
+     #   if: runner.os == 'Linux'
+      #  run: |
+      #    sudo apt update
+      #    sudo apt install curl
+       #   sudo apt install gdal-bin
+       #   sudo apt install libgdal-dev
+       #   sudo apt install grass
 
 
-      - name: Install macOS system requirements
-        if: runner.os == 'macOS'
+    #  - name: Install macOS system requirements
+    #    if: runner.os == 'macOS'
+     #   run: |
+     #     brew install proj gdal
+     #     curl -LO https://raw.githubusercontent.com/GiovanniBussi/macports-ci/master/macports-ci
+       #   source ./macports-ci install
+      #    sudo port install grass
+
+      - name: Install OSGeo4W
+        if: runner.os == 'Windows'
         run: |
-          brew install proj gdal
-          curl -LO https://raw.githubusercontent.com/GiovanniBussi/macports-ci/master/macports-ci
-          source ./macports-ci install
-          sudo port install grass
+          $exe = 'osgeo4w-setup.exe'
+          $url = 'http://download.osgeo.org/osgeo4w/v2/' + $exe
+          (New-Object System.Net.WebClient).DownloadFile($url, $exe)
+          Start-Process ('.\'+$exe) -ArgumentList '-A -g -k -q \
+            -s http://download.osgeo.org/osgeo4w/v2/ -P ${{ env.Deps }}' -Wait
+        env:
+          Deps: >-
+            proj-devel,gdal-devel,geos-devel,libtiff-devel,libpng-devel,pdal-devel,netcdf-devel,cairo-devel,fftw,freetype-devel,gdal-ecw,gdal-mrsid,liblas-devel,libxdr,libpq-devel,pdcurses,python3-matplotlib,python3-numpy,python3-ply,python3-pywin32,python3-wxpython,regex-devel,zstd-devel
 
 
       - uses: actions/checkout@v3
