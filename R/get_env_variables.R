@@ -7,39 +7,39 @@
 #'
 #' @param extent_latlon vector. First output of `get_aoi_extent()`
 #'   function.
-#' 
+#'
 #' @param extent_proj vector. Second output of `get_aoi_extent()`
 #'   function.
-#' 
+#'
 #' @param EPSG int. to consider for this country/area.
-#' 
+#'
 #' @param country_name character. country name (in English) which be
 #'   use to collect protected areas. This country must be available in
 #'   `https://www.protectedplanet.net/en/thematic-areas/wdpa?tab=WDPA`.
-#' 
+#'
 #' @param destination character. absolute path where to download files
 #'   like `here()` output.
-#' 
+#'
 #' @param resol int. Resolution. If in meters, recommended resolutions
 #'   are 250m, 500m, 1km, 2km or 5km. The resolution needs to be
 #'   carefully chosen. If set too small (e.g. < 250m), raster file
 #'   will be too big to fit in memory and R will crash. Default is
 #'   1km.
-#' 
+#'
 #' @param rm_download boolean. If TRUE remove download files and
 #'   folders. Keep only environ.tif in `data_raw` folder, default is
 #'   FALSE.
-#' 
+#'
 #' @param forest_year int. Forest at the decade chosen. Must be one of
 #'   2000, 2010 or 2020, default is 2010.
-#' 
+#'
 #' @param gisBase NULL or character. Parameter `gisBase` for
 #'   `rgrass::initGRASS()`. The directory path to GRASS binaries and
 #'   libraries, containing bin and lib subdirectories among others; if
 #'   NULL, system("grass --config path") is tried.
-#' 
+#'
 #' @return character. Absolute path to `environ.tif` file.
-#' 
+#'
 #' @details environ.tif.aux.xml is an extention of environ.tif, it
 #'   allows to classify soilgrid variable with QGIS with
 #'   RasterAttributeTable extension. Nevertheless it's cause problems
@@ -91,10 +91,10 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
                         ceiling(extent_latlon["lonmax"]), ceiling(extent_latlon["latmax"]))
 
   # Extent for gdal_translate
-  # /!\ with gdal_translate: c(xmin, ymax, xmax, ymin) corresponding to <ulx> <uly> <lrx> <lry> 
+  # /!\ with gdal_translate: c(xmin, ymax, xmax, ymin) corresponding to <ulx> <uly> <lrx> <lry>
   extent_gdal_translate <- c(extent_latlon[1], extent_latlon[4],
                              extent_latlon[3], extent_latlon[2])
-  
+
   # Transform extent_proj from vector to string
   extent_proj_string <- paste(extent_proj, collapse=" ")
 
@@ -106,7 +106,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
   proj_t <- paste0("EPSG:", EPSG)
   ISO_country_code <- countrycode::countryname(country_name, destination="iso3c")
   options(download.file.method="auto")
-  
+
   ##==============================
   ##
   ## Soilgrids
@@ -127,12 +127,12 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
     # Loop on latitude
     for (j in extent_latlon_1d[2]:extent_latlon_1d[4]) {
       url=paste0(soilgrid_base_url, i, ".0000,", i + 1, ".0000)&SUBSET=lat(", j, ".0000,", j + 1, soilgrid_end_url)
-      
+
       if (httr::http_error(url)) {
         message("There appears to be a problem reaching the website.")
         return(invisible(NULL))
       }
-      
+
       dest=file.path(destination, "data_raw", "soilgrids250_v2_0", "temp", paste0("soilgrids_", j, "_", i, ".tif"))
       download.file(url=url, destfile=dest, quiet=TRUE)
     }
@@ -146,7 +146,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
   # build vrt
   file_list <- readLines(file.path(destination, "data_raw", "soilgrids250_v2_0", "temp", "files_list.txt"))
   sf::gdal_utils(util="buildvrt", source=file_list, destination=vrtfile, quiet=TRUE)
-  
+
   # warp
   ofile <- file.path(destination, "data_raw", "soilgrids250_v2_0", "soilgrids_res.tif")
   opts <- glue("-tr {resol} {resol} -te {extent_proj_string} ",
@@ -183,12 +183,12 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
     options(warn=-1)
     dst <- paste0(file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "srtm_"), i, ".zip")
     url.tile <- paste0("https://srtm.csi.cgiar.org/wp-content/uploads/files/srtm_5x5/TIFF/srtm_", i, ".zip")
-    
+
     if (httr::http_error(url.tile)) {
       message("There appears to be a problem reaching the website.")
       return(invisible(NULL))
     }
-    
+
     download.file(url=url.tile, destfile=dst, quiet=TRUE,
                   method="curl", extra="-k")
     unzip(dst, exdir=file.path(destination, "data_raw", "srtm_v1_4_90m", "temp"), overwrite=TRUE)
@@ -221,14 +221,14 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
   sf::gdal_utils(util="demprocessing", processing="slope", source=ifile, destination=ofile,
                  options=unlist(strsplit(opts, " ")),
                  quiet=TRUE)
-  
+
   # compute aspect
   ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "aspect.tif")
   opts <- glue("-co COMPRESS=LZW -co PREDICTOR=2 -compute_edges")
   sf::gdal_utils(util="demprocessing", processing="aspect", source=ifile, destination=ofile,
                  options=unlist(strsplit(opts, " ")),
                  quiet=TRUE)
-  
+
   # compute roughness
   ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "roughness.tif")
   opts <- glue("-co COMPRESS=LZW -co PREDICTOR=2 -compute_edges")
@@ -246,21 +246,21 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
   sf::gdal_utils(util="warp", source=ifile, destination=ofile,
                  options=unlist(strsplit(opts, " ")),
                  quiet=TRUE)
-  
+
   # aspect
   ifile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "aspect.tif")
   ofile <-file.path(destination, "data_raw", "srtm_v1_4_90m", "aspect_res.tif")
   sf::gdal_utils(util="warp", source=ifile, destination=ofile,
                  options=unlist(strsplit(opts, " ")),
                  quiet=TRUE)
-  
+
   # slope
   ifile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "slope.tif")
   ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "slope_res.tif")
   sf::gdal_utils(util="warp", source=ifile, destination=ofile,
                  options=unlist(strsplit(opts, " ")),
                  quiet=TRUE)
-  
+
   # roughness
   ifile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "roughness.tif")
   ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "roughness_res.tif")
@@ -296,7 +296,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
                     gisDbase=file.path(destination, "data_raw", "grassdata"), home=file.path(destination, "data_raw"),
                     location="environ", mapset="PERMANENT",
                     override=TRUE)
-  
+
   ## Import raster in grass
   cmd <- glue("r.in.gdal -e -o input={elevation} output=elevation")
   system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
@@ -306,7 +306,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
   aspect <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "aspect.tif")
   cmd <- glue("r.in.gdal -e --o input={aspect} output=aspect")
   system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
-  
+
   # Compute radiation
   cmd <- glue("r.sun --overwrite --verbose elevation=elevation aspect=aspect ",
               "slope=slope day=79 glob_rad=global_rad")
@@ -316,7 +316,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
   cmd <- glue("r.out.gdal -f --verbose --overwrite input=global_rad ",
               "createopt='COMPRESS=LZW' nodata={nodata_Int16} output={ofile} type=Int16")
   system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
-  
+
   # Resolution from 90m x 90m to chosen resolution using gdalwarp
   ifile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "srad.tif")
   ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "srad_res.tif")
@@ -345,17 +345,17 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
   if (RCurl::url.exists(paste0("https://forestatrisk.cirad.fr/tropics/tif/fcc_123_", continent_short, "_aea.tif"))) {
     dir.create(file.path(destination, "data_raw", "forestatrisk"), showWarnings=FALSE)
     url_far <- paste0("https://forestatrisk.cirad.fr/tropics/tif/fcc_123_", continent_short, "_aea.tif")
-    
+
     if (httr::http_error(url_far)) {
       message("There appears to be a problem reaching the website.")
       return(invisible(NULL))
     }
-    
+
     ofile <- file.path(destination, "data_raw", "forestatrisk", "forest_nocrop.tif")
     gdal_utils_translate(ifile=paste0("/vsicurl/", url_far),
                          ofile=ofile,
                          extent_gdal_translate)
-    
+
     ifile <- file.path(destination, "data_raw", "forestatrisk", "forest_nocrop.tif")
     ofile <- file.path(destination, "data_raw", "forestatrisk", "forest.tif")
     opts <- glue("-overwrite -t_srs {proj_t} -dstnodata 255 ",
@@ -365,9 +365,9 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
     sf::gdal_utils(util="warp", source=ifile, destination=ofile,
                    options=unlist(strsplit(opts, " ")),
                    quiet=TRUE)
-    
+
     unlink(file.path(destination, "data_raw", "forestatrisk", "forest_nocrop.tif"))
-  
+
     forest_rast <- terra::rast(ofile)
     if (forest_year == 2000) {
       # 1 is deforestation during 2000-2010
@@ -411,10 +411,10 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
   # Land area
   dir.create(file.path(destination, "data_raw", "dist_sea"), showWarnings=FALSE)
   # The following line should be modified as it implies loading the raster in memory.
-  seaBool <- (terra::rast(file.path(destination, "data_raw", 
+  seaBool <- (terra::rast(file.path(destination, "data_raw",
                                     "srtm_v1_4_90m", "srad_res.tif")) == nodata_Int16)
   #datatype arg missing ?
-  terra::writeRaster(seaBool, gdal = c("COMPRESS=LZW", "PREDICTOR=2"), overwrite = TRUE, 
+  terra::writeRaster(seaBool, gdal = c("COMPRESS=LZW", "PREDICTOR=2"), overwrite = TRUE,
                      filename = file.path(destination, "data_raw", "dist_sea", "sea_res.tif"))
   # stars::write_stars(seaBool, options=c("COMPRESS=LZW", "PREDICTOR=2"), NA_value=,
   #                    dsn=file.path(destination, "data_raw", "dist_sea", "sea_res.tif"))
@@ -445,7 +445,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
   ##=========================
 
   ## /!\ This needs to be rewritten using a wdpa token and something like worlpa https://frbcesab.github.io/worldpa/
-  
+
   dir.create(file.path(destination, "data_raw", "WDPA"), showWarnings=FALSE)
   ## dir.create(file.path(destination, "data_raw", "WDPA", "temp"), showWarnings=FALSE)
   ## # Date in english
@@ -482,12 +482,12 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
   # Download data with osmextract
   dir.create(file.path(destination, "data_raw", "OSM", "temp"), recursive=TRUE, showWarnings=FALSE)
   osm_country <- osmextract::oe_match(country_name, quiet=TRUE)
-  
+
   if (httr::http_error(osm_country$url)) {
     message("There appears to be a problem reaching the website.")
     return(invisible(NULL))
   }
-  
+
   osmpbf_file <- osmextract::oe_download(
     file_url=osm_country$url,
     file_size=osm_country$file_size,
@@ -501,7 +501,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
   layer_osm <- c("lines", "points", "lines", "multipolygons")
 
   # Where SQL request
-  # See example: https://github.com/ropensci/osmextract/blob/master/R/get-network.R 
+  # See example: https://github.com/ropensci/osmextract/blob/master/R/get-network.R
   where_road <- c("(highway IS NOT NULL) AND (highway IN ('motorway', 'trunk', 'primary', 'secondary', 'tertiary'))")
   where_place <- c("(place IS NOT NULL) AND (place IN ('city', 'town', 'village'))")
   where_river <- c("(waterway IS NOT NULL) AND (waterway='river')")
@@ -517,7 +517,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
 
   # Loop on features
   for (i in 1:length(feature_name)) {
-    
+
     # File names
     gpkg_file  <- file.path(destination, "data_raw", "OSM" , "temp", paste0(feature_name[i], ".gpkg"))
     gpkg_proj  <- file.path(destination, "data_raw", "OSM" , "temp", paste0(feature_name[i], "_proj.gpkg"))
@@ -550,7 +550,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
     dist <- terra::distance(r, unit="m", filename=dist_file,
                             gdal=c("COMPRESS=LZW", "PREDICTOR=2"),
                             progress=0, overwrite=TRUE, datatype="INT4S")
-                    
+
     # Resample at the requested resolution computing the average
     opts <- glue("-overwrite -t_srs {proj_t} -dstnodata {nodata_Int32} ",
                  "-r average -tr {resol} {resol} -te {extent_proj_string} ",
@@ -590,20 +590,20 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
   URL_BSGM <- paste0("https://data.worldpop.org/GIS/Population/Global_2000_2020_Constrained/2020/BSGM/",
                      ISO_country_code, "/",tolower(ISO_country_code),"_ppp_2020_UNadj_constrained.tif")
   if (RCurl::url.exists(URL_maxar_v1)) {
-    
+
     if (httr::http_error(URL_maxar_v1)) {
       message("There appears to be a problem reaching the website.")
       return(invisible(NULL))
     }
-    
+
     download.file(URL_maxar_v1, destfile=dest, quiet=TRUE)
   } else {
-    
+
     if (httr::http_error(URL_BSGM)) {
       message("There appears to be a problem reaching the website.")
       return(invisible(NULL))
     }
-    
+
     download.file(URL_BSGM, destfile=dest, quiet=TRUE)
   }
 
@@ -623,7 +623,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
   sf::gdal_utils(util="warp", source=ifile, destination=ofile,
                  options=unlist(strsplit(opts, " ")),
                  quiet=TRUE)
-  
+
   ##=====================================
   ##
   ## Merge environmental variables in one .tif
@@ -644,13 +644,13 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
   wdpa <- terra::rast(file.path(destination, "data_raw", "WDPA", "WDPA_resBool.tif"))
   population <- terra::rast(file.path(destination, "data_raw", "world_pop", paste0(ISO_country_code, "_pop_res.tif")))
 
-  # Create environ raster with all layers                         
+  # Create environ raster with all layers
   environ <- c(aspect, elevation, roughness, slope, srad, soilgrids,
                dist_sea, dist_road, dist_place, dist_water, wdpa, population)
   layer_names <- c("aspect", "elevation", "roughness", "slope", "srad", "soil_type",
                    "dist_sea", "dist_road", "dist_place", "dist_water", "wdpa", "population")
   names(environ) <- layer_names
-                            
+
   # Update if forest
   if (forest) {
     forest <- terra::rast(file.path(destination, "data_raw", "forestatrisk", "forest.tif"))
@@ -682,8 +682,8 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
     unlink(file.path(destination, "data_raw", "dist_forest"), recursive=TRUE)
     unlink(file.path(destination, "data_raw", "world_pop"), recursive=TRUE)
   }
-  
-  # Return absolute path of environ.tif 
+
+  # Return absolute path of environ.tif
   return(file.path(destination, "data_raw", "environ.tif"))
 
 }
