@@ -136,9 +136,6 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
 
   # Create environ raster with all layers
   environ <- terra::c(srad, forest, osm, pop, wdpa, soil_grid, srtm, dist_sea)
-  # layer_names <- c("aspect", "elevation", "roughness", "slope", "srad", "soil_type",
-  #                  "dist_sea", "dist_road", "dist_place", "dist_water", "wdpa", "population")
-  # names(environ) <- layer_names
 
   # Write to disk
   ofile <- file.path(destination, "data_raw", "environ.tif")
