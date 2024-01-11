@@ -18,8 +18,8 @@ jobs:
       fail-fast: false
       matrix:
         config:
-        #  - {os: macos-latest,   r: 'release'}
-        #  - {os: ubuntu-latest,   r: 'release'}
+          - {os: macos-latest,   r: 'release'}
+          - {os: ubuntu-latest,   r: 'release'}
           - {os: windows-latest, r: 'release'}
 
     env:
@@ -27,25 +27,25 @@ jobs:
       R_KEEP_PKG_SOURCE: yes
 
     steps:
-     # - name: Install Ubuntu system requirements
-     #   if: runner.os == 'Linux'
-      #  run: |
-      #    sudo apt update
-      #    sudo apt install curl
-       #   sudo apt install gdal-bin
-       #   sudo apt install libgdal-dev
-       #   sudo apt install grass
+      - name: Install Ubuntu system requirements
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt update
+          sudo apt install curl
+          sudo apt install gdal-bin
+          sudo apt install libgdal-dev
+          sudo apt install grass
 
 
-    #  - name: Install macOS system requirements
-    #    if: runner.os == 'macOS'
-     #   run: |
-     #     brew install proj gdal
-     #     curl -LO https://raw.githubusercontent.com/GiovanniBussi/macports-ci/master/macports-ci
-       #   source ./macports-ci install
-      #    sudo port install grass
+      - name: Install macOS system requirements
+        if: runner.os == 'macOS'
+        run: |
+          brew install proj gdal
+          curl -LO https://raw.githubusercontent.com/GiovanniBussi/macports-ci/master/macports-ci
+          source ./macports-ci install
+          sudo port install grass
 
-      - name: Install OSGeo4W
+      - name: Install Windows system requirements (OSGeo4W)
         if: runner.os == 'Windows'
         run: |
           $exe = 'osgeo4w-setup.exe'
