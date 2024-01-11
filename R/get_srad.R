@@ -30,7 +30,7 @@
 #' @param gisBase NULL or character. Parameter `gisBase` for
 #'   `rgrass::initGRASS()`. The directory path to GRASS binaries and
 #'   libraries, containing bin and lib subdirectories among others; if
-#'   NULL, system("grass --config path") is tried.
+#'   NULL, system2("grass --config path") is tried.
 #'
 #' @return character. Absolute path to `environ.tif` file.
 #'
@@ -213,7 +213,7 @@ get_srad <- function(extent_latlon, extent_proj, EPSG,
   ## Initialize GRASS
   # get gisBase directory
   if (is.null(gisBase)) {
-    gisBase <- system("grass --config path", intern=TRUE)
+    gisBase <- system2("grass --config path", intern=TRUE)
   }
   # Set library path
   Sys.setenv(LD_LIBRARY_PATH=paste(file.path(gisBase, "lib"), Sys.getenv("LD_LIBRARY_PATH"), sep=":"))
@@ -229,23 +229,23 @@ get_srad <- function(extent_latlon, extent_proj, EPSG,
 
   ## Import raster in grass
   cmd <- glue("r.in.gdal -e -o input={elevation} output=elevation")
-  system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
+  system2(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
   slope <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "slope.tif")
   cmd <- glue("r.in.gdal -e --o input={slope} output=slope")
-  system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
+  system2(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
   aspect <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "aspect.tif")
   cmd <- glue("r.in.gdal -e --o input={aspect} output=aspect")
-  system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
+  system2(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
 
   # Compute radiation
   cmd <- glue("r.sun --overwrite --verbose elevation=elevation aspect=aspect ",
               "slope=slope day=79 glob_rad=global_rad")
-  system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
+  system2(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
   # Export
   ofile <- file.path(destination, 'data_raw', 'srtm_v1_4_90m', 'temp', 'srad.tif')
   cmd <- glue("r.out.gdal -f --verbose --overwrite input=global_rad ",
               "createopt='COMPRESS=LZW' nodata={nodata_Int16} output={ofile} type=Int16")
-  system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
+  system2(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
 
   # Resolution from 90m x 90m to chosen resolution using gdalwarp
   ifile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "srad.tif")
