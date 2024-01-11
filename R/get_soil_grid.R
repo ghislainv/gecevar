@@ -197,14 +197,13 @@ get_soil_grid <- function(extent_latlon, extent_proj, EPSG,
 
   # Create environ raster with all layers
   environ <- c(soilsand, soilsilt, soilclay)
-  layer_names <- c("soil_sand", "soil_silt", "soilclay")
+  layer_names <- c("soil_sand", "soil_silt", "soil_clay")
   names(environ) <- layer_names
 
   # Write to disk
   ofile <- file.path(destination, "data_raw", "soil_variables.tif")
   terra::writeRaster(environ, filename=ofile,
                      gdal=c("COMPRESS=LZW", "PREDICTOR=2"),
-                     #NAflag=-2147483648,
                      progress=FALSE, overwrite=TRUE, datatype="INT2S")
 
   ## Modify legend for soil_type

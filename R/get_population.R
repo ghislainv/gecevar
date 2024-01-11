@@ -56,7 +56,7 @@
 #' @import retry
 #' @export
 
-get_pop_var <- function(extent_latlon, extent_proj, EPSG,
+get_population <- function(extent_latlon, extent_proj, EPSG,
                               country_name, destination, resol=1000,
                               rm_download=FALSE) {
 

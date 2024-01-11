@@ -209,8 +209,7 @@ get_srtm <- function(extent_latlon, extent_proj, EPSG,
   slope <- terra::rast(file.path(destination, "data_raw", "srtm_v1_4_90m", "slope_res.tif"))
 
   # Create environ raster with all layers
-  environ <- c(aspect, elevation, roughness, slope, srad, soilgrids,
-               dist_sea, dist_road, dist_place, dist_water, wdpa, population)
+  environ <- c(aspect, elevation, roughness, slope)
   layer_names <- c("aspect", "elevation", "roughness", "slope")
   names(environ) <- layer_names
 

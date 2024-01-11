@@ -189,9 +189,10 @@ get_forest_var <- function(extent_latlon, extent_proj, EPSG,
   forest <- terra::rast(file.path(destination, "data_raw", "forestatrisk", "forest.tif"))
   dist_forest <- terra::rast(file.path(destination, "data_raw", "dist_forest", "dist_forest.tif"))
   environ <- c(forest, dist_forest)
-  names(environ) <- c(layer_names, "forest", "dist_forest")
+  layer_names <- c("forest", "dist_forest")
+  names(environ) <- layer_names
 
-  # Write to disk
+    # Write to disk
   ofile <- file.path(destination, "data_raw", "forest_variables.tif")
   terra::writeRaster(environ, filename=ofile,
                      gdal=c("COMPRESS=LZW", "PREDICTOR=2"),
