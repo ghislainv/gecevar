@@ -40,7 +40,8 @@ jobs:
       - name: Install macOS system requirements
         if: runner.os == 'macOS'
         run: |
-          brew install https://github.com/OSGeo/homebrew-osgeo4mac/blob/master/Formula/osgeo-grass.rb
+          wget https://github.com/OSGeo/homebrew-osgeo4mac/blob/master/Formula/osgeo-grass.rb
+          brew install --HEAD ./osgeo-grass.rb
           brew install gdal proj
 
       - uses: actions/checkout@v3
