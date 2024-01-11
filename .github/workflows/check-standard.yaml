@@ -41,12 +41,8 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew install proj gdal
-          curl -O https://distfiles.macports.org/MacPorts/MacPorts-2.8.1.tar.bz2
-          tar xf MacPorts-2.8.1.tar.bz2
-          cd MacPorts-2.8.1/
-          ./configure
-          make
-          sudo make install
+          curl -LO https://raw.githubusercontent.com/GiovanniBussi/macports-ci/master/macports-ci
+          source ./macports-ci install
           sudo port install grass
 
 
