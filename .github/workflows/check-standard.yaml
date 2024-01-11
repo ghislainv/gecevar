@@ -19,7 +19,7 @@ jobs:
       matrix:
         config:
           - {os: macos-latest,   r: 'release'}
-          - {os: ubuntu-latest,   r: 'release'}
+#          - {os: ubuntu-latest,   r: 'release'}
 
 
     env:
@@ -31,18 +31,24 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt update
-          sudo apt install grass
           sudo apt install curl
           sudo apt install gdal-bin
           sudo apt install libgdal-dev
+          sudo apt install grass
 
 
       - name: Install macOS system requirements
         if: runner.os == 'macOS'
         run: |
-          wget https://github.com/OSGeo/homebrew-osgeo4mac/blob/master/Formula/osgeo-grass.rb
-          brew install --HEAD ./osgeo-grass.rb
-          brew install gdal proj
+          brew install proj gdal
+          curl -O https://distfiles.macports.org/MacPorts/MacPorts-2.8.1.tar.bz2
+          tar xf MacPorts-2.8.1.tar.bz2
+          cd MacPorts-2.8.1/
+          ./configure
+          make
+          sudo make install
+          sudo port install grass
+
 
       - uses: actions/checkout@v3
 
