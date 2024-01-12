@@ -95,61 +95,44 @@ get_soil_grid <- function(extent_latlon, extent_proj, EPSG,
   ## Soil texture
   ##
   ##==============================
+  # projection of vrt files Interrupted Goode Homolosine
+  proj_vrt_init <- '+proj=igh +lat_0=0 +lon_0=0 +datum=WGS84 +units=m +no_defs'
 
+  # set of options for gdal wrap
   opts <- glue("-tr {resol} {resol} -te {extent_proj_string} ",
-               "-t_srs {proj_t} -s_srs {proj_s} -overwrite -r bilinear -dstnodata {nodata_Int16} ",
-               "-ot Int16 -of GTiff -co COMPRESS=LZW -co PREDICTOR=2")
+               "-t_srs {proj_t} -s_srs {proj_vrt_init} -overwrite -r bilinear -dstnodata {nodata_Int16} ",
+               "-ot Int16 -co COMPRESS=LZW -co PREDICTOR=2")
 
   # clay
-  ofile <- file.path(destination, "data_raw", "soilgrids250_v2_0", "crop_clay.vrt")
-
   if (httr::http_error(paste0(sg_url,'clay/clay_0-5cm_mean.vrt'))) {
     message("There appears to be a problem reaching the website.")
     return(invisible(NULL))
   }
 
-  gdal_utils_translate(ifile=paste0(sg_url,'clay/clay_0-5cm_mean.vrt'),
-                       ofile=ofile, proj_s = proj_s,
-                       extent_gdal_translate)
-
+  ifile <- paste0(sg_url,'clay/clay_0-5cm_mean.vrt')
+  ofile <- file.path(destination, "data_raw", "soilgrids250_v2_0", "soilclay_res.vrt")
   sf::gdal_utils(util="warp",
-                 source = ofile,
-                 destination = file.path(destination, "data_raw", "soilgrids250_v2_0", "soilclay_res.tif"),
+                 source = ifile,
+                 destination = ofile,
                  options = unlist(strsplit(opts, " ")))
 
-  # sand
-  ofile <- file.path(destination, "data_raw", "soilgrids250_v2_0", "crop_sand.vrt")
+  gdal_utils_translate(ofile = file.path(destination, "data_raw", "soilgrids250_v2_0", "soilclay_res.tif"),
+                 ifile = ofile, ullr_extent = extent_proj, proj_s = proj_t)
 
+
+  # sand
   if (httr::http_error(paste0(sg_url,'sand/sand_0-5cm_mean.vrt'))) {
     message("There appears to be a problem reaching the website.")
     return(invisible(NULL))
   }
 
-  gdal_utils_translate(ifile=paste0(sg_url,'sand/sand_0-5cm_mean.vrt'),
-                       ofile=ofile, proj_s = proj_s,
-                       extent_gdal_translate)
-
-  sf::gdal_utils(util="warp",
-                 source = ofile,
-                 destination = file.path(destination, "data_raw", "soilgrids250_v2_0", "soilsand_res.tif"),
-                 options = unlist(strsplit(opts, " ")))
 
   # silt
-  ofile <- file.path(destination, "data_raw", "soilgrids250_v2_0", "crop_silt.vrt")
-
   if (httr::http_error(paste0(sg_url,'silt/silt_0-5cm_mean.vrt'))) {
     message("There appears to be a problem reaching the website.")
     return(invisible(NULL))
   }
 
-  gdal_utils_translate(ifile=paste0(sg_url,'silt/silt_0-5cm_mean.vrt'),
-                       ofile=ofile, proj_s = proj_s,
-                       extent_gdal_translate)
-
-  sf::gdal_utils(util="warp",
-                 source = ofile,
-                 destination = file.path(destination, "data_raw", "soilgrids250_v2_0", "soilsilt_res.tif"),
-                 options = unlist(strsplit(opts, " ")))
 
 
   ##==============================
@@ -157,25 +140,32 @@ get_soil_grid <- function(extent_latlon, extent_proj, EPSG,
   ## Soil category
   ##
   ##==============================
-  ##fichiers pe corrompus
-  ofile <- file.path(destination, "data_raw", "soilgrids250_v2_0", "crop_most_probable_soil_cat.vrt")
 
   if (httr::http_error(paste0(sg_url,'wrb/MostProbable.vrt'))) {
     message("There appears to be a problem reaching the website.")
     return(invisible(NULL))
   }
 
-  gdal_utils_translate(ifile=paste0(sg_url,'wrb/MostProbable.vrt'),
-                       ofile=ofile, proj_s = proj_s,
-                       extent_gdal_translate)
+  ifile <- paste0(sg_url,'wrb/MostProbable.vrt')
+  ofile <- file.path(destination, "data_raw", "soilgrids250_v2_0", "crop_most_probable_soil_cat.vrt")
+  vrt_crop_file <- file.path(destination, "data_raw", "soilgrids250_v2_0", "soilcategory_crop.vrt")
 
-  vrt_res_file <- file.path(destination, "data_raw", "soilgrids250_v2_0", "soilcategory_res.vrt")
+   gdal_utils_translate(ifile=ifile,
+                        ofile=ofile, proj_s = proj_s,
+                        extent_gdal_translate)
+
+
+   terra::writeRaster(rast(ofile), filename=vrt_crop_file,  filetype = "VRT"  ,
+                      gdal=c("COMPRESS=LZW", "PREDICTOR=2"),
+                      progress=FALSE, overwrite=TRUE, datatype="INT4S")
+
+
 
   opts <- glue("-tr {resol} {resol} -te {extent_proj_string} -dstnodata {nodata_Int16} ",
                "-t_srs {proj_t} -s_srs {proj_s} -overwrite -r near ",
                "-ot Int16 -of VRT -co COMPRESS=LZW -co PREDICTOR=2")
 
-  sf::gdal_utils(util="warp", source = ofile,
+  sf::gdal_utils(util="warp", source = ifile,
                  destination = vrt_res_file,
                  options = unlist(strsplit(opts, " ")), quiet=T)
 

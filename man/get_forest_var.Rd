@@ -12,8 +12,7 @@ get_forest_var(
   destination,
   resol = 1000,
   rm_download = FALSE,
-  forest_year = 2010,
-  gisBase = NULL
+  forest_year = 2010
 )
 }
 \arguments{
@@ -44,11 +43,6 @@ FALSE.}
 
 \item{forest_year}{int. Forest at the decade chosen. Must be one of
 2000, 2010 or 2020, default is 2010.}
-
-\item{gisBase}{NULL or character. Parameter \code{gisBase} for
-\code{rgrass::initGRASS()}. The directory path to GRASS binaries and
-libraries, containing bin and lib subdirectories among others; if
-NULL, system("grass --config path") is tried.}
 }
 \value{
 character. Absolute path to \code{environ.tif} file.

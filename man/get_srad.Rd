@@ -44,7 +44,7 @@ FALSE.}
 \item{gisBase}{NULL or character. Parameter \code{gisBase} for
 \code{rgrass::initGRASS()}. The directory path to GRASS binaries and
 libraries, containing bin and lib subdirectories among others; if
-NULL, system("grass --config path") is tried.}
+NULL, system2("grass --config path") is tried.}
 }
 \value{
 character. Absolute path to \code{environ.tif} file.

@@ -11,8 +11,7 @@ get_soil_grid(
   country_name,
   destination,
   resol = 1000,
-  rm_download = FALSE,
-  gisBase = NULL
+  rm_download = FALSE
 )
 }
 \arguments{
@@ -40,11 +39,6 @@ will be too big to fit in memory and R will crash. Default is
 \item{rm_download}{boolean. If TRUE remove download files and
 folders. Keep only environ.tif in \code{data_raw} folder, default is
 FALSE.}
-
-\item{gisBase}{NULL or character. Parameter \code{gisBase} for
-\code{rgrass::initGRASS()}. The directory path to GRASS binaries and
-libraries, containing bin and lib subdirectories among others; if
-NULL, system("grass --config path") is tried.}
 }
 \value{
 character. Absolute path to \code{environ.tif} file.
