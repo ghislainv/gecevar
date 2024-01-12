@@ -98,7 +98,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
                                country_name, destination, resol,
                                rm_download)
 
- pop_path <- get_pop_var(extent_latlon, extent_proj, EPSG,
+ pop_path <- get_population(extent_latlon, extent_proj, EPSG,
                          country_name, destination, resol,
                          rm_download)
 
