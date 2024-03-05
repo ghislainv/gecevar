@@ -236,7 +236,7 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   names(cwd_annual) <- "cwd"
   ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "cwd_res.tif")
   terra::writeRaster(cwd_annual, gdal = c("COMPRESS=LZW","PREDICTOR=2"),
-                     overwrite = TRUE, datatype = "Int16", filename = ofile)
+                     overwrite = TRUE, datatype = "INT2S", filename = ofile)
  
   ndm <- cwd_annual
   ndm_per_month <- ifelse(values(cwd) > 0, 1, 0)
@@ -244,7 +244,7 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   names(ndm) <- "ndm"
   ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "ndm_res.tif")
   terra::writeRaster(ndm, gdal = c("COMPRESS=LZW","PREDICTOR=2"),
-                     overwrite = TRUE, datatype = "Int16", filename = ofile)
+                     overwrite = TRUE, datatype = "INT2S", filename = ofile)
   rm(ndm_per_month, ndm, cwd, cwd_annual)
 
   ## =========================================================
@@ -283,7 +283,7 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   names(pet) <- paste0("pet_thornthwaite", 1:12)
   ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "pet_thornthwaite_res.tif")
   terra::writeRaster(pet, gdal = c("COMPRESS=LZW","PREDICTOR=2"),
-                     overwrite = TRUE, datatype = "Int16", filename = ofile)
+                     overwrite = TRUE, datatype = "INT2S", filename = ofile)
 
   ## CWD with Thornthwaite PET
   ifile <- file.path(destination, "data_raw", "chelsa_v2_1", "pr_res.tif")
@@ -297,7 +297,7 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   names(cwd_annual) <- "cwd_thornthwaite"
   ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "cwd_thornthwaite_res.tif")
   terra::writeRaster(cwd_annual, gdal = c("COMPRESS=LZW","PREDICTOR=2"),
-                     overwrite = TRUE, datatype = "Int16", filename = ofile)
+                     overwrite = TRUE, datatype = "INT2S", filename = ofile)
   
   ## NDM with Thornthwaite
   ndm <- cwd_annual
@@ -306,7 +306,7 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   names(ndm) <- "ndm_thornthwaite"
   ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "ndm_thornthwaite_res.tif")
   terra::writeRaster(ndm, gdal = c("COMPRESS=LZW","PREDICTOR=2"),
-                     overwrite = TRUE, datatype = "Int16", filename = ofile)
+                     overwrite = TRUE, datatype = "INT2S", filename = ofile)
   rm(ndm_per_month, ndm, cwd_thornthwaite, cwd_annual)
 
   ## =========================================================
