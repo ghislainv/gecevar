@@ -90,6 +90,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
                        country_name, destination, resol,
                        rm_download, gisBase)
 
+
  forest_path <- get_forest_var(extent_latlon, extent_proj, EPSG,
                        country_name, destination, resol,
                        rm_download, forest_year)
@@ -106,6 +107,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
                                  country_name, destination, resol,
                                  rm_download)
 
+
  soilgrid_path <- get_soil_grid(extent_latlon, extent_proj, EPSG,
                                 country_name, destination, resol,
                                 rm_download)
@@ -117,6 +119,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
  distsea_path <- get_dist_to_sea(extent_latlon, extent_proj, EPSG,
                           country_name, destination, resol,
                           rm_download)
+
 
   ##=====================================
   ##
@@ -135,6 +138,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
   dist_sea <- terra::rast(distsea_path)
 
   # Create environ raster with all layers
+
   environ <- terra::c(srad, forest, osm, pop, wdpa, soil_grid, srtm, dist_sea)
 
   # Write to disk
@@ -142,7 +146,6 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
   terra::writeRaster(environ, filename=ofile,
                      gdal=c("COMPRESS=LZW", "PREDICTOR=2"),
                      progress=FALSE, overwrite=TRUE, datatype="INT4S")
-
 
   # Return absolute path of environ.tif
   return(file.path(destination, "data_raw", "environ.tif"))

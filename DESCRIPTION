@@ -69,7 +69,6 @@ Imports:
   retry,
   rgrass,
   rjson,
-  stats,
   stringr,
   terra,
   utils,
