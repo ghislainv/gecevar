@@ -8,7 +8,7 @@
 #'   water deficit (with Penman and Thornthwaite), number of dry month
 #'   (with Penman and Thornthwaite) and 19 bio variables (more
 #'   information in chelsa documentation).
-#' 
+#'
 #' @param extent_latlon num vector. Must be in the form c(lonmin, latmin,
 #'   lonmax, latmax). This extent is used to download climatic data
 #'   using GDAL function `gdal_translate` and properties of COG
@@ -21,21 +21,21 @@
 #'
 #' @param EPSG_proj int. EPSG code used to define the coordinate
 #'   reference system to project the output raster file.
-#' 
+#'
 #' @param destination character. Directory path for outputs.
-#' 
+#'
 #' @param resol int. Resolution. If in meters, recommended
 #'   resolutions are 250m, 500m, 1km, 2km or 5km. The resolution needs
 #'   to be carefully chosen. If set too small (e.g. < 250m), raster
 #'   file will be too big to fit in memory and R will crash. Default
 #'   is 1km.
-#' 
+#'
 #' @param rm_download boolean. If TRUE, remove downloaded files and
 #'   folders except `current_chelsa.tif` file in the `data_raw`
 #'   folder. Default is FALSE.
-#' 
+#'
 #' @return character. The absolute path to the `current_chelsa.tif` file.
-#' 
+#'
 #' @details
 #' Unit of each climatic variable :
 #'
@@ -79,22 +79,22 @@
 #' @import httr
 #' @importFrom glue glue
 #' @export
-#' 
+#'
 get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destination,
                                resol = 1000, rm_download = FALSE) {
 
   # Extent for gdal_translate
-  # /!\ with gdal_translate: c(xmin, ymax, xmax, ymin) corresponding to <ulx> <uly> <lrx> <lry> 
+  # /!\ with gdal_translate: c(xmin, ymax, xmax, ymin) corresponding to <ulx> <uly> <lrx> <lry>
   extent_gdal_translate <- c(extent_latlon[1], extent_latlon[4],
                              extent_latlon[3], extent_latlon[2])
-  
+
   # Transform extent_proj from vector to string
   extent_proj_string <- paste(extent_proj, collapse=" ")
-  
+
   nodata_Int16 <- -32768
 #  nodata_Int32 <- -2147483648
 #  nodata_UInt16 <- 65535
-  
+
   proj_s <- "EPSG:4326"
   proj_t <- paste0("EPSG:", EPSG_proj)
   dir.create(file.path(destination, "data_raw", "chelsa_v2_1", "temp"),
@@ -104,14 +104,17 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   ## Download
   ## ==============================
 
-  ## Base url for Chelsa
+  ## Bases urls for Chelsa
   ## More easy to modify here if this url changes in the future
-  url_base_chelsa <- paste0(
-    "https://os.zhdk.cloud.switch.ch/",
-    "envicloud/chelsa/chelsa_V2/GLOBAL/",
-    "climatologies/1981-2010")
- 
-  ## Climatic variables
+  url_base_chelsa_clim <- paste0(
+    "https://os.unil.cloud.switch.ch/",
+    "chelsa02/chelsa/global/climatologies")
+
+  url_base_chelsa_bio <- paste0(
+    "https://os.unil.cloud.switch.ch/",
+    "chelsa02/chelsa/global/bioclim")
+
+  ## Monthly climatic variables
   var <- c("clt", "pet", "pr", "tas", "tasmax", "tasmin")
   varr <- c("clt", "pet_penman", "pr", "tas", "tasmax", "tasmin")
   nvar <- length(var)
@@ -124,8 +127,8 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   for (v in 1:nvar) {
     ## Loop on months
     for (m in stringr::str_pad(1:12, width = 2, pad = "0")) {
-      ifile <- glue::glue("/vsicurl/{url_base_chelsa}/{var[v]}/",
-                          "CHELSA_{varr[v]}_{m}_1981-2010_V.2.1.tif")
+      ifile <- glue::glue("/vsicurl/{url_base_chelsa_clim}/{var[v]}/1981-2010/",
+                          "CHELSA_{var[v]}_{m}_1981-2010_V.2.1.tif")
       ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "temp",
                          paste0(varr[v], m, ".tif"))
       gdal_utils_translate(ifile, ofile, extent_gdal_translate,
@@ -140,11 +143,12 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   ## https://chelsa-climate.org/wp-admin/download-page/CHELSA_tech_specification_V2.pdf
   cat("Downloading bioclimatic variables", "\n")
   pb = txtProgressBar(min = 1, max = 19, width=30, style=3)
+  biovar_names <- paste0('bio', stringr::str_pad(1:19, width = 2, pad = '0'))
   for (i in 1:19) {
-    ifile <- glue::glue("/vsicurl/{url_base_chelsa}/bio/",
-                        "CHELSA_bio{i}_1981-2010_V.2.1.tif")
+    ifile <- glue::glue("/vsicurl/{url_base_chelsa_bio}/{biovar_names[i]}/1981-2010/",
+                        "CHELSA_{biovar_names[i]}_1981-2010_V.2.1.tif")
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
-                       paste0('bio', stringr::str_pad(i, width = 2, pad = '0'), '.tif'))
+                       paste0(biovar_names[i],'.tif'))
     # Data type and nodata
     if (i %in% c(8:11, 16:19)) {dtype <- "UInt16"}  # nodata_val == 65535
     if (i %in% c(1, 2, 4:7, 12:14)) {dtype <- "Int32"}  # nodata_val == -99999
@@ -230,14 +234,14 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   cwd <- r_pet_penman
   values(cwd) <- pmax(values(r_pet_penman) - values(r_pr), 0)
   names(cwd) <- paste0("cwd", 1:12)
-  
+
   cwd_annual <- cwd[[1,]]
   values(cwd_annual) <- rowSums(values(cwd))
   names(cwd_annual) <- "cwd"
   ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "cwd_res.tif")
   terra::writeRaster(cwd_annual, gdal = c("COMPRESS=LZW","PREDICTOR=2"),
                      overwrite = TRUE, datatype = "INT2S", filename = ofile)
- 
+
   ndm <- cwd_annual
   ndm_per_month <- ifelse(values(cwd) > 0, 1, 0)
   values(ndm) <- rowSums(ndm_per_month)
@@ -291,14 +295,14 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   cwd_thornthwaite <- pet
   values(cwd_thornthwaite) <- pmax(values(pet) - values(pr), 0)
   names(cwd_thornthwaite) <- paste0("cwd_thornthwaite", 1:12)
-  
+
   cwd_annual <- cwd_thornthwaite[[1,]]
   values(cwd_annual) <- rowSums(values(cwd_thornthwaite))
   names(cwd_annual) <- "cwd_thornthwaite"
   ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "cwd_thornthwaite_res.tif")
   terra::writeRaster(cwd_annual, gdal = c("COMPRESS=LZW","PREDICTOR=2"),
                      overwrite = TRUE, datatype = "INT2S", filename = ofile)
-  
+
   ## NDM with Thornthwaite
   ndm <- cwd_annual
   ndm_per_month <- ifelse(values(cwd_thornthwaite) > 0, 1, 0)
@@ -315,7 +319,7 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
 
   # Message
   cat("Creating final raster stack", "\n")
-  
+
   # Output file
   ofile <- file.path(destination, "data_raw", "current_chelsa_no_name.tif")
 
@@ -337,7 +341,7 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   ofile <- file.path(destination, "data_raw", "current_chelsa.tif")
   terra::writeRaster(current, filename=ofile,
                      gdal=c("COMPRESS=LZW", "PREDICTOR=2"),
-                     progress=FALSE, overwrite=TRUE, datatype="INT4S")  
+                     progress=FALSE, overwrite=TRUE, datatype="INT4S")
   cat("File ", ofile, " has been created", "\n")
 
   ## ========================================
