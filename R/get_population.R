@@ -89,8 +89,7 @@ get_population <- function(extent_latlon, extent_proj, EPSG,
   ##===================
 
   # Directory
-  dir.create(path=file.path(destination, "data_raw", "world_pop"), showWarnings=FALSE)
-  dir.create(path=file.path(destination, "data_raw", "world_pop", "temp"), showWarnings=FALSE)
+  dir.create(path=file.path(destination, "data_raw", "world_pop", "temp"), showWarnings=FALSE, recursive=TRUE)
 
   # Download
   dest <- file.path(destination, "data_raw", "world_pop", "temp", paste0(ISO_country_code, "_pop.tif"))

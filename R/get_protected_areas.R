@@ -91,9 +91,9 @@ get_protected_area <- function(extent_latlon, extent_proj, EPSG,
   ##
   ##=========================
 
-  dir.create(file.path(destination, "data_raw", "WDPA"), showWarnings=FALSE)
+  dir.create(file.path(destination, "data_raw", "WDPA"), showWarnings=FALSE, recursive = T)
 
-  raw_data <- wdpar::wdpa_fetch(country_name, wait = TRUE,
+  raw_data <- wdpar::wdpa_fetch(country_name, wait = TRUE, page_wait = 5,
                                 download_dir = file.path(destination, "data_raw", "WDPA"))
 
   ##issue in cleaning data : reprojecting in EPSG:4326 gives the following error :

@@ -82,8 +82,7 @@ get_soil_grid <- function(extent_latlon, extent_proj, EPSG,
   options(download.file.method="auto")
 
 
-  dir.create(file.path(destination, "data_raw"), showWarnings=FALSE)
-  dir.create(file.path(destination, "data_raw", "soilgrids250_v2_0"), showWarnings=FALSE)
+  dir.create(file.path(destination, "data_raw", "soilgrids250_v2_0"), showWarnings=FALSE, recursive = TRUE)
   sg_url <- "https://files.isric.org/soilgrids/latest/data/"
   if (httr::http_error(sg_url)) {
     message("There appears to be a problem reaching the website.")

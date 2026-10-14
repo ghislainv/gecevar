@@ -95,8 +95,7 @@ get_srtm <- function(extent_latlon, extent_proj, EPSG,
   ##==============================
 
   # Compute tiles
-  dir.create(file.path(destination, "data_raw", "srtm_v1_4_90m"), showWarnings=FALSE)
-  dir.create(file.path(destination, "data_raw", "srtm_v1_4_90m", "temp"), showWarnings=FALSE)
+  dir.create(file.path(destination, "data_raw", "srtm_v1_4_90m", "temp"), showWarnings=FALSE, recursive = TRUE)
   tiles_srtm <- c(floor(extent_latlon[1] / 5) * 5, ceiling(extent_latlon[2] / 5) * 5,
                   floor(extent_latlon[3] / 5) * 5, ceiling(extent_latlon[4] / 5) * 5)
   lat <- stringr::str_pad(seq(tiles_srtm[1], tiles_srtm[3], 5) / 5 + 37, width=2, pad="0")
