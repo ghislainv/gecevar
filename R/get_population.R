@@ -98,6 +98,7 @@ get_population <- function(extent_latlon, extent_proj, EPSG,
                          ISO_country_code, "/",tolower(ISO_country_code),"_ppp_2020_UNadj_constrained.tif")
   URL_BSGM <- paste0("https://data.worldpop.org/GIS/Population/Global_2000_2020_Constrained/2020/BSGM/",
                      ISO_country_code, "/",tolower(ISO_country_code),"_ppp_2020_UNadj_constrained.tif")
+
   if (RCurl::url.exists(URL_maxar_v1)) {
 
     if (httr::http_error(URL_maxar_v1)) {
@@ -106,6 +107,7 @@ get_population <- function(extent_latlon, extent_proj, EPSG,
     }
 
     download.file(URL_maxar_v1, destfile=dest, quiet=TRUE)
+
   } else {
 
     if (httr::http_error(URL_BSGM)) {
