@@ -12,39 +12,39 @@
 #'   and 19 bio variables (more information in chelsa documentation).
 #'
 #' @param extent_latlon vector. First output of `get_aoi_extent()` function.
-#' 
+#'
 #' @param extent_proj vector. Second output of `get_aoi_extent()` function.
-#' 
+#'
 #' @param EPSG int. to consider for this country/area.
-#' 
+#'
 #' @param destination character. absolute path where to download files
 #'   like `here()` output.
-#' 
+#'
 #' @param resol int. Resolution. If in meters, recommended resolutions
 #'   are 250m, 500m, 1km, 2km or 5km. The resolution needs to be
 #'   carefully chosen. If set too small (e.g. < 250m), raster file
 #'   will be too big to fit in memory and R will crash. Default is
 #'   1km.
-#' 
+#'
 #' @param phase character. Must be in c("2041-2070", "2071-2100")
 #'   match to years to download, default is "2071-2100".
-#' 
+#'
 #' @param GCM character. Global Climatic Models considered. Must be
 #'   in c("GFDL-ESM4", "IPSL-CM6A-LR", "MPI-ESM1-2-HR", "MRI-ESM2-0",
 #'   "UKESM1-0-LL"). By default climate simulated by the five GCMs are
 #'   downloaded.
-#' 
+#'
 #' @param SSP character or int. Scenario specifier must be in c(126,
 #'   370, 585). Corresponding to the the Shared Socio-economic
 #'   Pathways you want to download, default is 585 for SSP5-RCP8.5
 #'   climate as simulated by the GCMs.
-#' 
+#'
 #' @param rm_download boolean. If TRUE remove download files and
 #'   folders. Keep only future_chelsa.tif in `data_raw` folder,
 #'   default is FALSE.
-#' 
+#'
 #' @return character. absolute path to future_chelsa.tif.
-#' 
+#'
 #' @details
 #' Unit of each climatic variable :
 #'
@@ -84,7 +84,7 @@
 #' @import terra
 #' @import httr
 #' @export
-#' 
+#'
 get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
                               destination, resol = 1000,
                               phase = "2071-2100",
@@ -94,13 +94,13 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
                               rm_download = FALSE) {
 
   # Extent for gdal_translate
-  # /!\ with gdal_translate: c(xmin, ymax, xmax, ymin) corresponding to <ulx> <uly> <lrx> <lry> 
+  # /!\ with gdal_translate: c(xmin, ymax, xmax, ymin) corresponding to <ulx> <uly> <lrx> <lry>
   extent_gdal_translate <- c(extent_latlon[1], extent_latlon[4],
                              extent_latlon[3], extent_latlon[2])
 
   # Transform extent_proj from vector to string
   extent_proj_string <- paste(extent_proj, collapse=" ")
-  
+
   dir.create(path = destination, recursive = TRUE, showWarnings = FALSE)
   nodat <- -9999
   proj_s <- "EPSG:4326"
@@ -111,115 +111,91 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
     dir.create(file.path(destination, "data_raw", "future_chelsa", paste("climat", phase, model, "ssp", SSP, sep = "_"), "temp"),
                showWarnings = FALSE, recursive = TRUE)
   }
+
+  ## ==============================
+  ## Download
+  ## ==============================
+
+  ## Bases urls for Chelsa
+  ## Easier to modify here if this url changes in the future
+
+  url_base_chelsa_clim <- paste0(
+    "https://os.unil.cloud.switch.ch/",
+    "chelsa02/chelsa/global/climatologies")
+
+  url_base_chelsa_bio <- paste0(
+    "https://os.unil.cloud.switch.ch/",
+    "chelsa02/chelsa/global/bioclim")
+
+  ## mettre ici le message + graceful exit si pb connexion
+  # if (httr::http_error(ifile)) {
+  #   message("There appears to be a problem reaching the website.")
+  #   return(invisible(NULL))
+  # }
+
+
+  ## Monthly climatic variables
+
+  var <- c("tas", "tasmax", "tasmin", "pr")
   progress_bar <- 0
-  nb_var_download <- 12 * 5 * length(GCM)
+  nb_var_download <- 12 * length(var) * length(GCM)
   cat("Downloading tasmin, tasmax, tas and pr\n")
   pb = txtProgressBar(min = 0, max = nb_var_download, initial = 0, width=30, style=3)
-  for (m in stringr::str_pad(1:12, width = 2, pad = "0")) {
+
+  for (v in var) {
     for (model in GCM) {
-      ## Monthly minimum temperature (°C).
-      url_tasmin <- paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/',
-                           phase, '/', model, '/ssp', SSP, '/tasmin/CHELSA_',
-                           tolower(model), '_r1i1p1f1_w5e5_ssp', SSP, '_tasmin_',
-                           m, '_', stringr::str_replace(phase, pattern = '-', '_'), '_norm.tif')
-      
-      if (httr::http_error(url_tasmin)) {
-        message("There appears to be a problem reaching the website.")
-        return(invisible(NULL))
-      }
-      
-      tasmin_file <- file.path(destination, 'data_raw', 'future_chelsa',
+
+    for (m in stringr::str_pad(1:12, width = 2, pad = "0")) {
+
+      ifile <- paste0("/vsicurl/", url_base_chelsa_clim, '/', v, '/',
+                           phase, '/', model, '/ssp', SSP, '/CHELSA_',
+                           tolower(model), '_r1i1p1f1_w5e5_ssp', SSP, '_', v, '_',
+                           m, '_', phase, '_V.2.1.tif')
+
+      ofile <- file.path(destination, 'data_raw', 'future_chelsa',
                                paste('climat', phase, model, 'ssp', SSP, sep = '_'),
-                               'temp', paste0('tasmin', m, '.tif'))
-      gdal_utils_translate(ifile=paste0("/vsicurl/", url_tasmin),
-                           ofile=tasmin_file,
-                           extent_gdal_translate)
-      progress_bar <- progress_bar + 1
-      setTxtProgressBar(pb, progress_bar)
-
-      ## Monthly maximum temperature (°C).
-      url_tasmax <- paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/',
-                           phase, '/', model, '/ssp', SSP, '/tasmax/CHELSA_', tolower(model),
-                           '_r1i1p1f1_w5e5_ssp', SSP, '_tasmax_', m, '_',
-                           stringr::str_replace(phase, pattern = '-', '_'), '_norm.tif')
-      
-      if (httr::http_error(url_tasmax)) {
-        message("There appears to be a problem reaching the website.")
-        return(invisible(NULL))
-      }
-      
-      tasmax_file <- file.path(destination, 'data_raw', 'future_chelsa', paste('climat', phase, model, 'ssp', SSP, sep = '_'),
-                               'temp', paste0('tasmax', m, '.tif'))
-      gdal_utils_translate(ifile=paste0("/vsicurl/", url_tasmax),
-                           ofile=tasmax_file,
-                           extent_gdal_translate)
-      progress_bar <- progress_bar + 1
-      setTxtProgressBar(pb, progress_bar)
-
-      ## Monthly average temperature (°C).
-      url_tas <- paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/',
-                        phase, '/', model, '/ssp', SSP, '/tas/CHELSA_', tolower(model), '_r1i1p1f1_w5e5_ssp', SSP, '_tas_', m, '_',
-                        stringr::str_replace(phase, pattern = '-', '_'), '_norm.tif')
-      
-      if (httr::http_error(url_tas)) {
-        message("There appears to be a problem reaching the website.")
-        return(invisible(NULL))
-      }
-      
-      tas_file <- file.path(destination, 'data_raw', 'future_chelsa', paste('climat', phase, model, 'ssp', SSP, sep = '_'),
-                            'temp', paste0('tas', m, '.tif'))
-      gdal_utils_translate(ifile=paste0("/vsicurl/", url_tas),
-                           ofile=tas_file,
-                           extent_gdal_translate)
-      progress_bar <- progress_bar + 1
-      setTxtProgressBar(pb, progress_bar)
-
-      ## Monthly precipitation (mm ~ kg/m2).
-      url_pr <- paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/',
-                       phase, '/', model, '/ssp', SSP, '/pr/CHELSA_', tolower(model), '_r1i1p1f1_w5e5_ssp', SSP, '_pr_', m, '_',
-                       stringr::str_replace(phase, pattern = '-', '_'), '_norm.tif')
-      
-      if (httr::http_error(url_pr)) {
-        message("There appears to be a problem reaching the website.")
-        return(invisible(NULL))
-      }
-      
-      pr_file <- file.path(destination, 'data_raw', 'future_chelsa', paste('climat', phase, model, 'ssp', SSP, sep = '_'),
-                           'temp', paste0('pr', m, '.tif'))
-      gdal_utils_translate(ifile=paste0("/vsicurl/", url_pr),
-                           ofile=pr_file,
+                               'temp', paste0(v, m, '.tif'))
+      gdal_utils_translate(ifile,
+                           ofile,
                            extent_gdal_translate)
       progress_bar <- progress_bar + 1
       setTxtProgressBar(pb, progress_bar)
     }
+    }
   }
   close(pb)
 
+  ## Bioclimatic variables (19 variables)
+  # See https://chelsa-climate.org/wp-admin/download-page/CHELSA_tech_specification_V2.pdf for details
+  cat("Downloading bioclimatic variables\n")
   progress_bar <- 0
   nb_var_download <- 19 *  length(GCM)
-  cat("Downloading bioclimatic variables\n")
+  biovar_names <- paste0('bio', stringr::str_pad(1:19, width = 2, pad = '0'))
   pb = txtProgressBar(min=0, max=nb_var_download, initial=0, width=30, style=3)
   for(i in 1:19){
     for(model in GCM){
 
-      # 19 Bioclimatic variables
-      # See https://chelsa-climate.org/wp-admin/download-page/CHELSA_tech_specification_V2.pdf for details
-      url_bio <- paste0('https://os.zhdk.cloud.switch.ch/envicloud/chelsa/chelsa_V2/GLOBAL/climatologies/', phase, '/', model, '/ssp', SSP, '/bio/CHELSA_bio', i, '_', phase, '_', tolower(model), '_ssp', SSP, '_V.2.1.tif')
-      
-      if (httr::http_error(url_bio)) {
-        message("There appears to be a problem reaching the website.")
-        return(invisible(NULL))
-      }
-      
-      bio_file <- file.path(destination, 'data_raw', 'future_chelsa', paste('climat', phase, model, 'ssp', SSP, sep = '_'), 'temp', paste0('bio', i, '.tif'))
-      gdal_utils_translate(ifile=paste0("/vsicurl/", url_bio),
-                           ofile=bio_file,
+      ifile <- paste0("/vsicurl/", url_base_chelsa_bio, '/', biovar_names[i],
+                       '/', phase, '/', model, '/ssp', SSP, '/CHELSA_',
+                       tolower(model), '_ssp', SSP, '_', biovar_names[i],
+                      '_', phase, '_V.2.1.tif')
+
+      ofile <- file.path(destination, 'data_raw', 'future_chelsa',
+                         paste('climat', phase, model, 'ssp', SSP, sep = '_'),
+                         'temp', paste0('bio', i, '.tif'))
+
+      gdal_utils_translate(ifile,
+                           ofile,
                            extent_gdal_translate)
       progress_bar <- progress_bar + 1
       setTxtProgressBar(pb, progress_bar)
     }
   }
   close(pb)
+
+  ## ================================
+  ## Reproject
+  ## ================================
 
   cat("Reprojecting rasters and stacking monthly rasters per variable\n")
   for(var in c("tasmin", "tasmax", "tas", "pr", "bio")) {
@@ -230,7 +206,7 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
       for(i in 1:length(files.tif)) {
         sourcefile <- files.tif[i]
         destfile <- gsub(".tif", "_res.tif", files.tif[i])
-        opts <- glue("-overwrite -s_srs {proj_s} -t_srs {proj_t} -r bilinear -tr {resol} {resol} ", 
+        opts <- glue("-overwrite -s_srs {proj_s} -t_srs {proj_t} -r bilinear -tr {resol} {resol} ",
                      "-te {extent_proj_string} -ot Int16 -of GTiff -srcnodata 0 -dstnodata {nodat}")
         sf::gdal_utils(util = "warp", source = sourcefile, destination = destfile,
                        options = unlist(strsplit(opts, " ")), quiet = TRUE)
@@ -259,19 +235,27 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
   }
   rm(r)
 
+  ## ================================
+  ## Stack per variable
+  ## ================================
+
   cat("Create raster stack of monthly variables and bioclimatic variables\n")
   for (model in GCM){
     # Stack Tasmin, Tasmax, Tas, Pr & bio
     files.tif <- file.path(destination, "data_raw", "future_chelsa", paste('climat', phase, model, 'ssp', SSP, sep = '_'),
                            paste0(c("tasmin","tasmax","tas","pr", "bio"), "_res.tif"))
-    
+
     r <- terra::rast(files.tif)
-    terra::writeRaster(x = r, overwrite = TRUE, 
-                       filename = file.path(destination, "data_raw","future_chelsa", 
+    terra::writeRaster(x = r, overwrite = TRUE,
+                       filename = file.path(destination, "data_raw","future_chelsa",
                                             paste('climat', phase, model, 'ssp', SSP, sep = '_'), "clim_res.tif"),
-                       gdal = c("COMPRESS=LZW","PREDICTOR=2"), datatype = "Int16")
+                       gdal = c("COMPRESS=LZW","PREDICTOR=2"), datatype = "INT2S")
      rm(r)
   }
+
+  ## =========================================================
+  ## Compute water deficit (cwd and ndw) with Thornthwaite ETP
+  ## =========================================================
 
   ## PET with Thornthwaite formula
   cat("Compute water deficit and number of dry months (cwd and ndm) with Thornthwaite ETP\n")
@@ -330,13 +314,18 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
     ndm <- sum(cwd_thornthwaite > 0)
     rm(cwd_thornthwaite)
     names(ndm) <- "ndm_thornthwaite"
-    terra::writeRaster(x = ndm,
+    terra::writeRaster(x = ndm, overwrite=TRUE,
                        filename = file.path(destination, "data_raw", "future_chelsa",
                                             paste('climat', phase, model, 'ssp', SSP, sep = '_'),
                                             "ndm_thornthwaite_res.tif"),
                        gdal = c("COMPRESS=LZW","PREDICTOR=2"), datatype = "INT2S")
     rm(ndm)
   }
+
+  ## =========================================================
+  ## Creating final raster stack
+  ## =========================================================
+
 
   cat("Creating final raster stack\n")
   for (model in GCM){
@@ -350,7 +339,7 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
                             paste("climat", phase, model, "ssp", SSP, sep = "_"), "ndm_thornthwaite_res.tif")
     destfile <- file.path(destination, "data_raw", "future_chelsa",
                           paste("climat", phase, model, "ssp", SSP, sep = "_"), "future_chelsa_no_name.tif")
-  
+
     # system(glue('gdal_merge.py -o {destfile} -of GTiff -ot Int16 -co "COMPRESS=LZW" \\
     #             -co "PREDICTOR=2" -separate -a_nodata {nodat} \\
     #             {clim_file} {pet_t_file} {cwd_t_file} {ndm_t_file}'), ignore.stdout = TRUE, ignore.stderr = TRUE)
@@ -359,7 +348,7 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
 
     # future <- terra::rast(file.path(destination, "data_raw", "future_chelsa", paste("climat", phase, model, "ssp", SSP, sep = "_"),
     #                                 "future_chelsa_no_name.tif"))
-    
+
     names(future) <- c(names(terra::rast(file.path(destination, "data_raw", "future_chelsa",
                                                    paste("climat", phase, model, "ssp", SSP, sep = "_"),
                                                    "clim_res.tif"))), paste0("pet_thornthwaite_", 1:12), "cwd_thornthwaite", "ndm_thornthwaite")

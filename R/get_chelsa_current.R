@@ -105,7 +105,7 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   ## ==============================
 
   ## Bases urls for Chelsa
-  ## More easy to modify here if this url changes in the future
+  ## Easier to modify here if this url changes in the future
   url_base_chelsa_clim <- paste0(
     "https://os.unil.cloud.switch.ch/",
     "chelsa02/chelsa/global/climatologies")
@@ -113,6 +113,12 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   url_base_chelsa_bio <- paste0(
     "https://os.unil.cloud.switch.ch/",
     "chelsa02/chelsa/global/bioclim")
+
+  ## mettre ici le message + graceful exit si pb connexion
+  # if (httr::http_error(ifile)) {
+  #   message("There appears to be a problem reaching the website.")
+  #   return(invisible(NULL))
+  # }
 
   ## Monthly climatic variables
   var <- c("clt", "pet", "pr", "tas", "tasmax", "tasmin")
@@ -139,7 +145,7 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   }
   close(pb)
 
-  ## Bioclimatic variables
+  ## Bioclimatic variables (19 variables)
   ## https://chelsa-climate.org/wp-admin/download-page/CHELSA_tech_specification_V2.pdf
   cat("Downloading bioclimatic variables", "\n")
   pb = txtProgressBar(min = 1, max = 19, width=30, style=3)
