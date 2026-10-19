@@ -28,9 +28,9 @@
 #'   FALSE.
 #'
 #' @param gisBase NULL or character. Parameter `gisBase` for
-#'   `rgrass::initGRASS()`. The directory path to GRASS binaries and
+#'   `rasterFaster::faster()`. The directory path to GRASS binaries and
 #'   libraries, containing bin and lib subdirectories among others; if
-#'   NULL, system2("grass --config path") is tried.
+#'   NULL, system("grass --config path") is tried.
 #'
 #' @return character. Absolute path to `environ.tif` file.
 #'
