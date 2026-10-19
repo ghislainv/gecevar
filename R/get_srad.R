@@ -53,7 +53,7 @@
 #' @importFrom utils download.file unzip
 #' @importFrom RCurl url.exists
 #' @import sf
-#' @import rgrass
+#' @import fasterRaster
 #' @import osmextract
 #' @import RCurl
 #' @import countrycode
@@ -99,8 +99,8 @@ get_srad <- function(extent_latlon, extent_proj, EPSG,
   ##==============================
 
   # Compute tiles
-  dir.create(file.path(destination, "data_raw", "srtm_v1_4_90m"), showWarnings=FALSE)
-  dir.create(file.path(destination, "data_raw", "srtm_v1_4_90m", "temp"), showWarnings=FALSE)
+  dir.create(file.path(destination, "data_raw", "srtm_v1_4_90m"), showWarnings=FALSE, recursive=TRUE)
+  dir.create(file.path(destination, "data_raw", "srtm_v1_4_90m", "temp"), showWarnings=FALSE, recursive=TRUE)
   tiles_srtm <- c(floor(extent_latlon[1] / 5) * 5, ceiling(extent_latlon[2] / 5) * 5,
                   floor(extent_latlon[3] / 5) * 5, ceiling(extent_latlon[4] / 5) * 5)
   lat <- stringr::str_pad(seq(tiles_srtm[1], tiles_srtm[3], 5) / 5 + 37, width=2, pad="0")
@@ -167,58 +167,81 @@ get_srad <- function(extent_latlon, extent_proj, EPSG,
   ##
   ## with solrad at 90m resolution
   ## Global solar radiation (in Wh.m-2.day-1) was computed from altitude,
-  ## slope and aspect using the R package solrad.
+  ## slope and aspect using the R package fasterRaster.
   ## We incorporated the shadowing effect of terrain to compute the solar radiation.
   ## Solar radiation was computed for the Julian day 79 (20th of March for regular years=equinox).
   ##
   ##==============================
 
-  #For srad computation we need coords in latlon so reproject the three rasters
-  res_out <- 0.00100 #roughly 100m
-  # /!\ Creation options (-co) must not be quoted for sf::gdal_utils as in GDAL command)
-  opts <- glue("-overwrite -t_srs {proj_latlon} -tap -r bilinear -dstnodata {nodata_Int16} ",
-               "-te {extent_gdal_string} -ot Int16 -of GTiff ",
-               "-tr {res_out} {res_out} -co COMPRESS=LZW -co PREDICTOR=2")
+  # Init fasterRaster package
+  if (is.null(gisBase)) {
+    gisBase <- system("grass --config path", intern=TRUE)
+  }
+  fasterRaster::faster(grassDir=gisBase)
 
-  ifile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "elevation.tif")
-  ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "elevation_latlon.tif")
-  sf::gdal_utils(util="warp", source=ifile, destination=ofile,
-                 options=unlist(strsplit(opts, " ")),
-                 quiet=TRUE)
+  elev_gr <- fasterRaster::fast(terra::rast(file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "elevation.tif")))
+  slope_gr <- fasterRaster::fast(terra::rast(file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "slope.tif")))
+  aspect_gr <- fasterRaster::fast(terra::rast(file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "aspect.tif")))
 
-  ifile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "slope.tif")
-  ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "slope_latlon.tif")
-  sf::gdal_utils(util="warp", source=ifile, destination=ofile,
-                 options=unlist(strsplit(opts, " ")),
-                 quiet=TRUE)
+  # Compute srad
+  hh <- fasterRaster::horizonHeight(elev_gr, step=90, northIs0 = FALSE)
+  coeff_bh <- coeff_dh <- elev_gr
+  coeff_bh[] <- 1
+  coeff_dh[] <- 1
+  srad <- terra::rast(fasterRaster::sun(elevation=elev_gr, slope=slope_gr, aspect=aspect_gr,
+              coeff_bh=coeff_bh, coeff_dh=coeff_dh, hh=hh, day=79,
+              beam_rad=FALSE, diff_rad=FALSE, refl_rad=FALSE,
+              glob_rad=TRUE, insol_time=FALSE))
+  terra::writeRaster(srad,
+             file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "srad.tif")
+             )
 
-  ifile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "aspect.tif")
-  ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "aspect_latlon.tif")
-  sf::gdal_utils(util="warp", source=ifile, destination=ofile,
-                 options=unlist(strsplit(opts, " ")),
-                 quiet=TRUE)
-
-
-  elev_raster <- terra::rast(file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "elevation_latlon.tif"))
-  slope_raster <- terra::rast(file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "slope_latlon.tif"))
-  aspect_raster <- terra::rast(file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "aspect_latlon.tif"))
-
-  coord <- terra::crds(elev_raster)
-
-  ## solrad package bof, on va implémenter ce qu'il manque comme fonctions
-  ## pour faire les calculs en interne
-
-  # direct_srad <- solrad::Solar(DOY=79, Lat=coord[,2], Lon=coord[,1],
-  #                                        SLon=coord[,1], DS=0,
-  #                                        Elevation=values(elev_raster),
-  #                                        Slope=values(slope_raster),
-  #                                        Aspect=values(aspect_raster) #not sure N or S, to check
-  #                                        )
-  # diffuse_srad <- solrad::DiffuseRadiation(DOY=79, Lat=coord[,2], Lon=coord[,1],
-  #                                        SLon=coord[,1], DS=0,
-  #                                        Elevation=values(elev_raster),
-  #                                        Slope=values(slope_raster)
-  #                                        )
+  # #For srad computation we need coords in latlon so reproject the three rasters
+  # res_out <- 0.00100 #roughly 100m
+  # # /!\ Creation options (-co) must not be quoted for sf::gdal_utils as in GDAL command)
+  # opts <- glue("-overwrite -t_srs {proj_latlon} -tap -r bilinear -dstnodata {nodata_Int16} ",
+  #              "-te {extent_gdal_string} -ot Int16 -of GTiff ",
+  #              "-tr {res_out} {res_out} -co COMPRESS=LZW -co PREDICTOR=2")
+  #
+  # ifile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "elevation.tif")
+  # ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "elevation_latlon.tif")
+  # sf::gdal_utils(util="warp", source=ifile, destination=ofile,
+  #                options=unlist(strsplit(opts, " ")),
+  #                quiet=TRUE)
+  #
+  # ifile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "slope.tif")
+  # ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "slope_latlon.tif")
+  # sf::gdal_utils(util="warp", source=ifile, destination=ofile,
+  #                options=unlist(strsplit(opts, " ")),
+  #                quiet=TRUE)
+  #
+  # ifile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "aspect.tif")
+  # ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "aspect_latlon.tif")
+  # sf::gdal_utils(util="warp", source=ifile, destination=ofile,
+  #                options=unlist(strsplit(opts, " ")),
+  #                quiet=TRUE)
+  #
+  #
+  # elev_raster <- terra::rast(file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "elevation_latlon.tif"))
+  # slope_raster <- terra::rast(file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "slope_latlon.tif"))
+  # aspect_raster <- terra::rast(file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "aspect_latlon.tif"))
+  #
+  # coord <- terra::crds(elev_raster)
+  #
+  # ## solrad package bof, on va implémenter ce qu'il manque comme fonctions
+  # ## pour faire les calculs en interne
+  #
+  # # direct_srad <- solrad::Solar(DOY=79, Lat=coord[,2], Lon=coord[,1],
+  # #                                        SLon=coord[,1], DS=0,
+  # #                                        Elevation=values(elev_raster),
+  # #                                        Slope=values(slope_raster),
+  # #                                        Aspect=values(aspect_raster) #not sure N or S, to check
+  # #                                        )
+  # # diffuse_srad <- solrad::DiffuseRadiation(DOY=79, Lat=coord[,2], Lon=coord[,1],
+  # #                                        SLon=coord[,1], DS=0,
+  # #                                        Elevation=values(elev_raster),
+  # #                                        Slope=values(slope_raster)
+  # #                                        )
 
 
 
@@ -226,7 +249,7 @@ get_srad <- function(extent_latlon, extent_proj, EPSG,
   # ## Initialize GRASS
   # # get gisBase directory
   # if (is.null(gisBase)) {
-  #   gisBase <- system2("grass --config path", intern=TRUE)
+  #   gisBase <- system("grass --config path", intern=TRUE)
   # }
   # # Set library path
   # Sys.setenv(LD_LIBRARY_PATH=paste(file.path(gisBase, "lib"), Sys.getenv("LD_LIBRARY_PATH"), sep=":"))
@@ -242,23 +265,23 @@ get_srad <- function(extent_latlon, extent_proj, EPSG,
   #
   # ## Import raster in grass
   # cmd <- glue("r.in.gdal -e -o input={elevation} output=elevation")
-  # system2(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
+  # system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
   # slope <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "slope.tif")
   # cmd <- glue("r.in.gdal -e --o input={slope} output=slope")
-  # system2(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
+  # system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
   # aspect <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "aspect.tif")
   # cmd <- glue("r.in.gdal -e --o input={aspect} output=aspect")
-  # system2(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
+  # system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
   #
   # # Compute radiation
   # cmd <- glue("r.sun --overwrite --verbose elevation=elevation aspect=aspect ",
   #             "slope=slope day=79 glob_rad=global_rad")
-  # system2(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
+  # system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
   # # Export
   # ofile <- file.path(destination, 'data_raw', 'srtm_v1_4_90m', 'temp', 'srad.tif')
   # cmd <- glue("r.out.gdal -f --verbose --overwrite input=global_rad ",
   #             "createopt='COMPRESS=LZW' nodata={nodata_Int16} output={ofile} type=Int16")
-  # system2(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
+  # system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
 
 
 
