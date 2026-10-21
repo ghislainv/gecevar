@@ -42,9 +42,9 @@ folders. Keep only environ.tif in \code{data_raw} folder, default is
 FALSE.}
 
 \item{gisBase}{NULL or character. Parameter \code{gisBase} for
-\code{rgrass::initGRASS()}. The directory path to GRASS binaries and
+\code{rasterFaster::faster()}. The directory path to GRASS binaries and
 libraries, containing bin and lib subdirectories among others; if
-NULL, system2("grass --config path") is tried.}
+NULL, system("grass --config path") is tried.}
 }
 \value{
 character. Absolute path to \code{environ.tif} file.
