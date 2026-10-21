@@ -91,50 +91,35 @@ get_protected_area <- function(extent_latlon, extent_proj, EPSG,
   ##
   ##=========================
 
-  dir.create(file.path(destination, "data_raw", "WDPA"), showWarnings=FALSE, recursive = T)
+  dir.create(file.path(destination, "data_raw", "WDPA"), showWarnings=FALSE, recursive=TRUE)
 
-  raw_data <- wdpar::wdpa_fetch(country_name, wait = TRUE, page_wait = 5,
-                                download_dir = file.path(destination, "data_raw", "WDPA"))
+  raw_data <- wdpar::wdpa_fetch(country_name, wait = TRUE)
+  clean_data <- wdpar::wdpa_clean(x = raw_data, erase_overlaps = F)
 
-  ##issue in cleaning data : reprojecting in EPSG:4326 gives the following error :
-  ##"Erreur dans st_snap_to_grid.sfc(st_geometry(x), size, origin) :
-  ##!isTRUE(st_is_longlat(x)) n'est pas TRUE"
+  # create an empty raster at 90m
+  extent_rast <- ext(c(extent_proj[1], extent_proj[3], extent_proj[2], extent_proj[4]))
+  #ici est-ce que l'extent correspond bien à la proj_t ?
+  r1 <- rast(nlyrs=1, crs=proj_t, extent=extent_rast, resolution=90)
 
-  # clean_data <- wdpar::wdpa_clean(x = raw_data, erase_overlaps = F,
-  #               crs = st_crs(proj_s)$proj4string
-  #    #,crs = paste("+proj=cea +lon_0=0 +lat_ts=0 +x_0=0 +y_0=0 +datum=WGS84 +ellps=WGS84 +units=m +no_defs")
-  #    #,crs = paste("+proj=cea +datum=WGS84 +ellps=WGS84 +units=m +no_defs")
-  #     )
-
-  clean_data <- raw_data
-  #from "sf" to SpatVector
-  v1 <- terra::vect(clean_data)
-  #create an "empty" raster
-  r1 <- terra::rast(v1)
-  rast_marin <- terra::rasterize(v1, r1, field = as.factor(clean_data$MARINE),
-                                 touches = F, background = NA)
-  terra::values(rast_marin) <- replace(x = terra::values(rast_marin),
-                                       list = is.na(terra::values(rast_marin)),
-                                       values = NA)
-  names(rast_marin) <- "wdpa"
+  # rasterize wdpa geometries
+  wdpa <- terra::rasterize(terra::project(vect(clean_data$geometry), proj_t),
+                           r1, field=1, touches=F, background=0)
+  names(wdpa) <- "wdpa"
 
   ifile <- file.path(destination, "data_raw", "WDPA", "WDPA_raw.tif")
-  terra::writeRaster(rast_marin, filename=ifile,
+  terra::writeRaster(wdpa, filename=ifile,
                      gdal=c("COMPRESS=LZW", "PREDICTOR=2"),
                      progress=FALSE, overwrite=TRUE, datatype="INT2S")
 
-  ofile <- file.path(destination, "data_raw", "WDPA", "WDPA_raw_resol.tif")
-  gdal_utils_translate(ifile=ifile,
-                       ofile=ofile, proj_s = proj_s,
-                       extent_gdal_translate)
+  ofile <- file.path(destination, "data_raw", "WDPA.tif")
+  res_out <- resol
+  opts <- glue("-overwrite -t_srs {proj_t} -tap -r bilinear -dstnodata {nodata_Int16} ",
+               "-te {extent_proj_string} -ot Int16 -of GTiff ",
+               "-tr {res_out} {res_out} -co COMPRESS=LZW -co PREDICTOR=2")
+  sf::gdal_utils(util="warp", source=ifile, destination=ofile,
+                 options=unlist(strsplit(opts, " ")),
+                 quiet=TRUE)
 
-  opts <- glue("-tr {resol} {resol} -te {extent_proj_string} ",
-               "-t_srs {proj_t} -s_srs {proj_s} -overwrite -r near -dstnodata {nodata_Int16} ",
-               "-ot Int16 -of GTiff -co COMPRESS=LZW -co PREDICTOR=2")
-  sf::gdal_utils(util="warp",
-                 source = ofile,
-                 destination = file.path(destination, "data_raw", "WDPA.tif"),
-                 options = unlist(strsplit(opts, " ")))
 
   if (rm_download) {
     unlink(file.path(destination, "data_raw", "WDPA"), recursive=TRUE)
