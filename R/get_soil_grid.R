@@ -71,6 +71,7 @@ get_soil_grid <- function(extent_latlon, extent_proj, EPSG,
 
   # Transform extent_proj from vector to string
   extent_proj_string <- paste(extent_proj, collapse=" ")
+  extent_gdal_string <- paste(extent_gdal_translate, collapse=" ")
 
   options(warn=-1)
   dir.create(path=destination, recursive=TRUE, showWarnings=FALSE)
@@ -82,7 +83,7 @@ get_soil_grid <- function(extent_latlon, extent_proj, EPSG,
   options(download.file.method="auto")
 
 
-  dir.create(file.path(destination, "data_raw", "soilgrids250_v2_0"), showWarnings=FALSE, recursive = TRUE)
+  dir.create(file.path(destination, "data_raw", "soilgrids250_v2_0", "temp"), showWarnings=FALSE, recursive = TRUE)
   sg_url <- "https://files.isric.org/soilgrids/latest/data/"
   if (httr::http_error(sg_url)) {
     message("There appears to be a problem reaching the website.")
@@ -96,72 +97,68 @@ get_soil_grid <- function(extent_latlon, extent_proj, EPSG,
   ##==============================
   # projection of vrt files Interrupted Goode Homolosine
   proj_vrt_init <- '+proj=igh +lat_0=0 +lon_0=0 +datum=WGS84 +units=m +no_defs'
+  var_names <- c("clay", "sand", "silt")
+  layers <- c("0-5", "5-15", "15-30", "30-60", "60-100")
 
-  # clay
-  if (httr::http_error(paste0(sg_url,'clay/clay_0-5cm_mean.vrt'))) {
-    message("There appears to be a problem reaching the website.")
-    return(invisible(NULL))
+for (v in var_names){
+  # dl + crop to target extent
+  for (i in layers){
+    ifile <- glue::glue("/vsicurl/{sg_url}", "{v}/",
+                        paste0(v, "_", i, "cm_mean.vrt"))
+    ofile <- file.path(destination, "data_raw", "soilgrids250_v2_0", "temp",
+                       paste0(v, "_", i,".tif"))
+    gdal_utils_translate(ifile, ofile, extent_gdal_translate)
+    }
+
+  # stack all layers in one raster
+  raster_all_layers <- terra::rast(file.path(destination, "data_raw",
+                                             "soilgrids250_v2_0", "temp",
+                                             paste0(v, "_", layers[1],".tif")))
+  for (i in layers[-1]){
+  raster_all_layers <- c(raster_all_layers,
+                         terra::rast(file.path(destination, "data_raw", "soilgrids250_v2_0",
+                                               "temp", paste0(v, "_", i,".tif"))))
   }
 
-  ifile <- paste0(sg_url,'clay/clay_0-5cm_mean.vrt')
-  ofile_vrt <- file.path(destination, "data_raw", "soilgrids250_v2_0", "soilgrids_res.vrt")
-  ofile <- file.path(destination, "data_raw", "soilgrids250_v2_0", "soilgrids_res.tif")
+  # compute weighted mean
+  size_layers <- c(5, 10, 15, 30, 40)
+  ifile <- file.path(destination, "data_raw", "soilgrids250_v2_0", "temp",
+                     paste0(v, "_fullprof.tif"))
+  raster_fullprof <- terra::weighted.mean(raster_all_layers, size_layers,
+                                          filename=ifile, overwrite=TRUE)
 
-  # warp to vrt with final resol/crop/proj
+  # to target resolution
+  ofile <- file.path(destination, "data_raw", "soilgrids250_v2_0",
+                     paste0(v, "_res.tif"))
   opts <- glue("-tr {resol} {resol} -te {extent_proj_string} ",
                "-s_srs {proj_vrt_init} -t_srs {proj_t} -overwrite ",
                "-r bilinear -dstnodata {nodata_Int16} ",
-               "-ot Int16 -of VRT -co COMPRESS=LZW -co PREDICTOR=2")
-  sf::gdal_utils(util="warp", source=ifile, destination=ofile_vrt,
+               "-ot Int16 -of GTiff -co COMPRESS=LZW -co PREDICTOR=2")
+  sf::gdal_utils(util="warp", source=ifile, destination=ofile,
                  options=unlist(strsplit(opts, " ")),
                  quiet=TRUE)
-  #here : rast(ofile_vrt) has no values at all + values(rast(ofile_vrt)) returns
-  #"Erreur : [readValues] cannot read values"
-
-  #& still needs to be converted to tif
-  gdal_utils_translate(ifile = ofile_vrt, ofile = ofile,
-                       proj_s = proj_t, ullr_extent = extent_gdal_translate,
-                       opts = c("-of", "GTiff"))
-  #returns an error "an error occured"
-
-
-  # # sand
-  # if (httr::http_error(paste0(sg_url,'sand/sand_0-5cm_mean.vrt'))) {
-  #   message("There appears to be a problem reaching the website.")
-  #   return(invisible(NULL))
-  # }
-  #
-  #
-  # # silt
-  # if (httr::http_error(paste0(sg_url,'silt/silt_0-5cm_mean.vrt'))) {
-  #   message("There appears to be a problem reaching the website.")
-  #   return(invisible(NULL))
-  # }
-
-
+}# progress bar eventuellement
 
   ##==============================
   ##
   ## Soil category
   ##
   ##==============================
+  # proj source EPSG:4326
 
-  if (httr::http_error(paste0(sg_url,'wrb/MostProbable.vrt'))) {
-    message("There appears to be a problem reaching the website.")
-    return(invisible(NULL))
-  }
+  ifile <- glue::glue("/vsicurl/{sg_url}","wrb/MostProbable.vrt")
+  ofile_raw <- file.path(destination, "data_raw", "soilgrids250_v2_0", "temp", "soilcat.tif")
+  gdal_utils_translate(ifile, ofile_raw, extent_gdal_translate)
 
-  ifile <- paste0(sg_url,'wrb/MostProbable.vrt')
-  vrt_crop_file <- file.path(destination, "data_raw", "soilgrids250_v2_0", "soilcategory_crop.vrt")
-
-   gdal_utils_translate(ifile=ifile,
-                        ofile=vrt_crop_file, proj_s = proj_s,
-                        extent_gdal_translate)
-   # here : rast(ofile) values -> all NAs and values() returns the following error :
-   #"Erreur : [readValues] cannot read values"
-   # -> cropped but resol and proj still need to be updated & then tif conversion
-
-
+  # to target resolution
+  ofile <- file.path(destination, "data_raw", "soilgrids250_v2_0", "soilcat_res.tif")
+  opts <- glue("-tr {resol} {resol} -te {extent_proj_string} ",
+               "-s_srs {proj_s} -t_srs {proj_t} -overwrite ",
+               "-r near -dstnodata {nodata_Int16} ",
+               "-ot Int16 -of GTiff -co COMPRESS=LZW -co PREDICTOR=2")
+  sf::gdal_utils(util="warp", source=ofile_raw, destination=ofile,
+                 options=unlist(strsplit(opts, " ")),
+                 quiet=TRUE)
 
   ##=====================================
   ##
@@ -170,14 +167,14 @@ get_soil_grid <- function(extent_latlon, extent_proj, EPSG,
   ##=====================================
 
   # Load all rasters
-  soilsand <- terra::rast(file.path(destination, "data_raw", "soilgrids250_v2_0", "soilsand_res.tif"))
-  soilsilt <- terra::rast(file.path(destination, "data_raw", "soilgrids250_v2_0", "soilsilt_res.tif"))
-  soilclay <- terra::rast(file.path(destination, "data_raw", "soilgrids250_v2_0", "soilclay_res.tif"))
-  #soiltype
+  soilsand <- terra::rast(file.path(destination, "data_raw", "soilgrids250_v2_0", "sand_res.tif"))
+  soilsilt <- terra::rast(file.path(destination, "data_raw", "soilgrids250_v2_0", "silt_res.tif"))
+  soilclay <- terra::rast(file.path(destination, "data_raw", "soilgrids250_v2_0", "clay_res.tif"))
+  soiltype <- terra::rast(file.path(destination, "data_raw", "soilgrids250_v2_0", "soilcat_res.tif"))
 
   # Create environ raster with all layers
-  environ <- c(soilsand, soilsilt, soilclay)
-  layer_names <- c("soil_sand", "soil_silt", "soil_clay")
+  environ <- c(soilsand, soilsilt, soilclay, soiltype)
+  layer_names <- c("soil_sand", "soil_silt", "soil_clay", "soil_type")
   names(environ) <- layer_names
 
   # Write to disk
