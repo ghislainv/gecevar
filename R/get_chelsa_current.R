@@ -114,11 +114,15 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
     "https://os.unil.cloud.switch.ch/",
     "chelsa02/chelsa/global/bioclim")
 
-  ## mettre ici le message + graceful exit si pb connexion
-  # if (httr::http_error(ifile)) {
-  #   message("There appears to be a problem reaching the website.")
-  #   return(invisible(NULL))
-  # }
+  if (httr::http_error(url_base_chelsa_clim)) {
+    message("There appears to be a problem reaching the website.")
+    return(invisible(NULL))
+  }
+
+  if (httr::http_error(url_base_chelsa_bio)) {
+    message("There appears to be a problem reaching the website.")
+    return(invisible(NULL))
+  }
 
   ## Monthly climatic variables
   var <- c("clt", "pet", "pr", "tas", "tasmax", "tasmin")
