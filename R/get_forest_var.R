@@ -85,6 +85,12 @@ get_forest_var <- function(extent_latlon, extent_proj, EPSG,
   ISO_country_code <- countrycode::countryname(country_name, destination="iso3c")
   options(download.file.method="auto")
 
+  #https://forobs.jrc.ec.europa.eu/GFC/v3
+  # tiles 10 * 10 degre
+  #J RC_GFC2020V3[lat]_[lon].tif, where
+  # [lat]: latitude of the tile's top-left corner
+  # [lon]: longitude of the tile's top left corner
+  # WGS84 datum.
 
   ##===========================
   ##
