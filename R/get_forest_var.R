@@ -85,12 +85,46 @@ get_forest_var <- function(extent_latlon, extent_proj, EPSG,
   ISO_country_code <- countrycode::countryname(country_name, destination="iso3c")
   options(download.file.method="auto")
 
-  #https://forobs.jrc.ec.europa.eu/GFC/v3
+  #https://forobs.jrc.ec.europa.eu/GFC/v4
   # tiles 10 * 10 degre
-  #J RC_GFC2020V3[lat]_[lon].tif, where
-  # [lat]: latitude of the tile's top-left corner
+  # JRC_GFC2020V3[lat]_[lon].tif, where
+  # [lat]: latitude of the tile's top-left corner (tuile 1 : N80 W180)
   # [lon]: longitude of the tile's top left corner
-  # WGS84 datum.
+  # WGS84 datum
+
+  # 1) find tiles qui appartiennent à l'extent
+  # 2) dl tiles
+  # 3) build vrt : ok, en fait V4 monde entier dc vsicurl + gdal translate w/ extent
+  # 4) resample + resol + tif : juste resol du coup
+
+  # pourcentage de forest cover dans la cellule + dist
+
+  dir.create(file.path(destination, "data_raw", "forest_var", "temp"), showWarnings=FALSE, recursive=TRUE)
+  # tiles_forest <- c(floor(extent_latlon[1] / 10) * 10, ceiling(extent_latlon[2] / 10) * 10,
+  #                 floor(extent_latlon[3] / 10) * 10, ceiling(extent_latlon[4] / 10) * 10)
+  #
+  # # ici on construit le code des tiles à récup en fonction de tiles_forest
+  # lat_seq <- stringr::str_c("N", as.character(seq(tiles_forest[2], tiles_forest[4], 10)))
+  # lat_str <- stringr::str_replace_all(lat_seq, "N-", "S")
+  # lon_seq <- stringr::str_c("E", as.character(seq(tiles_forest[1], tiles_forest[3], 10)))
+  # lon_str <- stringr::str_replace_all(lon_seq, "E-", "W")
+  #
+  # tiles <- NULL
+  # for (i in lon_str) {
+  #   tiles <- c(tiles, paste(lat_str, i, sep="_"))
+  # }
+
+  forest_url <- "https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/FOREST/GFC2020/LATEST/single-cog/"
+  if (httr::http_error(forest_url)) {
+    message("There appears to be a problem reaching the website.")
+    return(invisible(NULL))
+  }
+  ifile <- glue::glue("/vsicurl/{forest_url}","JRC_GFC2020_V4_COG.tif")
+  ofile <- file.path(destination, "data_raw", "forest_var", "temp","forest.tif")
+  gdal_utils_translate(ifile, ofile, extent_gdal_translate)
+
+
+
 
   ##===========================
   ##
@@ -98,71 +132,71 @@ get_forest_var <- function(extent_latlon, extent_proj, EPSG,
   ## if available
   ##===========================
 
-  forest <- FALSE
-  continent_name <- countrycode::countrycode(sourcevar=country_name,
-                                             origin="country.name",
-                                             destination="continent")
-  if (continent_name == "Oceania") {
-    continent_name="Asia"
-  }
-  continent_short <- substr(toupper(continent_name), 1, 3)
-  if (RCurl::url.exists(paste0("https://forestatrisk.cirad.fr/tropics/tif/fcc_123_", continent_short, "_aea.tif"))) {
-    dir.create(file.path(destination, "data_raw", "forestatrisk"), showWarnings=FALSE)
-    url_far <- paste0("https://forestatrisk.cirad.fr/tropics/tif/fcc_123_", continent_short, "_aea.tif")
-
-    if (httr::http_error(url_far)) {
-      message("There appears to be a problem reaching the website.")
-      return(invisible(NULL))
-    }
-
-    ofile <- file.path(destination, "data_raw", "forestatrisk", "forest_nocrop.tif")
-    gdal_utils_translate(ifile=paste0("/vsicurl/", url_far),
-                         ofile=ofile,
-                         extent_gdal_translate)
-    raw_resol <- res(terra::rast(ofile))
-
-    ifile <- file.path(destination, "data_raw", "forestatrisk", "forest_nocrop.tif")
-    ofile <- file.path(destination, "data_raw", "forestatrisk", "forest_crop_raw_resol.tif")
-    opts <- glue("-overwrite -t_srs {proj_t} -dstnodata 255 ",
-                 "-r near -tr {raw_resol[1]} {raw_resol[2]} -te {extent_proj_string} ",
-                 "-ot Byte -of GTiff ",
-                 "-co COMPRESS=LZW -co PREDICTOR=2")
-    sf::gdal_utils(util="warp", source=ifile, destination=ofile,
-                   options=unlist(strsplit(opts, " ")),
-                   quiet=TRUE)
-
-    unlink(file.path(destination, "data_raw", "forestatrisk", "forest_nocrop.tif"))
-
-    forest_crop_raw_resol <- terra::rast(ofile)
-    if (forest_year == 2000) {
-      # 1 is deforestation during 2000-2010
-      values(forest_crop_raw_resol) <- values(forest_crop_raw_resol) >= 1
-    } else if (forest_year == 2010) {
-      # 2 is deforestation during 2010-2020
-      values(forest_crop_raw_resol) <- values(forest_crop_raw_resol) >= 2
-    } else {
-      # 3 is forest in 2020
-      values(forest_crop_raw_resol) <- values(forest_crop_raw_resol) == 3
-    }
-    terra::writeRaster(forest_crop_raw_resol,gdal = c("COMPRESS=LZW", "PREDICTOR=2"),
-                       overwrite = TRUE, datatype = "Byte", filename = ofile)
-
-    ifile <- file.path(destination, "data_raw", "forestatrisk", "forest_crop_raw_resol.tif")
-    ofile <- file.path(destination, "data_raw", "forestatrisk", "forest.tif")
-    opts <- glue("-overwrite -t_srs {proj_t} -dstnodata 255 ",
-                 "-r average -tr {resol} {resol} -te {extent_proj_string} ",
-                 "-ot Byte -of GTiff ",
-                 "-co COMPRESS=LZW -co PREDICTOR=2 ")
-    sf::gdal_utils(util="warp", source=ifile, destination=ofile,
-                   options=unlist(strsplit(opts, " ")),
-                   quiet=TRUE)
-
-    unlink(file.path(destination, "data_raw", "forestatrisk", "forest_crop_raw_resol.tif"))
-
-    forest <- TRUE
-  } else {
-    print("Forest layer is not available for your country")
-  }
+  # forest <- FALSE
+  # continent_name <- countrycode::countrycode(sourcevar=country_name,
+  #                                            origin="country.name",
+  #                                            destination="continent")
+  # if (continent_name == "Oceania") {
+  #   continent_name="Asia"
+  # }
+  # continent_short <- substr(toupper(continent_name), 1, 3)
+  # if (RCurl::url.exists(paste0("https://forestatrisk.cirad.fr/tropics/tif/fcc_123_", continent_short, "_aea.tif"))) {
+  #   dir.create(file.path(destination, "data_raw", "forestatrisk"), showWarnings=FALSE)
+  #   url_far <- paste0("https://forestatrisk.cirad.fr/tropics/tif/fcc_123_", continent_short, "_aea.tif")
+  #
+  #   if (httr::http_error(url_far)) {
+  #     message("There appears to be a problem reaching the website.")
+  #     return(invisible(NULL))
+  #   }
+  #
+  #   ofile <- file.path(destination, "data_raw", "forestatrisk", "forest_nocrop.tif")
+  #   gdal_utils_translate(ifile=paste0("/vsicurl/", url_far),
+  #                        ofile=ofile,
+  #                        extent_gdal_translate)
+  #   raw_resol <- res(terra::rast(ofile))
+  #
+  #   ifile <- file.path(destination, "data_raw", "forestatrisk", "forest_nocrop.tif")
+  #   ofile <- file.path(destination, "data_raw", "forestatrisk", "forest_crop_raw_resol.tif")
+  #   opts <- glue("-overwrite -t_srs {proj_t} -dstnodata 255 ",
+  #                "-r near -tr {raw_resol[1]} {raw_resol[2]} -te {extent_proj_string} ",
+  #                "-ot Byte -of GTiff ",
+  #                "-co COMPRESS=LZW -co PREDICTOR=2")
+  #   sf::gdal_utils(util="warp", source=ifile, destination=ofile,
+  #                  options=unlist(strsplit(opts, " ")),
+  #                  quiet=TRUE)
+  #
+  #   unlink(file.path(destination, "data_raw", "forestatrisk", "forest_nocrop.tif"))
+  #
+  #   forest_crop_raw_resol <- terra::rast(ofile)
+  #   if (forest_year == 2000) {
+  #     # 1 is deforestation during 2000-2010
+  #     values(forest_crop_raw_resol) <- values(forest_crop_raw_resol) >= 1
+  #   } else if (forest_year == 2010) {
+  #     # 2 is deforestation during 2010-2020
+  #     values(forest_crop_raw_resol) <- values(forest_crop_raw_resol) >= 2
+  #   } else {
+  #     # 3 is forest in 2020
+  #     values(forest_crop_raw_resol) <- values(forest_crop_raw_resol) == 3
+  #   }
+  #   terra::writeRaster(forest_crop_raw_resol,gdal = c("COMPRESS=LZW", "PREDICTOR=2"),
+  #                      overwrite = TRUE, datatype = "Byte", filename = ofile)
+  #
+  #   ifile <- file.path(destination, "data_raw", "forestatrisk", "forest_crop_raw_resol.tif")
+  #   ofile <- file.path(destination, "data_raw", "forestatrisk", "forest.tif")
+  #   opts <- glue("-overwrite -t_srs {proj_t} -dstnodata 255 ",
+  #                "-r average -tr {resol} {resol} -te {extent_proj_string} ",
+  #                "-ot Byte -of GTiff ",
+  #                "-co COMPRESS=LZW -co PREDICTOR=2 ")
+  #   sf::gdal_utils(util="warp", source=ifile, destination=ofile,
+  #                  options=unlist(strsplit(opts, " ")),
+  #                  quiet=TRUE)
+  #
+  #   unlink(file.path(destination, "data_raw", "forestatrisk", "forest_crop_raw_resol.tif"))
+  #
+  #   forest <- TRUE
+  # } else {
+  #   print("Forest layer is not available for your country")
+  # }
 
 
   ##===========================
