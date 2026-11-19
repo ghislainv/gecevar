@@ -123,6 +123,18 @@ get_forest_var <- function(extent_latlon, extent_proj, EPSG,
   ofile <- file.path(destination, "data_raw", "forest_var", "temp","forest.tif")
   gdal_utils_translate(ifile, ofile, extent_gdal_translate)
 
+  # reproject at raw resolution
+    raw_resol <- res(terra::rast(ofile))
+
+    ofile_reproj <- file.path(destination, "data_raw", "forest_var", "temp", "forest_raw_resol.tif")
+    opts <- glue("-overwrite -t_srs {proj_t} -dstnodata 255 ",
+                 "-r near -tr {raw_resol[1]} {raw_resol[2]} -te {extent_proj_string} ",
+                 "-ot Byte -of GTiff ",
+                 "-co COMPRESS=LZW -co PREDICTOR=2")
+    sf::gdal_utils(util="warp", source=ofile, destination=ofile_reproj,
+                   options=unlist(strsplit(opts, " ")),
+                   quiet=TRUE) #super long, à cause du near ?
+
 
 
 
