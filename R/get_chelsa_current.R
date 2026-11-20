@@ -114,15 +114,6 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
     "https://os.unil.cloud.switch.ch/",
     "chelsa02/chelsa/global/bioclim")
 
-  if (httr::http_error(url_base_chelsa_clim)) {
-    message("There appears to be a problem reaching the website.")
-    return(invisible(NULL))
-  }
-
-  if (httr::http_error(url_base_chelsa_bio)) {
-    message("There appears to be a problem reaching the website.")
-    return(invisible(NULL))
-  }
 
   ## Monthly climatic variables
   var <- c("clt", "pet", "pr", "tas", "tasmax", "tasmin")
@@ -132,13 +123,24 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   iter_bar <- 0
   nb_var_download <- nvar * 12
   cat("Downloading clt, pet_penman, pr, tas, tasmax, tasmin", "\n")
-  pb = txtProgressBar(min = 1, max = nb_var_download, width=30, style=3)
+  pb = txtProgressBar(min=1, max=nb_var_download, width=30, style=3)
   ## Loop on variables
   for (v in 1:nvar) {
     ## Loop on months
-    for (m in stringr::str_pad(1:12, width = 2, pad = "0")) {
+    for (m in stringr::str_pad(1:12, width=2, pad ="0")) {
       ifile <- glue::glue("/vsicurl/{url_base_chelsa_clim}/{var[v]}/1981-2010/",
                           "CHELSA_{var[v]}_{m}_1981-2010_V.2.1.tif")
+
+      # check once if website available
+      if (v==1 & m=="01"){
+        url_to_check <- glue::glue("{url_base_chelsa_clim}/{var[v]}/1981-2010/",
+                                   "CHELSA_{var[v]}_{m}_1981-2010_V.2.1.tif")
+        if (httr::http_error(url_to_check)) {
+          message("There appears to be a problem reaching the website.")
+          return(invisible(NULL))
+        }
+      }
+
       ofile <- file.path(destination, "data_raw", "chelsa_v2_1", "temp",
                          paste0(varr[v], m, ".tif"))
       gdal_utils_translate(ifile, ofile, extent_gdal_translate,
@@ -152,11 +154,22 @@ get_chelsa_current <- function(extent_latlon, extent_proj, EPSG_proj, destinatio
   ## Bioclimatic variables (19 variables)
   ## https://chelsa-climate.org/wp-admin/download-page/CHELSA_tech_specification_V2.pdf
   cat("Downloading bioclimatic variables", "\n")
-  pb = txtProgressBar(min = 1, max = 19, width=30, style=3)
+  pb = txtProgressBar(min=1, max=19, width=30, style=3)
   biovar_names <- paste0('bio', stringr::str_pad(1:19, width = 2, pad = '0'))
   for (i in 1:19) {
     ifile <- glue::glue("/vsicurl/{url_base_chelsa_bio}/{biovar_names[i]}/1981-2010/",
                         "CHELSA_{biovar_names[i]}_1981-2010_V.2.1.tif")
+
+    # check once if website available
+    if (i==1){
+      url_to_check <- glue::glue("{url_base_chelsa_bio}/{biovar_names[i]}/1981-2010/",
+                                 "CHELSA_{biovar_names[i]}_1981-2010_V.2.1.tif")
+      if (httr::http_error(url_to_check)) {
+        message("There appears to be a problem reaching the website.")
+        return(invisible(NULL))
+      }
+    }
+
     ofile <- file.path(destination, 'data_raw', 'chelsa_v2_1', 'temp',
                        paste0(biovar_names[i],'.tif'))
     # Data type and nodata

@@ -127,29 +127,30 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
     "https://os.unil.cloud.switch.ch/",
     "chelsa02/chelsa/global/bioclim")
 
-  if (httr::http_error(url_base_chelsa_clim)) {
-    message("There appears to be a problem reaching the website.")
-    return(invisible(NULL))
-  }
-
-  if (httr::http_error(url_base_chelsa_bio)) {
-    message("There appears to be a problem reaching the website.")
-    return(invisible(NULL))
-  }
-
-
   ## Monthly climatic variables
 
   var <- c("tas", "tasmax", "tasmin", "pr")
   progress_bar <- 0
   nb_var_download <- 12 * length(var) * length(GCM)
   cat("Downloading tasmin, tasmax, tas and pr\n")
-  pb = txtProgressBar(min = 0, max = nb_var_download, initial = 0, width=30, style=3)
+  pb = txtProgressBar(min=0, max=nb_var_download, initial=0, width=30, style=3)
 
   for (v in var) {
     for (model in GCM) {
 
-    for (m in stringr::str_pad(1:12, width = 2, pad = "0")) {
+    for (m in stringr::str_pad(1:12, width=2, pad="0")) {
+
+      # check once if website available
+      if (v=="tas" & m=="01" & model==GCM[1]){
+        url_to_check <- paste0(url_base_chelsa_clim, '/', v, '/',
+                               phase, '/', model, '/ssp', SSP, '/CHELSA_',
+                               tolower(model), '_r1i1p1f1_w5e5_ssp', SSP, '_', v, '_',
+                               m, '_', phase, '_V.2.1.tif')
+        if (httr::http_error(url_to_check)) {
+          message("There appears to be a problem reaching the website.")
+          return(invisible(NULL))
+        }
+      }
 
       ifile <- paste0("/vsicurl/", url_base_chelsa_clim, '/', v, '/',
                            phase, '/', model, '/ssp', SSP, '/CHELSA_',
@@ -178,6 +179,18 @@ get_chelsa_future <- function(extent_latlon, extent_proj, EPSG,
   pb = txtProgressBar(min=0, max=nb_var_download, initial=0, width=30, style=3)
   for(i in 1:19){
     for(model in GCM){
+
+      # check once if website available
+      if (i==1 & model==GCM[1]){
+        url_to_check <- paste0(url_base_chelsa_bio, '/', biovar_names[i],
+                               '/', phase, '/', model, '/ssp', SSP, '/CHELSA_',
+                               tolower(model), '_ssp', SSP, '_', biovar_names[i],
+                               '_', phase, '_V.2.1.tif')
+        if (httr::http_error(url_to_check)) {
+          message("There appears to be a problem reaching the website.")
+          return(invisible(NULL))
+        }
+      }
 
       ifile <- paste0("/vsicurl/", url_base_chelsa_bio, '/', biovar_names[i],
                        '/', phase, '/', model, '/ssp', SSP, '/CHELSA_',
