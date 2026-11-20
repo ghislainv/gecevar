@@ -91,38 +91,37 @@ get_protected_area <- function(extent_latlon, extent_proj, EPSG,
   ##
   ##=========================
 
-  dir.create(file.path(destination, "data_raw", "WDPA"), showWarnings=FALSE, recursive=TRUE)
+  dir.create(file.path(destination, "data_raw", "wdpa", "temp"), showWarnings=FALSE, recursive=TRUE)
 
-  raw_data <- wdpar::wdpa_fetch(country_name, wait = TRUE)
-  clean_data <- wdpar::wdpa_clean(x = raw_data, erase_overlaps = F)
+  raw_data <- get_wdpa(ISO_country_code, path=file.path(destination, "data_raw", "wdpa", "temp"),
+                       key="WDPA_KEY")
 
-  # create an empty raster at 90m
+  # create an empty raster at user resolution
   extent_rast <- ext(c(extent_proj[1], extent_proj[3], extent_proj[2], extent_proj[4]))
-  #ici est-ce que l'extent correspond bien à la proj_t ?
-  r1 <- rast(nlyrs=1, crs=proj_t, extent=extent_rast, resolution=90)
+  r1 <- rast(nlyrs=1, crs=proj_t, extent=extent_rast, resolution=resol)
 
   # rasterize wdpa geometries
-  wdpa <- terra::rasterize(terra::project(vect(clean_data$geometry), proj_t),
+  wdpa <- terra::rasterize(terra::project(vect(raw_data$geom[raw_data$is_marine==F]), proj_t),
                            r1, field=1, touches=F, background=0)
-  names(wdpa) <- "wdpa"
+  names(wdpa) <- "is_protected"
 
-  ifile <- file.path(destination, "data_raw", "WDPA", "WDPA_raw.tif")
-  terra::writeRaster(wdpa, filename=ifile,
+  #ifile <- file.path(destination, "data_raw", "wdpa", "temp", "wdpa_raw.tif")
+  terra::writeRaster(wdpa, filename=file.path(destination, "data_raw", "WDPA.tif"),
                      gdal=c("COMPRESS=LZW", "PREDICTOR=2"),
-                     progress=FALSE, overwrite=TRUE, datatype="INT2S")
+                     progress=FALSE, overwrite=TRUE, datatype="Byte")
 
-  ofile <- file.path(destination, "data_raw", "WDPA.tif")
-  res_out <- resol
-  opts <- glue("-overwrite -t_srs {proj_t} -tap -r bilinear -dstnodata {nodata_Int16} ",
-               "-te {extent_proj_string} -ot Int16 -of GTiff ",
-               "-tr {res_out} {res_out} -co COMPRESS=LZW -co PREDICTOR=2")
-  sf::gdal_utils(util="warp", source=ifile, destination=ofile,
-                 options=unlist(strsplit(opts, " ")),
-                 quiet=TRUE)
+  # ofile <- file.path(destination, "data_raw", "wdpa.tif")
+  # opts <- glue("-overwrite -t_srs {proj_t} -dstnodata 255 ",
+  #              "-r near -tr {resol} {resol} -te {extent_proj_string} ",
+  #              "-ot Byte -of GTiff ",
+  #              "-co COMPRESS=LZW -co PREDICTOR=2")
+  # sf::gdal_utils(util="warp", source=ifile, destination=ofile,
+  #                options=unlist(strsplit(opts, " ")),
+  #                quiet=TRUE)
 
 
   if (rm_download) {
-    unlink(file.path(destination, "data_raw", "WDPA"), recursive=TRUE)
+    unlink(file.path(destination, "data_raw", "wdpa"), recursive=TRUE)
   }
 
   # Return absolute path of .tif
