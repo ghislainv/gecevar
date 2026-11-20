@@ -3,9 +3,9 @@
 #' @param unique_values int vector. with unique values in soilgrids layer.
 #' @param output_dir character. Output directory
 #' @param file_name character. Name of the output file without .tif.aux.xml extension.
-#' @import rjson
+#' @import jsonlite
 #' @keywords internal
-#' 
+#'
 create_xml_legend <- function(unique_values, output_dir, file_name) {
 
   json <- fromJSON(file = "https://files.isric.org/soilgrids/latest/data/wrb/MostProbable.rat.json")

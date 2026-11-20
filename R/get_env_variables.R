@@ -64,7 +64,7 @@
 #' @importFrom utils download.file unzip
 #' @importFrom RCurl url.exists
 #' @import sf
-#' @import rgrass
+#' @import geojsonsf
 #' @import osmextract
 #' @import RCurl
 #' @import countrycode

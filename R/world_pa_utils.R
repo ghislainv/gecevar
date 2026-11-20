@@ -46,23 +46,8 @@
 #'
 #' @keywords internal
 #'
-#' @export
-#'
-#' @examples
-#' \dontrun{
-#' ## Get the ISO-3 code of Georgia ----
-#' data("wdpa_countries", package = "worldpa")
-#' wdpa_countries[grep("Georgia", wdpa_countries$"country_name"), 3:4]
-#'
-#' ##                                     country_name country_iso3
-#' ## 133                                      Georgia          GEO
-#' ## 235 South Georgia and the South Sandwich Islands          SGS
-#'
-#' ## Download Protected Areas for Georgia ----
-#' worldpa::get_wdpa(isocode = "GEO", path = file.path("data", "wdpa"))
-#' }
-
-
+#' @import geojsonsf jsonlite
+#' @noRd
 
 get_wdpa <- function(isocode, path = "wdpa", key = "WDPA_KEY") {
 
@@ -204,15 +189,7 @@ get_wdpa <- function(isocode, path = "wdpa", key = "WDPA_KEY") {
 #' @author Nicolas Casajus
 #'
 #' @keywords internal
-#'
-#' @export
-#'
-#' @examples
-#' \dontrun{
-#' ## Check if Protected Planet API token is stored ----
-#' worldpa::get_token()
-#' }
-
+#' @noRd
 
 
 get_token <- function(key = "WDPA_KEY") {

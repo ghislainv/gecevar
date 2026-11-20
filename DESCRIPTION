@@ -23,12 +23,17 @@ Authors@R: c(
   person("Clément", "Stahl", role="aut",
          email="clement.stahl@ecofog.gf",
          comment=c(ORCID = "0000-0001-5411-1169")),
- person("Dominique", "Lamoncia", role="aut",
+ person("Dominique", "Lamonica", role="aut",
          email="dominique.lamonica@ird.fr",
          comment=c(ORCID = "0000-0002-0054-0272")),
   person("Javier G.", "Corripio", role="ctb",
          email="jgc@meteoexploration.com",
-	 comment=c(ORCID = "0000-0001-6994-4913")),
+	       comment=c(ORCID = "0000-0001-6994-4913")),
+  person(given   = "Nicolas",
+           family  = "Casajus",
+           email   = "nicolas.casajus@fondationbiodiversite.fr",
+           role    = "ctb",
+           comment = c(ORCID = "0000-0002-5537-5294")),
   person("CEBA", role=c("fnd")),
   person("CNRT", role=c("fnd")),
   person("Cirad", role=c("cph","fnd")))
@@ -66,12 +71,12 @@ Imports:
   osmextract,
   RCurl,
   retry,
-  rgrass,
-  rjson,
   stringr,
   terra,
   utils,
-  sf
+  sf,
+  geojsonsf,
+  jsonlite
 Depends: 
   R (>= 3.5.0)
 Config/testthat/edition: 3

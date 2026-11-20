@@ -54,7 +54,6 @@
 #' @import stringr
 #' @import httr
 #' @import retry
-#' @import wdpar
 #' @export
 
 get_protected_area <- function(extent_latlon, extent_proj, EPSG,
