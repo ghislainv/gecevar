@@ -153,7 +153,8 @@ get_wdpa <- function(isocode, path = "wdpa", key = "WDPA_KEY") {
       obj    = all_pa,
       dsn    = file.path(path, paste0(isocode, "_protectedareas.gpkg")),
       layer  = paste0(isocode, "_protectedareas"),
-      append = FALSE)
+      append = FALSE,
+      quiet = TRUE)
 
     return(all_pa)
 
