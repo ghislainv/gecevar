@@ -1,6 +1,7 @@
-#' Create multilayer Tiff file with 10 environmental variables
+#' Create multilayer Tiff file with 14 environmental variables
 #'
-#' @description Variables are type of soil, elevation, slope, aspect,
+#' @description Variables are soil texture ??, type of soil,
+#'   elevation, slope, aspect,
 #'   roughness, distance to sea, protected areas,
 #'   distance to roads, distance to cities and town, distance to
 #'   rivers and waterbodies.
@@ -48,15 +49,14 @@
 #' | Aspect                               | degrees       |
 #' | Roughness                            | m             |
 #' | Slope                                | degrees       |
-#' | Solar radiation                      | Wh.m^{-2}.day |
-#' | Soilgrids                            | category      |
+#' | Soil category                        | category      |
 #' | Forest                               | binary        |
 #' | Distance to forest                   | m             |
 #' | Distance sea                         | m             |
 #' | Distance road                        | m             |
 #' | Distance place                       | m             |
 #' | Distance watering place              | m             |
-#' | Protected Area (WDPA)                | category      |
+#' | Protected Area (WDPA)                | binary        |
 #' | Population density                   | people/km²    |
 #' @md
 #'

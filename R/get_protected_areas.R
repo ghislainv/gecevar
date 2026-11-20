@@ -41,7 +41,7 @@
 #'
 #' | Name                                 | Unit          |
 #' | ------------------------------------ | ------------- |
-#' | Protected Area (WDPA)                | category      |
+#' | Protected Area (WDPA)                | binary        |
 #' @md
 #'
 #' @importFrom glue glue

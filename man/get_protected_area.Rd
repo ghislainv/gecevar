@@ -57,6 +57,6 @@ environ.tif.aux.xml. This solve all accessibility problems with
 
 Unit of each environ variable :\tabular{ll}{
    Name \tab Unit \cr
-   Protected Area (WDPA) \tab category \cr
+   Protected Area (WDPA) \tab binary \cr
 }
 }

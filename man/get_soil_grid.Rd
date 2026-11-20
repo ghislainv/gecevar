@@ -57,6 +57,6 @@ environ.tif.aux.xml. This solve all accessibility problems with
 
 Unit of each environ variable :\tabular{ll}{
    Name \tab Unit \cr
-   Soilgrids \tab category \cr
+   Soil category \tab category \cr
 }
 }

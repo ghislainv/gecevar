@@ -41,7 +41,7 @@
 #'
 #' | Name                                 | Unit          |
 #' | ------------------------------------ | ------------- |
-#' | Soilgrids                            | category      |
+#' | Soil category                        | category      |
 #' @md
 #'
 #' @importFrom glue glue

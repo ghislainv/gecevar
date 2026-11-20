@@ -2,7 +2,7 @@
 % Please edit documentation in R/get_env_variables.R
 \name{get_env_variables}
 \alias{get_env_variables}
-\title{Create multilayer Tiff file with 10 environmental variables}
+\title{Create multilayer Tiff file with 14 environmental variables}
 \usage{
 get_env_variables(
   extent_latlon,
@@ -44,7 +44,8 @@ FALSE.}
 character. Absolute path to \code{environ.tif} file.
 }
 \description{
-Variables are type of soil, elevation, slope, aspect,
+Variables are soil texture ??, type of soil,
+elevation, slope, aspect,
 roughness, distance to sea, protected areas,
 distance to roads, distance to cities and town, distance to
 rivers and waterbodies.
@@ -64,15 +65,14 @@ Unit of each environ variable :\tabular{ll}{
    Aspect \tab degrees \cr
    Roughness \tab m \cr
    Slope \tab degrees \cr
-   Solar radiation \tab Wh.m^{-2}.day \cr
-   Soilgrids \tab category \cr
+   Soil category \tab category \cr
    Forest \tab binary \cr
    Distance to forest \tab m \cr
    Distance sea \tab m \cr
    Distance road \tab m \cr
    Distance place \tab m \cr
    Distance watering place \tab m \cr
-   Protected Area (WDPA) \tab category \cr
+   Protected Area (WDPA) \tab binary \cr
    Population density \tab people/km² \cr
 }
 }
