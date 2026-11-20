@@ -149,7 +149,7 @@ get_forest_var <- function(extent_latlon, extent_proj, EPSG,
   # Set resol and save to disk
   ofile <- file.path(destination, "data_raw", "forest_var", "dist_to_forest.tif")
   opts <- glue("-overwrite -t_srs {proj_t} -dstnodata {nodata_Int32} ",
-               "-r bilinear -tr {resol} {resol} -te {extent_proj_string} ",
+               "-r average -tr {resol} {resol} -te {extent_proj_string} ",
                "-ot Int32 -of GTiff ",
                "-co COMPRESS=LZW -co PREDICTOR=2")
   sf::gdal_utils(util="warp", source=destfile, destination=ofile,

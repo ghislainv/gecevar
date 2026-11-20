@@ -155,7 +155,7 @@ get_dist_to_sea <- function(extent_latlon, extent_proj, EPSG,
 
   # Resample to user resol
   ofile <- file.path(destination, "data_raw", "dist_sea", "dist_sea.tif")
-  opts <- glue("-overwrite -r bilinear -dstnodata {nodata_Int32} ",
+  opts <- glue("-overwrite -r average -dstnodata {nodata_Int32} ",
                "-te {extent_proj_string} -ot Int32 -of GTiff ",
                "-tr {resol} {resol} -co COMPRESS=LZW -co PREDICTOR=2")
   sf::gdal_utils(util="warp", source=destfile, destination=ofile,
