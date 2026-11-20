@@ -157,10 +157,12 @@ get_osm_var <- function(extent_latlon, extent_proj, EPSG,
 
     # Computes distances
     # To be improved with exclude argument and land area to avoid computing distance on every pixels.
-    r <- terra::rast(tif_file)
-    dist <- terra::distance(r, unit="m", filename=dist_file,
-                            gdal=c("COMPRESS=LZW", "PREDICTOR=2"),
-                            progress=0, overwrite=TRUE, datatype="INT4S")
+    sourcefile <- tif_file
+    destfile <- dist_file
+    cmd <- glue("gdal_proximity.py {sourcefile} {destfile} ",
+                "-ot Int32 -of GTiff -nodata {nodata_Int32} ",
+                "-values {1} -distunits GEO -use_input_nodata NO")
+    system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
 
     # Resample at the requested resolution computing the average
     opts <- glue("-overwrite -t_srs {proj_t} -dstnodata {nodata_Int32} ",
