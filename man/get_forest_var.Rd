@@ -11,8 +11,7 @@ get_forest_var(
   country_name,
   destination,
   resol = 1000,
-  rm_download = FALSE,
-  forest_year = 2010
+  rm_download = FALSE
 )
 }
 \arguments{
@@ -40,9 +39,6 @@ will be too big to fit in memory and R will crash. Default is
 \item{rm_download}{boolean. If TRUE remove download files and
 folders. Keep only environ.tif in \code{data_raw} folder, default is
 FALSE.}
-
-\item{forest_year}{int. Forest at the decade chosen. Must be one of
-2000, 2010 or 2020, default is 2010.}
 }
 \value{
 character. Absolute path to \code{environ.tif} file.
