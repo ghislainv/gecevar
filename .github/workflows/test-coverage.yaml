@@ -31,11 +31,9 @@ jobs:
           extra-packages: any::covr, any::XML, local::.
           needs: coverage
 
-      - name: Set wdpa key
+      - name: Test coverage
         env:
           WDPA_KEY: ${{ secrets.WDPA_KEY }}
-
-      - name: Test coverage
         run: |
           covr::codecov(
             quiet = FALSE,
