@@ -24,10 +24,10 @@ corresponds to c(xmin, ymax, xmax, ymin).}
 \item{proj_s}{character. EPSG code of the input file. Default to
 "EPSG:4326".}
 
-\item{opts}{vector. Additional GDAL options.}
-
-\item{overwite}{boolean. If FALSE, do not overwrite raster if it
+\item{overwrite}{boolean. If FALSE, do not overwrite raster if it
 exists. Default to TRUE.}
+
+\item{opts}{vector. Additional GDAL options.}
 }
 \description{
 Use gdal_translate to download raster data from a Cloud Optimized

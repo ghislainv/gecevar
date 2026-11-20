@@ -9,17 +9,17 @@
 #'   corresponds to c(xmin, ymax, xmax, ymin).
 #' @param proj_s character. EPSG code of the input file. Default to
 #'   "EPSG:4326".
-#' @param overwite boolean. If FALSE, do not overwrite raster if it
+#' @param overwrite boolean. If FALSE, do not overwrite raster if it
 #'   exists. Default to TRUE.
 #' @param opts vector. Additional GDAL options.
 #'
 #' @return NULL
 #' @keywords internal
-#' 
+#'
 gdal_utils_translate <- function(ifile, ofile, ullr_extent,
                                  proj_s="EPSG:4326",
                                  overwrite=TRUE, opts=NULL) {
-  
+
   if (!file.exists(ofile) | overwrite) {
     opts <- c(opts, "-projwin", ullr_extent, "-projwin_srs", proj_s,
               "-co", "COMPRESS=LZW", "-co", "PREDICTOR=2")
