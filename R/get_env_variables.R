@@ -1,7 +1,7 @@
-#' Create multilayer Tiff file with 11 environmental variables
+#' Create multilayer Tiff file with 10 environmental variables
 #'
 #' @description Variables are type of soil, elevation, slope, aspect,
-#'   roughness, solar radiation, distance to sea, protected areas,
+#'   roughness, distance to sea, protected areas,
 #'   distance to roads, distance to cities and town, distance to
 #'   rivers and waterbodies.
 #'
@@ -29,14 +29,6 @@
 #' @param rm_download boolean. If TRUE remove download files and
 #'   folders. Keep only environ.tif in `data_raw` folder, default is
 #'   FALSE.
-#'
-#' @param forest_year int. Forest at the decade chosen. Must be one of
-#'   2000, 2010 or 2020, default is 2010.
-#'
-#' @param gisBase NULL or character. Parameter `gisBase` for
-#'   `rgrass::initGRASS()`. The directory path to GRASS binaries and
-#'   libraries, containing bin and lib subdirectories among others; if
-#'   NULL, system("grass --config path") is tried.
 #'
 #' @return character. Absolute path to `environ.tif` file.
 #'
@@ -83,17 +75,12 @@
 
 get_env_variables <- function(extent_latlon, extent_proj, EPSG,
                               country_name, destination, resol=1000,
-                              rm_download=FALSE, forest_year=2010,
-                              gisBase=NULL) {
-
- srad_path <- get_srad(extent_latlon, extent_proj, EPSG,
-                       country_name, destination, resol,
-                       rm_download, gisBase)
+                              rm_download=FALSE) {
 
 
  forest_path <- get_forest_var(extent_latlon, extent_proj, EPSG,
                        country_name, destination, resol,
-                       rm_download, forest_year)
+                       rm_download)
 
  osm_path <- get_osm_var(extent_latlon, extent_proj, EPSG,
                                country_name, destination, resol,
@@ -128,7 +115,6 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
   ##=====================================
 
   # Load all rasters
-  srad <- terra::rast(srad_path)
   forest <- terra::rast(forest_path)
   osm <- terra::rast(osm_path)
   pop <- terra::rast(pop_path)
@@ -139,7 +125,7 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
 
   # Create environ raster with all layers
 
-  environ <- terra::c(srad, forest, osm, pop, wdpa, soil_grid, srtm, dist_sea)
+  environ <- c(forest, osm, pop, wdpa, soil_grid, srtm, dist_sea)
 
   # Write to disk
   ofile <- file.path(destination, "data_raw", "environ.tif")

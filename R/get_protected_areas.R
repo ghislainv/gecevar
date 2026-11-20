@@ -103,7 +103,7 @@ get_protected_area <- function(extent_latlon, extent_proj, EPSG,
   # rasterize wdpa geometries
   wdpa <- terra::rasterize(terra::project(vect(raw_data$geom[raw_data$is_marine==F]), proj_t),
                            r1, field=1, touches=F, background=0)
-  names(wdpa) <- "is_protected"
+  names(wdpa) <- "protected_area"
 
   #ifile <- file.path(destination, "data_raw", "wdpa", "temp", "wdpa_raw.tif")
   terra::writeRaster(wdpa, filename=file.path(destination, "data_raw", "WDPA.tif"),

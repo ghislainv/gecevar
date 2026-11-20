@@ -150,7 +150,7 @@ get_dist_to_sea <- function(extent_latlon, extent_proj, EPSG,
   destfile <- file.path(destination, "data_raw", "dist_sea", "temp", "dist_sea_raw.tif")
   cmd <- glue("gdal_proximity.py {sourcefile} {destfile} ",
               "-ot Int32 -of GTiff -nodata {nodata_Int32} ",
-              "-values {nodata_Int16} -distunits GEO -use_input_nodata NO")
+              "-values {nodata_Int32} -distunits GEO -use_input_nodata NO")
   system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
 
   # Resample to user resol
@@ -167,7 +167,7 @@ get_dist_to_sea <- function(extent_latlon, extent_proj, EPSG,
 
   # Create environ raster with all layers
   environ <- c(dist_sea)
-  layer_names <- c("dist_to_sea")
+  layer_names <- c("dist_sea")
   names(environ) <- layer_names
 
   # Write to disk

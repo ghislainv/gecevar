@@ -12,16 +12,17 @@ environ_path <- get_env_variables(extent_latlon = extent_latlon,
                                   EPSG = epsg,
                                   country_name = "Reunion",
                                   destination = tempdir(),
-                                  forest_year = 2010,
                                   resol = 1000,
-                                  rm_download = TRUE,
-                                  gisBase = NULL)
+                                  rm_download = TRUE)
 
 environ <- terra::rast(environ_path)
 ext_environ <- terra::ext(environ)
-layer_names <- c("aspect", "elevation", "roughness", "slope", "srad", "soil_type",
-               "dist_sea", "dist_road", "dist_place",
-               "dist_water", "wdpa", "population", "forest", "dist_forest")
+layer_names <- c("forest_percent", "dist_forest",
+                 "dist_road", "dist_place", "dist_water",
+                 "population", "protected_area",
+                 "soil_sand", "soil_silt", "soil_clay", "soil_type",
+                 "aspect", "elevation", "roughness", "slope",
+                 "dist_sea")
 
 test_that("get_env_variables works", {
   # Layers number and names
