@@ -82,31 +82,43 @@ get_env_variables <- function(extent_latlon, extent_proj, EPSG,
                        country_name, destination, resol,
                        rm_download)
 
+ cat("Forest variables done.")
+
  osm_path <- get_osm_var(extent_latlon, extent_proj, EPSG,
                                country_name, destination, resol,
                                rm_download)
+
+ cat("OSM variables done.")
 
  pop_path <- get_population(extent_latlon, extent_proj, EPSG,
                          country_name, destination, resol,
                          rm_download)
 
+ cat("Population done.")
+
  wdpa_path <- get_protected_area(extent_latlon, extent_proj, EPSG,
                                  country_name, destination, resol,
                                  rm_download)
 
+ cat("Protected areas done.")
 
  soilgrid_path <- get_soil_grid(extent_latlon, extent_proj, EPSG,
                                 country_name, destination, resol,
                                 rm_download)
 
+ cat("Soil variables done.")
+
  srtm_path <- get_srtm(extent_latlon, extent_proj, EPSG,
                        country_name, destination, resol,
                        rm_download)
+
+ cat("Elevation and derived variables done.")
 
  distsea_path <- get_dist_to_sea(extent_latlon, extent_proj, EPSG,
                           country_name, destination, resol,
                           rm_download)
 
+ cat("Distance to sea done.")
 
   ##=====================================
   ##
