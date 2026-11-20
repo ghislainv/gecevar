@@ -137,43 +137,37 @@ get_dist_to_sea <- function(extent_latlon, extent_proj, EPSG,
                  options=unlist(strsplit(opts, " ")),
                  quiet=TRUE)
 
-
-  # Resolution from res_out to chosen resolution using gdalwarp
-  # elevation
-  ifile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "elevation.tif")
-  ofile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "elevation_res.tif")
-  opts <- glue("-overwrite -r bilinear -tr {resol} {resol} -te {extent_proj_string} ",
-               "-ot Int16 -of GTiff -dstnodata {nodata_Int16} ",
-               "-co COMPRESS=LZW -co PREDICTOR=2")
-  sf::gdal_utils(util="warp", source=ifile, destination=ofile,
-                 options=unlist(strsplit(opts, " ")),
-                 quiet=TRUE)
-
-
   ##===========================
   ##
   ## Distance to Sea
   ##
   ##===========================
 
-  dir.create(file.path(destination, "data_raw", "dist_sea"), showWarnings=FALSE)
+  dir.create(file.path(destination, "data_raw", "dist_sea", "temp"), showWarnings=FALSE, recursive=TRUE)
 
-  nosea_bool <- terra::not.na(terra::rast(file.path(destination, "data_raw",
-                                    "srtm_v1_4_90m", "elevation_res.tif")))
-  dist_sea <- terra::distance(nosea_bool, unit = "m", target = TRUE)
-  values(dist_sea)[values(dist_sea) == 0] <- NA
+  # Compute distance to sea, ie nodata from 90m resol elevation raster
+  sourcefile <- file.path(destination, "data_raw", "srtm_v1_4_90m", "temp", "elevation.tif")
+  destfile <- file.path(destination, "data_raw", "dist_sea", "temp", "dist_sea_raw.tif")
+  cmd <- glue("gdal_proximity.py {sourcefile} {destfile} ",
+              "-ot Int32 -of GTiff -nodata {nodata_Int32} ",
+              "-values {nodata_Int16} -distunits GEO -use_input_nodata NO")
+  system(cmd, ignore.stdout=TRUE, ignore.stderr=TRUE)
 
+  # Resample to user resol
   ofile <- file.path(destination, "data_raw", "dist_sea", "dist_sea.tif")
-  terra::writeRaster(dist_sea, filename=ofile,
-                     gdal=c("COMPRESS=LZW","PREDICTOR=2"),
-                     progress=FALSE, overwrite=TRUE, datatype="INT4S")
+  opts <- glue("-overwrite -r bilinear -dstnodata {nodata_Int32} ",
+               "-te {extent_proj_string} -ot Int32 -of GTiff ",
+               "-tr {resol} {resol} -co COMPRESS=LZW -co PREDICTOR=2")
+  sf::gdal_utils(util="warp", source=destfile, destination=ofile,
+                 options=unlist(strsplit(opts, " ")),
+                 quiet=TRUE)
 
   # Load all rasters
   dist_sea <- terra::rast(file.path(destination, "data_raw", "dist_sea", "dist_sea.tif"))
 
   # Create environ raster with all layers
   environ <- c(dist_sea)
-  layer_names <- c("dist_sea")
+  layer_names <- c("dist_to_sea")
   names(environ) <- layer_names
 
   # Write to disk
