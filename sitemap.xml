@@ -1,81 +1,36 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/404.html</loc>
-  </url>
-  <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/CODE_OF_CONDUCT.html</loc>
-  </url>
-  <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/CONTRIBUTING.html</loc>
-  </url>
-  <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/articles/gecevar.html</loc>
-  </url>
-  <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/articles/index.html</loc>
-  </url>
-  <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/articles/specificities.html</loc>
-  </url>
-  <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/articles/variables.html</loc>
-  </url>
-  <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/authors.html</loc>
-  </url>
-  <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/index.html</loc>
-  </url>
-  <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/news/index.html</loc>
-  </url>
-  <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/reference/create_xml_legend.html</loc>
-  </url>
-  <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/reference/daylength.html</loc>
-  </url>
-  <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/reference/declination.html</loc>
-  </url>
-  <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/reference/degrees.html</loc>
-  </url>
-  <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/reference/eqtime.html</loc>
-  </url>
-  <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/reference/gdal_utils_translate.html</loc>
-  </url>
-  <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/reference/get_aoi_extent.html</loc>
-  </url>
-  <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/reference/get_chelsa_current.html</loc>
-  </url>
-  <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/reference/get_chelsa_future.html</loc>
-  </url>
-  <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/reference/get_env_variables.html</loc>
-  </url>
-  <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/reference/get_extents_from_e_latlon.html</loc>
-  </url>
-  <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/reference/get_nodata_dtype_chelsa.html</loc>
-  </url>
-  <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/reference/merge_files.html</loc>
-  </url>
-  <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/reference/nodata_chelsa.html</loc>
-  </url>
-  <url>
-    <loc>https://ecology.ghislainv.fr/gecevar/reference/radians.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>https://ecology.ghislainv.fr/gecevar/404.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/CODE_OF_CONDUCT.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/CONTRIBUTING.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/articles/gecevar.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/articles/index.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/articles/specificities.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/articles/variables.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/authors.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/index.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/news/index.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/reference/create_xml_legend.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/reference/daylength.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/reference/declination.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/reference/degrees.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/reference/eqtime.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/reference/gdal_utils_translate.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/reference/get_aoi_extent.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/reference/get_chelsa_current.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/reference/get_chelsa_future.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/reference/get_dist_to_sea.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/reference/get_env_variables.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/reference/get_extents_from_e_latlon.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/reference/get_forest_var.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/reference/get_nodata_dtype_chelsa.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/reference/get_osm_var.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/reference/get_population.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/reference/get_protected_area.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/reference/get_soil_grid.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/reference/get_srtm.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/reference/index.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/reference/merge_files.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/reference/nodata_chelsa.html</loc></url>
+<url><loc>https://ecology.ghislainv.fr/gecevar/reference/radians.html</loc></url>
 </urlset>
+
