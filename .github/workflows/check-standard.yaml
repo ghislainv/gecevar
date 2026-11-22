@@ -25,6 +25,7 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
+      WDPA_KEY: ${{ secrets.WDPA_KEY }}
 
     steps:
       - name: Install Ubuntu system requirements
@@ -34,7 +35,6 @@ jobs:
           sudo apt install curl
           sudo apt install gdal-bin
           sudo apt install libgdal-dev
-          sudo apt install grass
 
 
       - name: Install macOS system requirements
@@ -43,7 +43,6 @@ jobs:
           brew install proj gdal
           curl -LO https://raw.githubusercontent.com/GiovanniBussi/macports-ci/master/macports-ci
           source ./macports-ci install
-          sudo port install grass
 
       - name: Install Windows system requirements (OSGeo4W)
         if: runner.os == 'Windows'
@@ -58,7 +57,7 @@ jobs:
             proj-devel,gdal-devel,geos-devel,libtiff-devel,libpng-devel,pdal-devel,netcdf-devel,cairo-devel,fftw,freetype-devel,gdal-ecw,gdal-mrsid,liblas-devel,libxdr,libpq-devel,pdcurses,python3-matplotlib,python3-numpy,python3-ply,python3-pywin32,python3-wxpython,regex-devel,zstd-devel
 
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: r-lib/actions/setup-pandoc@v2
 
